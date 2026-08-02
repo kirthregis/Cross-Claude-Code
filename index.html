@@ -17,7 +17,7 @@
 </head>
 <body class="min-h-screen flex font-sans antialiased bg-slate-100">
 
-  <!-- LEFT SIDEBAR NAVIGATION (Matching exact #151e36 navy from screenshot) -->
+  <!-- LEFT SIDEBAR NAVIGATION (Exact #151e36 navy) -->
   <aside class="w-64 bg-[#151e36] text-white flex flex-col shrink-0 min-h-screen sticky top-0 z-40 select-none">
     
     <!-- Sidebar Header -->
@@ -241,12 +241,17 @@
     const state = {
       view: 'client', // 'client' | 'delegate' | 'instructor' | 'backoffice' | 'guide'
       section: 'courses', // 'courses' | 'company' | 'verify'
-      backOfficeTab: 'reporting', // 'reporting' | 'bookings' | 'costing' | 'certificates' | 'enquiries'
+      backOfficeTab: 'reporting',
+      expandedCourseId: null, // Tracks open breakout/dropdown panel on client view
       
       courses: [
         {
           id: 'BK-2026-001',
-          title: 'HazMat Incident Command',
+          title: 'NFPA 1081 Interior Structural Facility Fire Brigade Member',
+          subtitle: 'BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 5 DAYS · 35 CPD HOURS',
+          desc: 'Live fire inside a real structure. Team attack, search and casualty removal under real heat, on a real fireground.',
+          dateBadge: '7 Sep 2026 — 19 seats left',
+          dateBadgeType: 'green',
           status: 'delivered',
           seatsFilled: 12,
           totalSeats: 30,
@@ -257,11 +262,22 @@
           netKept: 70790,
           margin: 91,
           date: '10-14 Jul 2026',
-          location: 'FSG Fireground 1'
+          location: 'FSG Fireground 1',
+          breakout: {
+            theory: '10 Hours Online Self-Paced Theory (NFPA 1081 Chapter 5 Structural Fire Fighting)',
+            practical: '25 Hours Live Fireground Evolutions (Interior Attack, Search & Rescue, Foam Operations)',
+            prereq: 'Medical Clearance & NFPA 1081 Incipient Level Certification',
+            pricePerSeat: 3500,
+            cpd: '35 Official CPD Credit Hours'
+          }
         },
         {
           id: 'BK-2026-002',
-          title: 'NFPA 1081 Interior Structural Fire Fighting',
+          title: 'NFPA 1081 Advanced Exterior Facility Fire Brigade Member',
+          subtitle: 'BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 5 DAYS · 35 CPD HOURS',
+          desc: 'Master streams, foam attack and defensive teamwork on live fuel fires.',
+          dateBadge: 'Dates on request',
+          dateBadgeType: 'gray',
           status: 'delivered',
           seatsFilled: 18,
           totalSeats: 25,
@@ -272,50 +288,79 @@
           netKept: 155475,
           margin: 87,
           date: '18-22 Jul 2026',
-          location: 'FSG Structural Complex'
+          location: 'FSG Structural Complex',
+          breakout: {
+            theory: '10 Hours Online Self-Paced Theory (NFPA 1081 Chapter 6 Advanced Exterior)',
+            practical: '25 Hours Fireground Evolutions (Bulk Fuel Fires, Master Stream Coordinated Attack)',
+            prereq: 'NFPA 1081 Incipient Level & Medical Fitness Clearance',
+            pricePerSeat: 3800,
+            cpd: '35 Official CPD Credit Hours'
+          }
         },
         {
           id: 'BK-2026-003',
-          title: 'NFPA 1081 Advanced Exterior Fire Fighting',
+          title: 'NFPA 1081 Incipient Facility Fire Brigade',
+          subtitle: 'BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 3 DAYS · 21 CPD HOURS',
+          desc: 'Stop a fire in its first minutes — the right extinguisher, used correctly, and the judgement to withdraw.',
+          dateBadge: '12 Aug 2026 — 16 seats left',
+          dateBadgeType: 'green',
           status: 'confirmed',
           seatsFilled: 22,
           totalSeats: 25,
-          days: 4,
+          days: 3,
           billed: 110000,
-          crewDays: 4,
-          groundDays: 4,
+          crewDays: 3,
+          groundDays: 3,
           netKept: 94180,
           margin: 86,
           date: '12-15 Aug 2026',
-          location: 'FSG Fireground 2'
+          location: 'FSG Fireground 2',
+          breakout: {
+            theory: '6 Hours Online Theory (Fire Chemistry, Portable Extinguisher Selection & Hazard Assessment)',
+            practical: '15 Hours Practical Evolutions (Live Class A, B & C Extinguisher Drills, Evacuation Protocol)',
+            prereq: 'No prior firefighting experience required',
+            pricePerSeat: 2400,
+            cpd: '21 Official CPD Credit Hours'
+          }
         },
         {
           id: 'BK-2026-004',
-          title: 'Advanced Bulk Storage Response',
+          title: 'Advanced Flammable Liquids Response',
+          subtitle: 'IN PERSON · 2 DAYS · 14 CPD HOURS',
+          desc: 'Foam application and coordinated attack on live flammable-liquid fires.',
+          dateBadge: 'Dates on request',
+          dateBadgeType: 'gray',
           status: 'provisional',
           seatsFilled: 20,
           totalSeats: 25,
-          days: 5,
+          days: 2,
           billed: 125000,
-          crewDays: 5,
-          groundDays: 5,
+          crewDays: 2,
+          groundDays: 2,
           netKept: 104875,
           margin: 84,
           date: '24-28 Aug 2026',
-          location: 'FSG Industrial Pad'
+          location: 'FSG Industrial Pad',
+          breakout: {
+            theory: '4 Hours Classroom & Tactical Briefing (Foam Chemistry, Application Rates & Trajectory)',
+            practical: '10 Hours Fireground Application (Coordinated Multi-Nozzle Foam Attack on Bulk Spills)',
+            prereq: 'NFPA 1081 Exterior or Structural Fire Brigade Certification',
+            pricePerSeat: 4200,
+            cpd: '14 Official CPD Credit Hours'
+          }
         }
       ],
       certificates: [
-        { id: 'FSG-CERT-2026-0101', student: 'Ahmed Al-Mansoori', course: 'BK-2026-001 HazMat Incident Command', date: '15 Jul 2026', status: 'Issued' },
-        { id: 'FSG-CERT-2026-0102', student: 'Rashid Al-Nuaimi', course: 'BK-2026-001 HazMat Incident Command', date: '15 Jul 2026', status: 'Issued' },
-        { id: 'FSG-CERT-2026-0103', student: 'Khalid Al-Dhaheri', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' },
-        { id: 'FSG-CERT-2026-0104', student: 'Sultan Al-Kaabi', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' },
-        { id: 'FSG-CERT-2026-0105', student: 'Omar Al-Suwaidi', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' },
-        { id: 'FSG-CERT-2026-0106', student: 'Faisal Al-Mazrouei', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' }
+        { id: 'FSG-CERT-2026-0101', student: 'Ahmed Al-Mansoori', course: 'BK-2026-001 NFPA 1081 Interior Structural', date: '15 Jul 2026', status: 'Issued' },
+        { id: 'FSG-CERT-2026-0102', student: 'Rashid Al-Nuaimi', course: 'BK-2026-001 NFPA 1081 Interior Structural', date: '15 Jul 2026', status: 'Issued' },
+        { id: 'FSG-CERT-2026-0103', student: 'Khalid Al-Dhaheri', course: 'BK-2026-002 NFPA 1081 Advanced Exterior', date: '23 Jul 2026', status: 'Issued' },
+        { id: 'FSG-CERT-2026-0104', student: 'Sultan Al-Kaabi', course: 'BK-2026-002 NFPA 1081 Advanced Exterior', date: '23 Jul 2026', status: 'Issued' },
+        { id: 'FSG-CERT-2026-0105', student: 'Omar Al-Suwaidi', course: 'BK-2026-002 NFPA 1081 Advanced Exterior', date: '23 Jul 2026', status: 'Issued' },
+        { id: 'FSG-CERT-2026-0106', student: 'Faisal Al-Mazrouei', course: 'BK-2026-002 NFPA 1081 Advanced Exterior', date: '23 Jul 2026', status: 'Issued' }
       ],
       enquiries: [
         { id: 'ENQ-2026-101', client: 'Abu Dhabi National Energy (TAQA)', course: 'NFPA 1081 Interior Structural', seats: 20, status: 'Quoted', value: 140000, date: '28 Jul 2026' },
-        { id: 'ENQ-2026-102', client: 'Al Ain Distribution Co.', course: 'HazMat Incident Command', seats: 15, status: 'New', value: 95000, date: '01 Aug 2026' }
+        { id: 'ENQ-2026-102', client: 'Al Ain Distribution Co.', course: 'NFPA 1081 Advanced Exterior', seats: 15, status: 'New', value: 95000, date: '01 Aug 2026' }
       ],
       calc: {
         fee: 130000,
@@ -327,7 +372,6 @@
 
     function setView(viewName) {
       state.view = viewName;
-      // Update sidebar role buttons
       ['client', 'delegate', 'instructor', 'backoffice', 'guide'].forEach(r => {
         const btn = document.getElementById(`role-btn-${r}`);
         if (!btn) return;
@@ -338,7 +382,6 @@
         }
       });
 
-      // Update header title
       const headerTitle = document.getElementById('header-title');
       if (viewName === 'client') {
         headerTitle.innerText = "Courses & booking";
@@ -357,7 +400,6 @@
 
     function setSection(secName) {
       state.section = secName;
-      // Update sidebar section buttons
       ['courses', 'company', 'verify'].forEach(s => {
         const btn = document.getElementById(`sec-btn-${s}`);
         if (!btn) return;
@@ -380,6 +422,15 @@
 
     function setBackOfficeTab(tabName) {
       state.backOfficeTab = tabName;
+      render();
+    }
+
+    function toggleCourseBreakout(courseId) {
+      if (state.expandedCourseId === courseId) {
+        state.expandedCourseId = null;
+      } else {
+        state.expandedCourseId = courseId;
+      }
       render();
     }
 
@@ -411,6 +462,10 @@
       state.courses.push({
         id: newId,
         title,
+        subtitle: `BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · ${days} DAYS`,
+        desc: 'Custom scheduled industrial training evolution.',
+        dateBadge: 'New Scheduled Date',
+        dateBadgeType: 'green',
         status,
         seatsFilled,
         totalSeats,
@@ -421,7 +476,14 @@
         netKept,
         margin,
         date: 'Sept 2026',
-        location: 'FSG Fireground 1'
+        location: 'FSG Fireground 1',
+        breakout: {
+          theory: `${Math.round(days * 2)} Hours Online Theory Module`,
+          practical: `${Math.round(days * 5)} Hours Practical Fireground Evolution`,
+          prereq: 'Medical Clearance Required',
+          pricePerSeat: Math.round(billed / seatsFilled),
+          cpd: `${days * 7} Official CPD Credit Hours`
+        }
       });
 
       closeModal();
@@ -456,32 +518,28 @@
     }
 
     /* =========================================================
-       1. CLIENT WEBSITE VIEW (PIXEL-PERFECT FROM SCREENSHOT)
+       1. CLIENT WEBSITE VIEW WITH DROPDOWN BREAKOUTS
        ========================================================= */
     function renderClientWebsite() {
       return `
         <div class="space-y-6">
           
-          <!-- DARK NAVY HERO BANNER (exact #0f224a) -->
+          <!-- DARK NAVY HERO BANNER -->
           <div class="bg-[#0f224a] text-white rounded-2xl p-8 shadow-md relative overflow-hidden">
-            <!-- Arabic Toggle Button -->
             <div class="absolute top-6 right-6">
               <button class="px-3.5 py-1 rounded-full border border-slate-400/50 text-xs font-semibold hover:bg-white/10 transition">
                 العربية
               </button>
             </div>
 
-            <!-- Main Headline -->
             <h2 class="text-3xl font-extrabold tracking-tight mb-4 max-w-2xl">
               Real fire. Real training. Certified people.
             </h2>
 
-            <!-- Paragraph text -->
             <p class="text-sm text-slate-200 leading-relaxed max-w-3xl">
               Welcome. We train industrial and workplace emergency responders to NFPA standards — live fire, rescue, hazardous materials and command — delivered wherever you need us: at our training grounds or yours, across the UAE and beyond. And we run the way the future runs: an AI-driven, fully paperless operation, from your first enquiry to the certificate in your inbox — one intelligent system, no forms, no chasing, no paper.
             </p>
 
-            <!-- Social pills and telephone row -->
             <div class="mt-8 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-700/60">
               <div class="flex flex-wrap items-center gap-2">
                 <button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d9531f] hover:bg-[#c24618] text-xs font-semibold text-white transition">
@@ -510,7 +568,7 @@
             </div>
           </div>
 
-          <!-- WHITE EXPLANATION CARD ("Every course, delivered the way it teaches best") -->
+          <!-- WHITE EXPLANATION CARD -->
           <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-xs">
             <h3 class="text-base font-bold text-slate-900 mb-1">
               Every course, delivered the way it teaches best
@@ -520,125 +578,75 @@
             </p>
           </div>
 
-          <!-- 4-COLUMN COURSE CARDS GRID -->
+          <!-- 4-COLUMN COURSE CARDS WITH EXPANDABLE BREAKOUTS -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            <!-- Card 1 -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
-              <div>
-                <h4 class="text-sm font-bold text-slate-900 leading-snug">
-                  NFPA 1081 Interior Structural Facility Fire Brigade Member
-                </h4>
-                <p class="text-[10px] font-bold text-[#d9531f] mt-2 uppercase tracking-wide leading-normal">
-                  BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 5 DAYS · 35 CPD HOURS
-                </p>
-                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
-                  Live fire inside a real structure. Team attack, search and casualty removal under real heat, on a real fireground.
-                </p>
-              </div>
-              
-              <div class="mt-6 pt-4 space-y-3">
-                <span class="inline-block px-2.5 py-1 rounded-md bg-[#e0f2f1] text-[#0f766e] text-xs font-bold">
-                  7 Sep 2026 — 19 seats left
-                </span>
-                <div class="pt-2 border-t border-slate-100">
-                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <span>🔒</span><span>Price shared with registered visitors</span>
+            ${state.courses.map(course => {
+              const isExpanded = state.expandedCourseId === course.id;
+              const badgeClass = course.dateBadgeType === 'green' ? 'bg-[#e0f2f1] text-[#0f766e]' : 'bg-slate-100 text-slate-700';
+              return `
+                <div class="bg-white border ${isExpanded ? 'border-[#d9531f] ring-2 ring-[#d9531f]/20' : 'border-slate-200'} rounded-xl p-5 shadow-xs flex flex-col justify-between transition">
+                  <div>
+                    <h4 class="text-sm font-bold text-slate-900 leading-snug">
+                      ${course.title}
+                    </h4>
+                    <p class="text-[10px] font-bold text-[#d9531f] mt-2 uppercase tracking-wide leading-normal">
+                      ${course.subtitle}
+                    </p>
+                    <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                      ${course.desc}
+                    </p>
                   </div>
-                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
-                    One minute to register — then every price opens, and it stays open.
-                  </p>
-                </div>
-              </div>
-            </div>
+                  
+                  <div class="mt-6 pt-4 space-y-3">
+                    <span class="inline-block px-2.5 py-1 rounded-md ${badgeClass} text-xs font-bold">
+                      ${course.dateBadge}
+                    </span>
+                    
+                    <div class="pt-2 border-t border-slate-100">
+                      <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <span>🔒</span><span>Price shared with registered visitors</span>
+                      </div>
+                      <p class="text-[10px] text-slate-500 mt-1 leading-normal">
+                        One minute to register — then every price opens, and it stays open.
+                      </p>
+                    </div>
 
-            <!-- Card 2 -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
-              <div>
-                <h4 class="text-sm font-bold text-slate-900 leading-snug">
-                  NFPA 1081 Advanced Exterior Facility Fire Brigade Member
-                </h4>
-                <p class="text-[10px] font-bold text-[#d9531f] mt-2 uppercase tracking-wide leading-normal">
-                  BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 5 DAYS · 35 CPD HOURS
-                </p>
-                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
-                  Master streams, foam attack and defensive teamwork on live fuel fires.
-                </p>
-              </div>
+                    <!-- DROPDOWN / BREAKOUT TOGGLE BUTTON -->
+                    <button
+                      onclick="toggleCourseBreakout('${course.id}')"
+                      class="w-full mt-3 py-2 px-3 rounded-lg border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center justify-between transition"
+                    >
+                      <span>${isExpanded ? 'Hide Course Breakout ▲' : 'View Course Breakout & Syllabus ▼'}</span>
+                    </button>
 
-              <div class="mt-6 pt-4 space-y-3">
-                <span class="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
-                  Dates on request
-                </span>
-                <div class="pt-2 border-t border-slate-100">
-                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <span>🔒</span><span>Price shared with registered visitors</span>
+                    <!-- EXPANDABLE BREAKOUT PANEL -->
+                    ${isExpanded ? `
+                      <div class="mt-3 p-3.5 bg-slate-900 text-white rounded-lg text-xs space-y-2.5 animate-fadeIn">
+                        <div class="border-b border-slate-700 pb-1.5">
+                          <span class="text-[10px] font-bold text-[#d9531f] uppercase tracking-wider">Syllabus & Delivery Breakout</span>
+                        </div>
+                        <div>
+                          <span class="text-slate-400 text-[10px] block">Theory Module (Online/Self-Paced)</span>
+                          <span class="text-slate-200 font-medium">${course.breakout.theory}</span>
+                        </div>
+                        <div>
+                          <span class="text-slate-400 text-[10px] block">Practical Evolution (Live Fireground)</span>
+                          <span class="text-slate-200 font-medium">${course.breakout.practical}</span>
+                        </div>
+                        <div>
+                          <span class="text-slate-400 text-[10px] block">Prerequisites</span>
+                          <span class="text-slate-200 font-medium">${course.breakout.prereq}</span>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800 flex justify-between items-center font-mono">
+                          <span class="text-slate-400">Est. Delegate Rate:</span>
+                          <span class="text-emerald-400 font-bold">AED ${course.breakout.pricePerSeat.toLocaleString()}/pax</span>
+                        </div>
+                      </div>
+                    ` : ''}
                   </div>
-                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
-                    One minute to register — then every price opens, and it stays open.
-                  </p>
                 </div>
-              </div>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
-              <div>
-                <h4 class="text-sm font-bold text-slate-900 leading-snug">
-                  NFPA 1081 Incipient Facility Fire Brigade
-                </h4>
-                <p class="text-[10px] font-bold text-[#d9531f] mt-2 uppercase tracking-wide leading-normal">
-                  BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 3 DAYS · 21 CPD HOURS
-                </p>
-                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
-                  Stop a fire in its first minutes — the right extinguisher, used correctly, and the judgement to withdraw.
-                </p>
-              </div>
-
-              <div class="mt-6 pt-4 space-y-3">
-                <span class="inline-block px-2.5 py-1 rounded-md bg-[#e0f2f1] text-[#0f766e] text-xs font-bold">
-                  12 Aug 2026 — 16 seats left
-                </span>
-                <div class="pt-2 border-t border-slate-100">
-                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <span>🔒</span><span>Price shared with registered visitors</span>
-                  </div>
-                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
-                    One minute to register — then every price opens, and it stays open.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Card 4 -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
-              <div>
-                <h4 class="text-sm font-bold text-slate-900 leading-snug">
-                  Advanced Flammable Liquids Response
-                </h4>
-                <p class="text-[10px] font-bold text-slate-700 mt-2 uppercase tracking-wide leading-normal">
-                  IN PERSON · 2 DAYS · 14 CPD HOURS
-                </p>
-                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
-                  Foam application and coordinated attack on live flammable-liquid fires.
-                </p>
-              </div>
-
-              <div class="mt-6 pt-4 space-y-3">
-                <span class="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
-                  Dates on request
-                </span>
-                <div class="pt-2 border-t border-slate-100">
-                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                    <span>🔒</span><span>Price shared with registered visitors</span>
-                  </div>
-                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
-                    One minute to register — then every price opens, and it stays open.
-                  </p>
-                </div>
-              </div>
-            </div>
-
+              `;
+            }).join('')}
           </div>
 
         </div>
@@ -646,10 +654,9 @@
     }
 
     /* =========================================================
-       2. BACK OFFICE VIEW (THE EXECUTIVE REPORTING DASHBOARD)
+       2. BACK OFFICE VIEW (REPORTING, REGISTER & CALCULATOR)
        ========================================================= */
     function renderBackOffice() {
-      // Back office sub-navigation bar
       const tabs = [
         { id: 'reporting', label: 'Reporting' },
         { id: 'bookings', label: 'Bookings & Occupancy Register', count: state.courses.length },
@@ -686,7 +693,6 @@
       if (state.backOfficeTab === 'reporting') {
         tabContent = `
           <div class="space-y-6">
-            <!-- 4 Executive Metric Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div class="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
                 <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Billed this month (before VAT)</p>
@@ -721,7 +727,6 @@
               </div>
             </div>
 
-            <!-- Money billed chart & status cards -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
                 <h3 class="text-base font-bold text-slate-900">Money billed, this month against last</h3>
@@ -750,7 +755,6 @@
                 </div>
               </div>
 
-              <!-- Bookings by status -->
               <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs flex flex-col justify-between">
                 <div>
                   <h3 class="text-base font-bold text-slate-900">Bookings by status</h3>
@@ -776,7 +780,6 @@
               </div>
             </div>
 
-            <!-- Seat Occupancy -->
             <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
                 <div>
