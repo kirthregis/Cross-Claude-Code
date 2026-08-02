@@ -17,23 +17,38 @@ describe("EVG entity + settlement details", () => {
     process.env.DB_PATH = join(mkdtempSync(join(tmpdir(), "gr-")), "t.db");
   });
 
-  it("shows fillable blanks on the invoice when bank details are missing", async () => {
+  it("prints the real EVG settlement details on the invoice", async () => {
     const { generateDealPack } = await import("../contract");
     const inv = generateDealPack(gig()).invoice;
-    // Must be usable as a printed template, not reference an app screen.
-    expect(inv).toMatch(/fill in from the EVG bank statement/i);
-    expect(inv).toMatch(/\| IBAN \| _+ \|/);
-    expect(inv).not.toMatch(/\/profile/);
+    expect(inv).toContain("EMY VISION GROUP FZC");
+    expect(inv).toContain("AE060330000019102008190");   // AED IBAN
+    expect(inv).toContain("BOMLAEAD");
+    expect(inv).toMatch(/Mashreq/i);
+    expect(inv).not.toMatch(/_{6,}/);                   // no blanks left
   });
 
-  it("flags licence number and bank as gaps", async () => {
+  it("offers the other currency accounts", async () => {
+    const { generateDealPack } = await import("../contract");
+    const inv = generateDealPack(gig()).invoice;
+    expect(inv).toContain("AE760330000019102008191");   // GBP
+    expect(inv).toContain("AE490330000019102008192");   // USD
+    expect(inv).toContain("AE220330000019102008193");   // EUR
+  });
+
+  it("NEVER prints the Mashreq CIF — it is also the statement password", async () => {
+    const { generateDealPack } = await import("../contract");
+    const p = generateDealPack(gig());
+    for (const doc of [p.contract, p.invoice, p.runsheet, p.pressPack]) {
+      expect(doc).not.toContain("016087359");
+    }
+  });
+
+  it("reports no outstanding gaps — EVG details are all on file", async () => {
     const { profileGaps } = await import("../profile-store");
-    const g = profileGaps().join(" ");
-    expect(g).toMatch(/trade licence/i);
-    expect(g).toMatch(/bank details/i);
+    expect(profileGaps()).toEqual([]);
   });
 
-  it("renders saved bank details on the invoice and clears the gaps", async () => {
+  it("lets saved overrides replace the built-in bank details", async () => {
     const { saveProfile, profileGaps } = await import("../profile-store");
     const { registerProfileLoader } = await import("../profile-store");
     registerProfileLoader();

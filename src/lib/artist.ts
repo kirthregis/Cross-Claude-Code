@@ -59,6 +59,8 @@ export interface Management {
   phone: string;
   instagram?: string;
   website?: string;
+  /** Registered address, as printed on the trade licence. */
+  address?: string;
   /**
    * Settlement details for invoices.
    *
@@ -72,10 +74,13 @@ export interface Management {
 export interface BankDetails {
   accountName: string;
   bankName: string;
+  /** Primary (AED) IBAN. */
   iban: string;
   swift?: string;
   /** Free-text for branch / account no. / anything else the payer needs. */
   notes?: string;
+  /** Additional currency accounts, shown on request. */
+  alternates?: { currency: string; iban: string }[];
 }
 
 export interface TechRider {
@@ -139,17 +144,37 @@ export const DJ_EMY: ArtistProfile = {
 
   management: {
     company: "Emy Vision Group",
-    legalName: "PLACEHOLDER — EVG registered legal entity name & trade licence no.",
+    legalName: "Emy Vision Group FZC",
     contactName: "Kirth",
     contactRole: "Business Development",
     email: "admin@emyvisiongroup.com",
     phone: "+971 50 660 7743",
     instagram: "@evgroup2026",
     website: "https://emyvisiongroup.com",
-    // Fill these in at /profile — they come off the trade licence and the
-    // Mashreq account. Never paste them into a chat or an email thread.
-    tradeLicenceNo: undefined,
-    bank: undefined,
+    tradeLicenceNo: "4427087.01",
+    /** Sharjah Publishing City Free Zone. Formation no. 4427087. */
+    address: "Business Centre, Sharjah Publishing City Free Zone, Sharjah, United Arab Emirates",
+    bank: {
+      accountName: "EMY VISION GROUP FZC",
+      bankName: "Mashreqbank PSC (Mashreq NEO BIZ)",
+      iban: "AE060330000019102008190",
+      swift: "BOMLAEAD",
+      notes: "AED account 019102008190. Other currencies on request: GBP/USD/EUR.",
+      /**
+       * Multi-currency IBANs. Quoted on the invoice only when the client is
+       * paying in that currency.
+       *
+       * NOTE: the Mashreq customer number (CIF) is deliberately NOT stored
+       * here. It doubles as the password for Mashreq's protected statements,
+       * so it is a credential — it must never appear on a document sent to a
+       * client. Payments only ever need account name + IBAN + SWIFT.
+       */
+      alternates: [
+        { currency: "GBP", iban: "AE760330000019102008191" },
+        { currency: "USD", iban: "AE490330000019102008192" },
+        { currency: "EUR", iban: "AE220330000019102008193" },
+      ],
+    },
   },
 
   /**

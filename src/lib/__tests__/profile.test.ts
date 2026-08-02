@@ -27,18 +27,15 @@ describe("profile overrides", () => {
     expect(p.techRider.mixer.length).toBeGreaterThan(0);  // untouched
   });
 
-  it("reports the gaps that block production use", async () => {
+  it("reports no gaps now that the EVG licence and bank details are on file", async () => {
     const { profileGaps } = await import("../profile-store");
-    const gaps = profileGaps().join(" ");
-    // Artist legal name is now known (Imen Mannai); EVG entity details are not.
-    expect(gaps).toMatch(/EVG registered legal entity/i);
-    expect(gaps).toMatch(/trade licence/i);
+    expect(profileGaps()).toEqual([]);
   });
 
-  it("clears a gap once real data is entered", async () => {
+  it("re-reports a gap if a required field is blanked out", async () => {
     const { saveProfile, profileGaps } = await import("../profile-store");
-    const before = profileGaps().length;
-    saveProfile({ management: { legalName: "EVG FZ-LLC", tradeLicenceNo: "CN-1" } as never });
-    expect(profileGaps().length).toBeLessThan(before);
+    expect(profileGaps()).toEqual([]);
+    saveProfile({ management: { tradeLicenceNo: "" } as never });
+    expect(profileGaps().join(" ")).toMatch(/trade licence/i);
   });
 });

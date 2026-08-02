@@ -9,8 +9,9 @@ Company as the Client's single point of contact.
 Parties:
 
 **THE COMPANY** (contracting party, furnishing the services of the Artist)
-______________________  ← EVG registered legal entity name (from the business licence), trading as Emy Vision Group
-Trade Licence No: ______________________  ← from the EVG business licence
+Emy Vision Group FZC, trading as Emy Vision Group
+Trade Licence No: 4427087.01
+Business Centre, Sharjah Publishing City Free Zone, Sharjah, United Arab Emirates
 Attn: Kirth, Business Development
 admin@emyvisiongroup.com · +971 50 660 7743
 
