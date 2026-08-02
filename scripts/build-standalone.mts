@@ -8,7 +8,7 @@
  * No server, no install, no account. Opens from a link, installs to a phone
  * home screen, works with no signal.
  */
-import { mkdirSync, writeFileSync } from "fs";
+import { mkdirSync, writeFileSync, readFileSync } from "fs";
 import { DJ_EMY } from "../src/lib/artist";
 
 const P = DJ_EMY;
@@ -43,6 +43,10 @@ interface Edition {
           alternates?: { currency: string; iban: string }[] };
   /** Extra rows on the artist card. */
   showArtistLegalName: boolean;
+  /** Optional background image filename sitting next to index.html. */
+  backdrop?: string;
+  /** Artist's own contact, shown alongside the company's. */
+  artist?: { name: string; phone: string; email: string; instagram: string };
 }
 
 const EVG: Edition = {
@@ -93,19 +97,33 @@ const PERSONAL: Edition = {
   instagram: "@dj_emy_",
   website: "https://youtube.com/@DJEMY-o6d",
   company: [
-    ["Name", "Imen Mannai"],
-    ["Known as", "DJ Emy"],
+    ["Represented by", "Emy Vision Group FZC"],
+    ["Licence no.", "4427087.01"],
+    ["Company contact", "admin@emyvisiongroup.com"],
     ["Based", "Dubai, UAE"],
   ],
+  // Payments ALWAYS settle to the company, even on the artist's own tool —
+  // that is what keeps one accountable contracted party on every booking.
   bank: {
-    accountName: "Imen Mannai",
-    bankName: "Mashreq Bank PSC",
-    bankAddress: "P.O. Box 1250, Dubai, UAE",
-    accountNo: "019102066206",
-    iban: "AE270330000019102066206",
+    accountName: "EMY VISION GROUP FZC",
+    bankName: "Mashreqbank PSC (Mashreq NEO BIZ)",
+    accountNo: "019102008190",
+    iban: "AE060330000019102008190",
     swift: "BOMLAEAD",
+    alternates: [
+      { currency: "GBP", iban: "AE760330000019102008191" },
+      { currency: "USD", iban: "AE490330000019102008192" },
+      { currency: "EUR", iban: "AE220330000019102008193" },
+    ],
   },
   showArtistLegalName: true,
+  backdrop: "bg.jpg",
+  artist: {
+    name: "DJ Emy",
+    phone: "+971 50 344 3281",
+    email: "mannaiiman1@gmail.com",
+    instagram: "@dj_emy_",
+  },
 };
 
 /** PUBLIC=1 strips settlement details entirely (see public/README.md). */
@@ -134,6 +152,13 @@ const html = `<!DOCTYPE html>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#0a0a0f;color:#e4e4e7;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
  padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+${E.backdrop ? `body::before{content:"";position:fixed;inset:0;z-index:-2;
+ background:url("${E.backdrop}") center/cover no-repeat;opacity:.55}
+body::after{content:"";position:fixed;inset:0;z-index:-1;
+ background:linear-gradient(180deg,rgba(10,10,15,.72) 0%,rgba(10,10,15,.88) 45%,rgba(10,10,15,.96) 100%)}
+.card{background:rgba(24,24,27,.82)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+nav{background:rgba(17,17,20,.94)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+h1{text-shadow:0 2px 18px rgba(0,0,0,.85)}` : ""}
 .wrap{max-width:640px;margin:0 auto;padding:16px}
 h1{font-size:22px;margin:0;letter-spacing:-.4px}h1 span{color:#ef4444}
 .sub{font-size:12px;color:#71717a;margin-top:2px}
@@ -181,6 +206,13 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 .note{font-size:11.5px;color:#71717a;margin-top:10px;line-height:1.55}
 .warn{background:#78350f22;border:1px solid #b4530933;color:#fbbf24;border-radius:10px;padding:11px;font-size:12px;margin-top:10px}
 .copied{background:#065f46!important}
+.src{display:flex;gap:6px;margin-top:6px}
+.src div{flex:1;text-align:center;background:#27272a;border:1px solid #3f3f46;color:#a1a1aa;
+ border-radius:9px;padding:10px 4px;font-size:12px;cursor:pointer}
+.src div.on{background:#dc2626;border-color:#dc2626;color:#fff;font-weight:600}
+.found{background:#052e1a;border:1px solid #10b98144;border-radius:10px;padding:11px;font-size:12.5px;color:#6ee7b7;margin-top:10px}
+.found b{color:#a7f3d0}
+.hint{font-size:11.5px;color:#71717a;margin-top:8px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -190,8 +222,53 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
     <div class="sub">${E.senderLine} · ${E.phone}</div>
   </header>
 
+  <!-- ============ NEW GIG ============ -->
+  <section id="p-gig">
+    <div class="card">
+      <h2>Paste the gig — it fills itself in</h2>
+      <div class="hint">Copy the whole message or advert exactly as it arrived. Venue, date, hours, budget and the contact are read out automatically.</div>
+      <textarea id="ad" placeholder="e.g. Need an Afro House DJ this Saturday at Cove Beach, Dubai Marina. 2 hour peak slot, AED 6,500. WhatsApp +971 50 442 1188 — Karim"></textarea>
+
+      <label>How did it arrive?</label>
+      <div class="src">
+        <div class="on" data-src="whatsapp">WhatsApp</div>
+        <div data-src="instagram">Instagram</div>
+        <div data-src="email">Email</div>
+      </div>
+
+      <button class="btn" onclick="readAd()">Read it</button>
+      <div id="found" class="found hide"></div>
+    </div>
+
+    <div class="card" id="gigOut">
+      <h2>Your reply</h2>
+      <div class="hint">Change anything you like — especially the price — then send.</div>
+      <div class="row">
+        <div><label>Fee (AED)</label><input id="gFee" type="number" inputmode="numeric"></div>
+        <div><label>Their name</label><input id="gWho" placeholder="optional"></div>
+      </div>
+      <div class="row">
+        <div><label>Venue</label><input id="gVenue" placeholder="optional"></div>
+        <div><label>Date</label><input id="gDate" placeholder="optional"></div>
+      </div>
+      <label id="gSubjL">Subject</label>
+      <input id="gSubj">
+      <pre id="gMsg"></pre>
+      <a class="btn wa" id="gSend" href="#" target="_blank" rel="noopener">Send</a>
+      <button class="btn alt" onclick="copyMsg(this)">Copy instead</button>
+      <div id="gWarn" class="warn hide"></div>
+    </div>
+
+    <div class="card">
+      <h2>Gig alerts</h2>
+      <div class="hint" id="alertHint">Get a ping on this phone the moment a new gig is worth chasing.</div>
+      <button class="btn alt" id="alertBtn" onclick="toggleAlerts()">Turn on alerts</button>
+      <div id="alertState" class="hint"></div>
+    </div>
+  </section>
+
   <!-- ============ PRICE ============ -->
-  <section id="p-price">
+  <section id="p-price" class="hide">
     <div class="card">
       <label>What kind of booking?</label>
       <select id="tier">
@@ -313,6 +390,13 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
       <div class="kv"><span>Email</span><span>${E.email}</span></div>
       <div class="kv"><span>Instagram</span><span>${E.instagram}</span></div>
     </div>
+    ${E.artist ? `<div class="card"><h2>Artist contact</h2>
+      <div class="kv"><span>Name</span><span>${E.artist.name} (Imen Mannai)</span></div>
+      <div class="kv"><span>Phone</span><span>${E.artist.phone}</span></div>
+      <div class="kv"><span>Email</span><span>${E.artist.email}</span></div>
+      <div class="kv"><span>Instagram</span><span>${E.artist.instagram}</span></div>
+      <div class="note">Payments always settle to Emy Vision Group — one contracted party on every booking.</div>
+    </div>` : ""}
     ${PUBLIC ? "" : `<div class="card"><h2>Bank — for invoices</h2>
       <div class="kv"><span>Beneficiary</span><span>${B.accountName}</span></div>
       <div class="kv"><span>Bank</span><span>${B.bankName}</span></div>
@@ -348,7 +432,8 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 </div>
 
 <nav>
-  <button class="on" data-p="price"><i>💰</i>Price</button>
+  <button class="on" data-p="gig"><i>⚡</i>New gig</button>
+  <button data-p="price"><i>💰</i>Price</button>
   <button data-p="rates"><i>📋</i>Rates</button>
   <button data-p="neg"><i>💬</i>Negotiate</button>
   <button data-p="info"><i>🏢</i>Details</button>
@@ -356,6 +441,39 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 
 <script>
 var FLOOR = ${P.hardFloorAed};
+/* Voice differs per edition: the company speaks about her, she speaks as herself. */
+var IS_EVG = ${E.id === "evg" ? "true" : "false"};
+var SENDER_SUBJ = ${JSON.stringify(E.id === "evg" ? "DJ Emy" : "DJ Emy")};
+var INTRO_SHORT = ${JSON.stringify(E.id === "evg"
+  ? "Emy Vision Group here, representing DJ Emy."
+  : "DJ Emy here.")};
+var INTRO_LONG = ${JSON.stringify(E.id === "evg"
+  ? "I am writing from Emy Vision Group, which represents and manages DJ Emy, a GCC-based Afro House, Afro Tech and open-format DJ."
+  : "I am DJ Emy, a GCC-based Afro House, Afro Tech and open-format DJ, represented by Emy Vision Group.")};
+var AVAIL = ${JSON.stringify(E.id === "evg"
+  ? "She is available and it is exactly her sound (Afro House, Afro Tech, Tribal)."
+  : "I am available and it is exactly my sound (Afro House, Afro Tech, Tribal).")};
+var USB = ${JSON.stringify(E.id === "evg"
+  ? "she travels with USB and adapts to venue equipment"
+  : "I travel with USB and adapt to venue equipment")};
+var USB_CAP = ${JSON.stringify(E.id === "evg"
+  ? "She travels with USB and works with your house Pioneer setup."
+  : "I travel with USB and work with your house Pioneer setup.")};
+var EPK = ${JSON.stringify(E.website ?? "https://emyvisiongroup.com")};
+var SIGN = ${JSON.stringify(E.id === "evg"
+  ? "Emy Vision Group\n" + E.phone
+  : "DJ Emy\n" + E.phone)};
+function DEAR(w){return w==='there'?'Dear Booking Team,':'Dear '+w+','}
+function HOOK(k){
+  if(k==='brand_activation'||k==='festival')
+    return IS_EVG ? 'She was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025.'
+                  : 'I was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025.';
+  if(k==='hotel_lounge')
+    return IS_EVG ? 'She is known for golden-hour rooftop sessions \u2014 deep, tribal grooves that open a room and lift it.'
+                  : 'I am known for golden-hour rooftop sessions \u2014 deep, tribal grooves that open a room and lift it.';
+  return IS_EVG ? 'She is one of the GCC\u2019s few female Afro House DJs commanding a peak-time floor \u2014 100% live, reads the room.'
+                : 'I am one of the GCC\u2019s few female Afro House DJs commanding a peak-time floor \u2014 100% live, I read the room.';
+}
 function $(id){return document.getElementById(id)}
 function r50(n){return Math.round(n/50)*50}
 function fmt(n){return n.toLocaleString('en-US')}
@@ -364,7 +482,7 @@ document.querySelectorAll('nav button').forEach(function(b){
   b.onclick=function(){
     document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('on')});
     b.classList.add('on');
-    ['price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
+    ['gig','price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
     window.scrollTo(0,0);
   };
 });
@@ -449,10 +567,270 @@ function copyPitch(b){copyTxt($('pitch').textContent,b,'Copied ✓')}
 ${PUBLIC ? "" : `function copyBank(b){copyTxt(
  'Beneficiary: ${B.accountName}\\nBank: ${B.bankName}\\nIBAN: ${B.iban}\\nSWIFT/BIC: ${B.swift}',b,'Copied ✓')}`}
 
+
+/* ===================== GIG PARSER =====================
+   Reads a pasted advert the way the server-side engine does: venue tier,
+   date, hours, slot, budget and contact. Everything stays in the browser. */
+var SRC='whatsapp';
+document.querySelectorAll('.src div').forEach(function(d){
+  d.onclick=function(){
+    document.querySelectorAll('.src div').forEach(function(x){x.classList.remove('on')});
+    d.classList.add('on'); SRC=d.dataset.src; buildReply();
+  };
+});
+
+var TIERMAP=[
+  [/beach club|nikki beach|cove beach|zero gravity|pool party|day party/i,'beach_club',7000,'Beach club / pool'],
+  [/festival|main stage|arena|tournament|fan zone/i,'festival',13000,'Festival / main stage'],
+  [/brand|activation|product launch|corporate|company party|gala|conference|expo|fashion/i,'brand_activation',15000,'Brand / corporate'],
+  [/private|wedding|yacht|villa|birthday|engagement/i,'private_event',10000,'Private / VIP / yacht'],
+  [/rooftop|sky ?bar|hotel|lounge|brunch|resort/i,'hotel_lounge',5000,'Hotel / rooftop lounge'],
+  [/super ?club|night ?club|soho garden|white dubai|base dubai|club/i,'superclub',8000,'Nightclub'],
+  [/\\bbar\\b|restaurant|bistro|cafe|pub/i,'bar_restaurant',3000,'Bar / restaurant']
+];
+
+function pBudget(t){
+  var re=/(?:aed|dhs?|dirhams?)\\s*(\\d[\\d,]*(?:\\.\\d+)?)\\s*(k)?|(\\d[\\d,]*(?:\\.\\d+)?)\\s*(k)?\\s*(?:aed|dhs?|dirhams?)/gi,m,out=[];
+  while((m=re.exec(t))){var n=m[1]||m[3],k=m[2]||m[4];if(!n)continue;
+    var v=parseFloat(n.replace(/,/g,''));if(k)v*=1000;if(v>=200&&v<=500000)out.push(v);}
+  return out.length?Math.max.apply(null,out):null;
+}
+function pHours(t){
+  var h=t.match(/(\\d+(?:\\.\\d+)?)\\s*(?:-\\s*(\\d+(?:\\.\\d+)?)\\s*)?(?:h|hr|hrs|hour|hours)\\b/i);
+  if(h)return parseFloat(h[2]||h[1]);
+  var m=t.match(/(\\d{2,3})\\s*(?:min|mins|minutes)\\b/i);
+  return m?Math.round(parseInt(m[1],10)/60*10)/10:null;
+}
+function pSlot(t){
+  if(/warm ?up|opener|opening set|early/i.test(t))return 0.7;
+  if(/closing|last set/i.test(t))return 0.9;
+  if(/all night|open to close/i.test(t))return 1.3;
+  return 1;
+}
+function pPhone(t){var m=t.match(/(?:\\+?971|00971|0)\\s?5\\d(?:[\\s-]?\\d){7}/);return m?m[0].replace(/[\\s-]/g,''):null}
+function pEmail(t){var m=t.match(/[\\w.+-]+@[\\w-]+\\.[\\w.]+/);return m?m[0]:null}
+function pHandle(t){var m=t.match(/(?:^|\\s)@([A-Za-z0-9._]{3,30})/);return m?'@'+m[1]:null}
+function pName(t){
+  var m=t.match(/[—\\-]\\s*([A-Z][a-z]{2,15})\\s*$/m)||t.match(/\\b(?:contact|ask for|speak to|call)\\s+([A-Z][a-z]{2,15})/);
+  return m?m[1]:''
+}
+function pVenue(t){
+  var m=t.match(/\\b(?:at|@)\\s+([A-Z][\\w'&.]*(?:\\s+[A-Z][\\w'&.]*){0,3})/);
+  return m?m[1].trim():''
+}
+function pDate(t){
+  var wd=t.match(/\\b(this|next)?\\s?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\\b/i);
+  if(wd)return (wd[1]?wd[1]+' ':'')+wd[2][0].toUpperCase()+wd[2].slice(1).toLowerCase();
+  var dm=t.match(/\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\w*/i);
+  if(dm)return dm[0];
+  if(/\\btonight\\b/i.test(t))return 'tonight';
+  if(/\\btomorrow\\b/i.test(t))return 'tomorrow';
+  return ''
+}
+function pNight(d){
+  if(/friday|saturday/i.test(d))return 1.25;
+  if(/thursday/i.test(d))return 1.1;
+  if(/sunday/i.test(d))return .95;
+  if(/monday|tuesday|wednesday/i.test(d))return .85;
+  return 1
+}
+
+var AD={};
+function readAd(){
+  var t=$('ad').value; if(!t.trim())return;
+  var tier=null;
+  for(var i=0;i<TIERMAP.length;i++){ if(TIERMAP[i][0].test(t)){tier=TIERMAP[i];break} }
+  if(!tier)tier=[null,'unknown',6000,'Nightclub'];
+
+  var date=pDate(t), hrs=pHours(t)||2, budget=pBudget(t), slot=pSlot(t);
+  AD={tier:tier,date:date,hrs:hrs,budget:budget,slot:slot,
+      phone:pPhone(t),email:pEmail(t),handle:pHandle(t),
+      who:pName(t),venue:pVenue(t),rush:/urgent|asap|tonight|tomorrow|cancelled|last minute/i.test(t),
+      excl:/exclusiv/i.test(t)};
+
+  // Feed the price engine.
+  var opts=$('tier').options;
+  for(var j=0;j<opts.length;j++) if(opts[j].dataset.k===tier[1]) $('tier').selectedIndex=j;
+  $('hrs').value=String(hrs).replace(/\\.0$/,'');
+  if(!Array.prototype.some.call($('hrs').options,function(o){return o.value==$('hrs').value}))$('hrs').value='2';
+  $('slot').value=String(slot);
+  $('night').value=String(pNight(date));
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on')});
+  if(AD.rush)$('c-rush').classList.add('on');
+  if(AD.excl)$('c-excl').classList.add('on');
+  $('budget').value=budget||'';
+  calc();
+
+  // Auto-pick the channel from what the ad actually contains.
+  var guess = AD.email && !AD.phone ? 'email' : (AD.handle && !AD.phone ? 'instagram' : 'whatsapp');
+  document.querySelectorAll('.src div').forEach(function(x){
+    x.classList.toggle('on', x.dataset.src===guess)});
+  SRC=guess;
+
+  $('gWho').value=AD.who; $('gVenue').value=AD.venue; $('gDate').value=AD.date;
+  $('gFee').value=$('ask').textContent.replace(/,/g,'');
+
+  var bits=[];
+  bits.push('<b>'+tier[3]+'</b>');
+  if(date)bits.push(date);
+  bits.push(hrs+'h');
+  if(budget)bits.push('they said AED '+fmt(budget));
+  if(AD.rush)bits.push('urgent');
+  if(AD.excl)bits.push('exclusivity');
+  var c=AD.phone||AD.email||AD.handle;
+  if(c)bits.push(c);
+  $('found').innerHTML='Read: '+bits.join(' · ')+'<br>Ask <b>AED '+$('ask').textContent+'</b> — floor AED '+$('flr').textContent;
+  $('found').classList.remove('hide');
+  buildReply();
+  $('gigOut').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ===================== REPLY BUILDER ===================== */
+function buildReply(){
+  var fee=parseFloat($('gFee').value)||0;
+  var who=$('gWho').value.trim()||'there';
+  var venue=$('gVenue').value.trim();
+  var date=$('gDate').value.trim()||'[date]';
+  var hrs=$('hrs').value;
+  var k=$('tier').options[$('tier').selectedIndex].dataset.k;
+  var hook=HOOK(k);
+  var isEmail=SRC==='email';
+
+  $('gSubjL').classList.toggle('hide',!isEmail);
+  $('gSubj').classList.toggle('hide',!isEmail);
+  if(isEmail && !$('gSubj').value)
+    $('gSubj').value=SENDER_SUBJ+' — availability for '+date+(venue?' at '+venue:'');
+
+  var msg;
+  if(isEmail){
+    msg=DEAR(who)+'\n\n'+INTRO_LONG+'\n\n'+
+      'I understand you are booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'\n\n'+
+      hook+'\n\n'+
+      'Proposed terms:\n'+
+      '  \u2022 Performance: '+hrs+'-hour set\n'+
+      '  \u2022 Fee: AED '+fmt(fee)+', all-in\n'+
+      '  \u2022 Payment: 50% deposit to confirm the date, balance on the night\n'+
+      '  \u2022 Technical: 2\u00d7 CDJ-3000 (or 2000NXS2) + DJM-900NXS2; '+USB+'\n\n'+
+      'Live sets: https://youtube.com/@DJEMY-o6d\nEPK: ' + EPK + '\n\n' +
+      'We can hold the date for 48 hours pending confirmation.\n\n'+
+      'Kind regards,\n'+SIGN;
+  } else {
+    msg='Hi '+who+' \u2014 '+INTRO_SHORT+'\n\n'+
+      'Saw you\u2019re booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'\n\n'+
+      hook+'\n\n'+
+      'Fee for a '+hrs+'-hour set is AED '+fmt(fee)+', all-in. '+USB_CAP+'\n\n'+
+      'Live sets: https://youtube.com/@DJEMY-o6d\n\n'+
+      'Happy to hold the date today \u2014 shall I send the booking confirmation over?\n\n'+
+      SIGN;
+  }
+  $('gMsg').textContent=msg;
+
+  var a=$('gSend'), w=$('gWarn');
+  w.classList.add('hide');
+  if(SRC==='whatsapp'){
+    a.textContent='Send on WhatsApp';
+    a.href = AD.phone ? 'https://wa.me/'+AD.phone.replace(/\\D/g,'')+'?text='+encodeURIComponent(msg)
+                      : 'https://wa.me/?text='+encodeURIComponent(msg);
+    if(!AD.phone){w.textContent='No number found in the advert — WhatsApp will ask you to pick the chat.';w.classList.remove('hide')}
+  } else if(SRC==='email'){
+    a.textContent='Open email';
+    a.href='mailto:'+(AD.email||'')+'?subject='+encodeURIComponent($('gSubj').value)+'&body='+encodeURIComponent(msg);
+    if(!AD.email){w.textContent='No email address found — add it in your mail app.';w.classList.remove('hide')}
+  } else {
+    a.textContent=AD.handle?('Open Instagram '+AD.handle):'Open Instagram';
+    a.href=AD.handle?('https://instagram.com/'+AD.handle.replace('@','')):'https://instagram.com/';
+    w.textContent='Instagram has no way to pre-fill a DM. Tap "Copy instead", then paste it in the chat.';
+    w.classList.remove('hide');
+  }
+}
+function copyMsg(b){copyTxt($('gMsg').textContent,b,'Copied \u2713')}
+['gFee','gWho','gVenue','gDate','gSubj'].forEach(function(id){
+  $(id).addEventListener('input',buildReply)});
+
+
+/* ===================== GIG ALERTS =====================
+   Honest scope: a static page can show a notification and re-check on open,
+   but it cannot poll Instagram/WhatsApp in the background. What this does:
+   - asks for notification permission
+   - registers a service worker so the app is installable and works offline
+   - shows a notification for gigs added to the shared feed (feed.json),
+     checked whenever the app is open or resumed
+   For true always-on push, deploy the server build (see repo README). */
+var ALERTS_KEY='emy_alerts_on', SEEN_KEY='emy_seen_gigs';
+function alertsOn(){return localStorage.getItem(ALERTS_KEY)==='1'}
+
+function paintAlerts(){
+  var b=$('alertBtn'), st=$('alertState');
+  if(!('Notification' in window)){
+    b.classList.add('hide');
+    st.textContent='This browser cannot show notifications. Open the app in Safari or Chrome.';
+    return;
+  }
+  if(Notification.permission==='denied'){
+    b.classList.add('hide');
+    st.textContent='Notifications are blocked for this site. Enable them in your phone settings, then reopen.';
+    return;
+  }
+  b.textContent = alertsOn() ? 'Turn off alerts' : 'Turn on alerts';
+  st.textContent = alertsOn()
+    ? 'On. New gigs ping this phone when the app is open or you reopen it.'
+    : '';
+}
+
+function toggleAlerts(){
+  if(alertsOn()){ localStorage.setItem(ALERTS_KEY,'0'); paintAlerts(); return; }
+  Notification.requestPermission().then(function(p){
+    if(p==='granted'){
+      localStorage.setItem(ALERTS_KEY,'1'); paintAlerts();
+      notify('Alerts on', 'You will be pinged when a new gig lands.');
+      checkFeed();
+    } else paintAlerts();
+  });
+}
+
+function notify(title, body, tag){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(function(r){
+        r.showNotification(title,{body:body,tag:tag||'gig',icon:'icon.svg',badge:'icon.svg'});
+      }).catch(function(){ new Notification(title,{body:body}); });
+    } else new Notification(title,{body:body});
+  }catch(e){}
+}
+
+/* Shared gig feed. Drop new gigs into feed.json next to this file and every
+   installed phone picks them up. */
+function checkFeed(){
+  if(!alertsOn()) return;
+  fetch('feed.json?t='+Date.now()).then(function(r){return r.ok?r.json():null}).then(function(d){
+    if(!d||!d.gigs) return;
+    var seen={};
+    try{seen=JSON.parse(localStorage.getItem(SEEN_KEY)||'{}')}catch(e){}
+    var fresh=d.gigs.filter(function(g){return !seen[g.id]});
+    fresh.slice(0,3).forEach(function(g){
+      notify('New gig: '+(g.venue||'opportunity'),
+             [g.date,g.fee?('AED '+g.fee.toLocaleString()):null].filter(Boolean).join(' \u00b7 '),
+             g.id);
+      seen[g.id]=1;
+    });
+    if(fresh.length){
+      d.gigs.forEach(function(g){seen[g.id]=1});
+      localStorage.setItem(SEEN_KEY,JSON.stringify(seen));
+    }
+  }).catch(function(){});
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+document.addEventListener('visibilitychange',function(){ if(!document.hidden) checkFeed(); });
+paintAlerts(); checkFeed(); setInterval(checkFeed, 120000);
+
 ['tier','hrs','slot','night','season','budget','who','venue','date'].forEach(function(id){
   $(id).addEventListener('input',calc); $(id).addEventListener('change',calc);
 });
-calc();
+calc(); buildReply();
 </script>
 </body>
 </html>`;
@@ -472,10 +850,36 @@ for (const [needle, what] of banned) {
   if (html.includes(needle)) { console.error(`FATAL: ${what} leaked into ${out}`); process.exit(1); }
 }
 
-// The two editions must never cross-contaminate settlement details.
-const other = E.id === "evg" ? PERSONAL : EVG;
-if (!PUBLIC && html.includes(other.bank.iban)) {
-  console.error(`FATAL: ${other.title} IBAN leaked into ${out}`); process.exit(1);
+// Both editions settle to EVG by design — one accountable contracted party.
+// Guard instead that no PERSONAL account number ever reaches a client document.
+const PERSONAL_ACCOUNTS = ["AE270330000019102066206", "019102066206"];
+if (!PUBLIC) {
+  for (const acct of PERSONAL_ACCOUNTS) {
+    if (html.includes(acct)) {
+      console.error(`FATAL: personal account ${acct} leaked into ${out} — payments must settle to EVG`);
+      process.exit(1);
+    }
+  }
+}
+
+writeFileSync(`${E.outDir}/sw.js`, `const C="emy-v${Date.now()}";
+self.addEventListener("install",e=>{self.skipWaiting();
+  e.waitUntil(caches.open(C).then(c=>c.addAll(["./","./index.html"]).catch(()=>{})))});
+self.addEventListener("activate",e=>{e.waitUntil(
+  caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener("fetch",e=>{
+  if(e.request.method!=="GET")return;
+  if(e.request.url.includes("feed.json"))return;           // always fresh
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
+    const c=res.clone();caches.open(C).then(x=>x.put(e.request,c));return res;
+  }).catch(()=>caches.match("./index.html"))));
+});
+self.addEventListener("notificationclick",e=>{e.notification.close();
+  e.waitUntil(clients.matchAll({type:"window"}).then(l=>l.length?l[0].focus():clients.openWindow("./")))});
+`);
+writeFileSync(`${E.outDir}/icon.svg`, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0a0a0f"/><circle cx="256" cy="256" r="150" fill="none" stroke="#dc2626" stroke-width="14" opacity=".3"/><circle cx="256" cy="256" r="100" fill="none" stroke="#dc2626" stroke-width="14" opacity=".55"/><circle cx="256" cy="256" r="50" fill="none" stroke="#ef4444" stroke-width="14"/><circle cx="256" cy="256" r="18" fill="#f87171"/><circle cx="352" cy="168" r="26" fill="#dc2626"/></svg>`);
+try { readFileSync(`${E.outDir}/feed.json`); } catch {
+  writeFileSync(`${E.outDir}/feed.json`, JSON.stringify({ updated: new Date().toISOString(), gigs: [] }, null, 2));
 }
 
 console.log(`${out.padEnd(24)} ${(html.length / 1024).toFixed(0)} KB  — ${E.title}`);

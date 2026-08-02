@@ -13,6 +13,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#0a0a0f;color:#e4e4e7;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
  padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+
 .wrap{max-width:640px;margin:0 auto;padding:16px}
 h1{font-size:22px;margin:0;letter-spacing:-.4px}h1 span{color:#ef4444}
 .sub{font-size:12px;color:#71717a;margin-top:2px}
@@ -60,6 +61,13 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 .note{font-size:11.5px;color:#71717a;margin-top:10px;line-height:1.55}
 .warn{background:#78350f22;border:1px solid #b4530933;color:#fbbf24;border-radius:10px;padding:11px;font-size:12px;margin-top:10px}
 .copied{background:#065f46!important}
+.src{display:flex;gap:6px;margin-top:6px}
+.src div{flex:1;text-align:center;background:#27272a;border:1px solid #3f3f46;color:#a1a1aa;
+ border-radius:9px;padding:10px 4px;font-size:12px;cursor:pointer}
+.src div.on{background:#dc2626;border-color:#dc2626;color:#fff;font-weight:600}
+.found{background:#052e1a;border:1px solid #10b98144;border-radius:10px;padding:11px;font-size:12.5px;color:#6ee7b7;margin-top:10px}
+.found b{color:#a7f3d0}
+.hint{font-size:11.5px;color:#71717a;margin-top:8px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -69,8 +77,53 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
     <div class="sub">Emy Vision Group · +971 50 344 3281</div>
   </header>
 
+  <!-- ============ NEW GIG ============ -->
+  <section id="p-gig">
+    <div class="card">
+      <h2>Paste the gig — it fills itself in</h2>
+      <div class="hint">Copy the whole message or advert exactly as it arrived. Venue, date, hours, budget and the contact are read out automatically.</div>
+      <textarea id="ad" placeholder="e.g. Need an Afro House DJ this Saturday at Cove Beach, Dubai Marina. 2 hour peak slot, AED 6,500. WhatsApp +971 50 442 1188 — Karim"></textarea>
+
+      <label>How did it arrive?</label>
+      <div class="src">
+        <div class="on" data-src="whatsapp">WhatsApp</div>
+        <div data-src="instagram">Instagram</div>
+        <div data-src="email">Email</div>
+      </div>
+
+      <button class="btn" onclick="readAd()">Read it</button>
+      <div id="found" class="found hide"></div>
+    </div>
+
+    <div class="card" id="gigOut">
+      <h2>Your reply</h2>
+      <div class="hint">Change anything you like — especially the price — then send.</div>
+      <div class="row">
+        <div><label>Fee (AED)</label><input id="gFee" type="number" inputmode="numeric"></div>
+        <div><label>Their name</label><input id="gWho" placeholder="optional"></div>
+      </div>
+      <div class="row">
+        <div><label>Venue</label><input id="gVenue" placeholder="optional"></div>
+        <div><label>Date</label><input id="gDate" placeholder="optional"></div>
+      </div>
+      <label id="gSubjL">Subject</label>
+      <input id="gSubj">
+      <pre id="gMsg"></pre>
+      <a class="btn wa" id="gSend" href="#" target="_blank" rel="noopener">Send</a>
+      <button class="btn alt" onclick="copyMsg(this)">Copy instead</button>
+      <div id="gWarn" class="warn hide"></div>
+    </div>
+
+    <div class="card">
+      <h2>Gig alerts</h2>
+      <div class="hint" id="alertHint">Get a ping on this phone the moment a new gig is worth chasing.</div>
+      <button class="btn alt" id="alertBtn" onclick="toggleAlerts()">Turn on alerts</button>
+      <div id="alertState" class="hint"></div>
+    </div>
+  </section>
+
   <!-- ============ PRICE ============ -->
-  <section id="p-price">
+  <section id="p-price" class="hide">
     <div class="card">
       <label>What kind of booking?</label>
       <select id="tier">
@@ -201,6 +254,7 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
       <div class="kv"><span>Email</span><span>admin@emyvisiongroup.com</span></div>
       <div class="kv"><span>Instagram</span><span>@evgroup2026</span></div>
     </div>
+    
     <div class="card"><h2>Bank — for invoices</h2>
       <div class="kv"><span>Beneficiary</span><span>EMY VISION GROUP FZC</span></div>
       <div class="kv"><span>Bank</span><span>Mashreqbank PSC (Mashreq NEO BIZ)</span></div>
@@ -238,7 +292,8 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 </div>
 
 <nav>
-  <button class="on" data-p="price"><i>💰</i>Price</button>
+  <button class="on" data-p="gig"><i>⚡</i>New gig</button>
+  <button data-p="price"><i>💰</i>Price</button>
   <button data-p="rates"><i>📋</i>Rates</button>
   <button data-p="neg"><i>💬</i>Negotiate</button>
   <button data-p="info"><i>🏢</i>Details</button>
@@ -246,6 +301,27 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 
 <script>
 var FLOOR = 3000;
+/* Voice differs per edition: the company speaks about her, she speaks as herself. */
+var IS_EVG = true;
+var SENDER_SUBJ = "DJ Emy";
+var INTRO_SHORT = "Emy Vision Group here, representing DJ Emy.";
+var INTRO_LONG = "I am writing from Emy Vision Group, which represents and manages DJ Emy, a GCC-based Afro House, Afro Tech and open-format DJ.";
+var AVAIL = "She is available and it is exactly her sound (Afro House, Afro Tech, Tribal).";
+var USB = "she travels with USB and adapts to venue equipment";
+var USB_CAP = "She travels with USB and works with your house Pioneer setup.";
+var EPK = "https://emyvisiongroup.com";
+var SIGN = "Emy Vision Group\n+971 50 344 3281";
+function DEAR(w){return w==='there'?'Dear Booking Team,':'Dear '+w+','}
+function HOOK(k){
+  if(k==='brand_activation'||k==='festival')
+    return IS_EVG ? 'She was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025.'
+                  : 'I was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025.';
+  if(k==='hotel_lounge')
+    return IS_EVG ? 'She is known for golden-hour rooftop sessions — deep, tribal grooves that open a room and lift it.'
+                  : 'I am known for golden-hour rooftop sessions — deep, tribal grooves that open a room and lift it.';
+  return IS_EVG ? 'She is one of the GCC’s few female Afro House DJs commanding a peak-time floor — 100% live, reads the room.'
+                : 'I am one of the GCC’s few female Afro House DJs commanding a peak-time floor — 100% live, I read the room.';
+}
 function $(id){return document.getElementById(id)}
 function r50(n){return Math.round(n/50)*50}
 function fmt(n){return n.toLocaleString('en-US')}
@@ -254,7 +330,7 @@ document.querySelectorAll('nav button').forEach(function(b){
   b.onclick=function(){
     document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('on')});
     b.classList.add('on');
-    ['price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
+    ['gig','price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
     window.scrollTo(0,0);
   };
 });
@@ -337,10 +413,302 @@ function copyPitch(b){copyTxt($('pitch').textContent,b,'Copied ✓')}
 function copyBank(b){copyTxt(
  'Beneficiary: EMY VISION GROUP FZC\nBank: Mashreqbank PSC (Mashreq NEO BIZ)\nIBAN: AE060330000019102008190\nSWIFT/BIC: BOMLAEAD',b,'Copied ✓')}
 
+
+/* ===================== GIG PARSER =====================
+   Reads a pasted advert the way the server-side engine does: venue tier,
+   date, hours, slot, budget and contact. Everything stays in the browser. */
+var SRC='whatsapp';
+document.querySelectorAll('.src div').forEach(function(d){
+  d.onclick=function(){
+    document.querySelectorAll('.src div').forEach(function(x){x.classList.remove('on')});
+    d.classList.add('on'); SRC=d.dataset.src; buildReply();
+  };
+});
+
+var TIERMAP=[
+  [/beach club|nikki beach|cove beach|zero gravity|pool party|day party/i,'beach_club',7000,'Beach club / pool'],
+  [/festival|main stage|arena|tournament|fan zone/i,'festival',13000,'Festival / main stage'],
+  [/brand|activation|product launch|corporate|company party|gala|conference|expo|fashion/i,'brand_activation',15000,'Brand / corporate'],
+  [/private|wedding|yacht|villa|birthday|engagement/i,'private_event',10000,'Private / VIP / yacht'],
+  [/rooftop|sky ?bar|hotel|lounge|brunch|resort/i,'hotel_lounge',5000,'Hotel / rooftop lounge'],
+  [/super ?club|night ?club|soho garden|white dubai|base dubai|club/i,'superclub',8000,'Nightclub'],
+  [/\bbar\b|restaurant|bistro|cafe|pub/i,'bar_restaurant',3000,'Bar / restaurant']
+];
+
+function pBudget(t){
+  var re=/(?:aed|dhs?|dirhams?)\s*(\d[\d,]*(?:\.\d+)?)\s*(k)?|(\d[\d,]*(?:\.\d+)?)\s*(k)?\s*(?:aed|dhs?|dirhams?)/gi,m,out=[];
+  while((m=re.exec(t))){var n=m[1]||m[3],k=m[2]||m[4];if(!n)continue;
+    var v=parseFloat(n.replace(/,/g,''));if(k)v*=1000;if(v>=200&&v<=500000)out.push(v);}
+  return out.length?Math.max.apply(null,out):null;
+}
+function pHours(t){
+  var h=t.match(/(\d+(?:\.\d+)?)\s*(?:-\s*(\d+(?:\.\d+)?)\s*)?(?:h|hr|hrs|hour|hours)\b/i);
+  if(h)return parseFloat(h[2]||h[1]);
+  var m=t.match(/(\d{2,3})\s*(?:min|mins|minutes)\b/i);
+  return m?Math.round(parseInt(m[1],10)/60*10)/10:null;
+}
+function pSlot(t){
+  if(/warm ?up|opener|opening set|early/i.test(t))return 0.7;
+  if(/closing|last set/i.test(t))return 0.9;
+  if(/all night|open to close/i.test(t))return 1.3;
+  return 1;
+}
+function pPhone(t){var m=t.match(/(?:\+?971|00971|0)\s?5\d(?:[\s-]?\d){7}/);return m?m[0].replace(/[\s-]/g,''):null}
+function pEmail(t){var m=t.match(/[\w.+-]+@[\w-]+\.[\w.]+/);return m?m[0]:null}
+function pHandle(t){var m=t.match(/(?:^|\s)@([A-Za-z0-9._]{3,30})/);return m?'@'+m[1]:null}
+function pName(t){
+  var m=t.match(/[—\-]\s*([A-Z][a-z]{2,15})\s*$/m)||t.match(/\b(?:contact|ask for|speak to|call)\s+([A-Z][a-z]{2,15})/);
+  return m?m[1]:''
+}
+function pVenue(t){
+  var m=t.match(/\b(?:at|@)\s+([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*){0,3})/);
+  return m?m[1].trim():''
+}
+function pDate(t){
+  var wd=t.match(/\b(this|next)?\s?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i);
+  if(wd)return (wd[1]?wd[1]+' ':'')+wd[2][0].toUpperCase()+wd[2].slice(1).toLowerCase();
+  var dm=t.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*/i);
+  if(dm)return dm[0];
+  if(/\btonight\b/i.test(t))return 'tonight';
+  if(/\btomorrow\b/i.test(t))return 'tomorrow';
+  return ''
+}
+function pNight(d){
+  if(/friday|saturday/i.test(d))return 1.25;
+  if(/thursday/i.test(d))return 1.1;
+  if(/sunday/i.test(d))return .95;
+  if(/monday|tuesday|wednesday/i.test(d))return .85;
+  return 1
+}
+
+var AD={};
+function readAd(){
+  var t=$('ad').value; if(!t.trim())return;
+  var tier=null;
+  for(var i=0;i<TIERMAP.length;i++){ if(TIERMAP[i][0].test(t)){tier=TIERMAP[i];break} }
+  if(!tier)tier=[null,'unknown',6000,'Nightclub'];
+
+  var date=pDate(t), hrs=pHours(t)||2, budget=pBudget(t), slot=pSlot(t);
+  AD={tier:tier,date:date,hrs:hrs,budget:budget,slot:slot,
+      phone:pPhone(t),email:pEmail(t),handle:pHandle(t),
+      who:pName(t),venue:pVenue(t),rush:/urgent|asap|tonight|tomorrow|cancelled|last minute/i.test(t),
+      excl:/exclusiv/i.test(t)};
+
+  // Feed the price engine.
+  var opts=$('tier').options;
+  for(var j=0;j<opts.length;j++) if(opts[j].dataset.k===tier[1]) $('tier').selectedIndex=j;
+  $('hrs').value=String(hrs).replace(/\.0$/,'');
+  if(!Array.prototype.some.call($('hrs').options,function(o){return o.value==$('hrs').value}))$('hrs').value='2';
+  $('slot').value=String(slot);
+  $('night').value=String(pNight(date));
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on')});
+  if(AD.rush)$('c-rush').classList.add('on');
+  if(AD.excl)$('c-excl').classList.add('on');
+  $('budget').value=budget||'';
+  calc();
+
+  // Auto-pick the channel from what the ad actually contains.
+  var guess = AD.email && !AD.phone ? 'email' : (AD.handle && !AD.phone ? 'instagram' : 'whatsapp');
+  document.querySelectorAll('.src div').forEach(function(x){
+    x.classList.toggle('on', x.dataset.src===guess)});
+  SRC=guess;
+
+  $('gWho').value=AD.who; $('gVenue').value=AD.venue; $('gDate').value=AD.date;
+  $('gFee').value=$('ask').textContent.replace(/,/g,'');
+
+  var bits=[];
+  bits.push('<b>'+tier[3]+'</b>');
+  if(date)bits.push(date);
+  bits.push(hrs+'h');
+  if(budget)bits.push('they said AED '+fmt(budget));
+  if(AD.rush)bits.push('urgent');
+  if(AD.excl)bits.push('exclusivity');
+  var c=AD.phone||AD.email||AD.handle;
+  if(c)bits.push(c);
+  $('found').innerHTML='Read: '+bits.join(' · ')+'<br>Ask <b>AED '+$('ask').textContent+'</b> — floor AED '+$('flr').textContent;
+  $('found').classList.remove('hide');
+  buildReply();
+  $('gigOut').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ===================== REPLY BUILDER ===================== */
+function buildReply(){
+  var fee=parseFloat($('gFee').value)||0;
+  var who=$('gWho').value.trim()||'there';
+  var venue=$('gVenue').value.trim();
+  var date=$('gDate').value.trim()||'[date]';
+  var hrs=$('hrs').value;
+  var k=$('tier').options[$('tier').selectedIndex].dataset.k;
+  var hook=HOOK(k);
+  var isEmail=SRC==='email';
+
+  $('gSubjL').classList.toggle('hide',!isEmail);
+  $('gSubj').classList.toggle('hide',!isEmail);
+  if(isEmail && !$('gSubj').value)
+    $('gSubj').value=SENDER_SUBJ+' — availability for '+date+(venue?' at '+venue:'');
+
+  var msg;
+  if(isEmail){
+    msg=DEAR(who)+'
+
+'+INTRO_LONG+'
+
+'+
+      'I understand you are booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'
+
+'+
+      hook+'
+
+'+
+      'Proposed terms:
+'+
+      '  • Performance: '+hrs+'-hour set
+'+
+      '  • Fee: AED '+fmt(fee)+', all-in
+'+
+      '  • Payment: 50% deposit to confirm the date, balance on the night
+'+
+      '  • Technical: 2× CDJ-3000 (or 2000NXS2) + DJM-900NXS2; '+USB+'
+
+'+
+      'Live sets: https://youtube.com/@DJEMY-o6d
+EPK: ' + EPK + '
+
+' +
+      'We can hold the date for 48 hours pending confirmation.
+
+'+
+      'Kind regards,
+'+SIGN;
+  } else {
+    msg='Hi '+who+' — '+INTRO_SHORT+'
+
+'+
+      'Saw you’re booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'
+
+'+
+      hook+'
+
+'+
+      'Fee for a '+hrs+'-hour set is AED '+fmt(fee)+', all-in. '+USB_CAP+'
+
+'+
+      'Live sets: https://youtube.com/@DJEMY-o6d
+
+'+
+      'Happy to hold the date today — shall I send the booking confirmation over?
+
+'+
+      SIGN;
+  }
+  $('gMsg').textContent=msg;
+
+  var a=$('gSend'), w=$('gWarn');
+  w.classList.add('hide');
+  if(SRC==='whatsapp'){
+    a.textContent='Send on WhatsApp';
+    a.href = AD.phone ? 'https://wa.me/'+AD.phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg)
+                      : 'https://wa.me/?text='+encodeURIComponent(msg);
+    if(!AD.phone){w.textContent='No number found in the advert — WhatsApp will ask you to pick the chat.';w.classList.remove('hide')}
+  } else if(SRC==='email'){
+    a.textContent='Open email';
+    a.href='mailto:'+(AD.email||'')+'?subject='+encodeURIComponent($('gSubj').value)+'&body='+encodeURIComponent(msg);
+    if(!AD.email){w.textContent='No email address found — add it in your mail app.';w.classList.remove('hide')}
+  } else {
+    a.textContent=AD.handle?('Open Instagram '+AD.handle):'Open Instagram';
+    a.href=AD.handle?('https://instagram.com/'+AD.handle.replace('@','')):'https://instagram.com/';
+    w.textContent='Instagram has no way to pre-fill a DM. Tap "Copy instead", then paste it in the chat.';
+    w.classList.remove('hide');
+  }
+}
+function copyMsg(b){copyTxt($('gMsg').textContent,b,'Copied ✓')}
+['gFee','gWho','gVenue','gDate','gSubj'].forEach(function(id){
+  $(id).addEventListener('input',buildReply)});
+
+
+/* ===================== GIG ALERTS =====================
+   Honest scope: a static page can show a notification and re-check on open,
+   but it cannot poll Instagram/WhatsApp in the background. What this does:
+   - asks for notification permission
+   - registers a service worker so the app is installable and works offline
+   - shows a notification for gigs added to the shared feed (feed.json),
+     checked whenever the app is open or resumed
+   For true always-on push, deploy the server build (see repo README). */
+var ALERTS_KEY='emy_alerts_on', SEEN_KEY='emy_seen_gigs';
+function alertsOn(){return localStorage.getItem(ALERTS_KEY)==='1'}
+
+function paintAlerts(){
+  var b=$('alertBtn'), st=$('alertState');
+  if(!('Notification' in window)){
+    b.classList.add('hide');
+    st.textContent='This browser cannot show notifications. Open the app in Safari or Chrome.';
+    return;
+  }
+  if(Notification.permission==='denied'){
+    b.classList.add('hide');
+    st.textContent='Notifications are blocked for this site. Enable them in your phone settings, then reopen.';
+    return;
+  }
+  b.textContent = alertsOn() ? 'Turn off alerts' : 'Turn on alerts';
+  st.textContent = alertsOn()
+    ? 'On. New gigs ping this phone when the app is open or you reopen it.'
+    : '';
+}
+
+function toggleAlerts(){
+  if(alertsOn()){ localStorage.setItem(ALERTS_KEY,'0'); paintAlerts(); return; }
+  Notification.requestPermission().then(function(p){
+    if(p==='granted'){
+      localStorage.setItem(ALERTS_KEY,'1'); paintAlerts();
+      notify('Alerts on', 'You will be pinged when a new gig lands.');
+      checkFeed();
+    } else paintAlerts();
+  });
+}
+
+function notify(title, body, tag){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(function(r){
+        r.showNotification(title,{body:body,tag:tag||'gig',icon:'icon.svg',badge:'icon.svg'});
+      }).catch(function(){ new Notification(title,{body:body}); });
+    } else new Notification(title,{body:body});
+  }catch(e){}
+}
+
+/* Shared gig feed. Drop new gigs into feed.json next to this file and every
+   installed phone picks them up. */
+function checkFeed(){
+  if(!alertsOn()) return;
+  fetch('feed.json?t='+Date.now()).then(function(r){return r.ok?r.json():null}).then(function(d){
+    if(!d||!d.gigs) return;
+    var seen={};
+    try{seen=JSON.parse(localStorage.getItem(SEEN_KEY)||'{}')}catch(e){}
+    var fresh=d.gigs.filter(function(g){return !seen[g.id]});
+    fresh.slice(0,3).forEach(function(g){
+      notify('New gig: '+(g.venue||'opportunity'),
+             [g.date,g.fee?('AED '+g.fee.toLocaleString()):null].filter(Boolean).join(' · '),
+             g.id);
+      seen[g.id]=1;
+    });
+    if(fresh.length){
+      d.gigs.forEach(function(g){seen[g.id]=1});
+      localStorage.setItem(SEEN_KEY,JSON.stringify(seen));
+    }
+  }).catch(function(){});
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+document.addEventListener('visibilitychange',function(){ if(!document.hidden) checkFeed(); });
+paintAlerts(); checkFeed(); setInterval(checkFeed, 120000);
+
 ['tier','hrs','slot','night','season','budget','who','venue','date'].forEach(function(id){
   $(id).addEventListener('input',calc); $(id).addEventListener('change',calc);
 });
-calc();
+calc(); buildReply();
 </script>
 </body>
 </html>
