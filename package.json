@@ -10,7 +10,8 @@
     "test": "vitest run",
     "sweep": "tsx scripts/sweep.mts",
     "seed": "tsx scripts/seed.mts",
-    "pack": "tsx scripts/export-pack.mts"
+    "pack": "tsx scripts/export-pack.mts",
+    "standalone": "tsx scripts/build-standalone.mts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.2",
@@ -31,6 +32,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.22",
+    "jsdom": "^30.0.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.1",
     "typescript": "^5",

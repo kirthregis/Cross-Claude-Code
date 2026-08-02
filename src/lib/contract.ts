@@ -63,6 +63,7 @@ Parties:
 
 **THE COMPANY** (contracting party, furnishing the services of the Artist)
 ${activeProfile().management.legalName}, trading as ${activeProfile().management.company}${activeProfile().management.tradeLicenceNo ? `\nTrade Licence No: ${activeProfile().management.tradeLicenceNo}` : "\nTrade Licence No: ______________________  ← from the EVG business licence"}
+${activeProfile().management.address ?? ""}
 Attn: ${activeProfile().management.contactName}, ${activeProfile().management.contactRole}
 ${activeProfile().management.email} · ${activeProfile().management.phone}
 
@@ -266,6 +267,9 @@ function bankBlock(): string {
     `| IBAN | ${b.iban} |`,
     b.swift ? `| SWIFT/BIC | ${b.swift} |` : "",
     b.notes ? `| Notes | ${b.notes} |` : "",
+    ...(b.alternates?.length
+      ? ["", "*Other currencies available on request:*", ...b.alternates.map((a) => `- ${a.currency}: ${a.iban}`)]
+      : []),
   ].filter(Boolean).join("\n");
 }
 
