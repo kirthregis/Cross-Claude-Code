@@ -1,5 +1,5 @@
 # DJ Emy — Rate Card
-**Emy Vision Group** · admin@emyvisiongroup.com · +971 50 660 7743
+**Emy Vision Group** · admin@emyvisiongroup.com · +971 50 344 3281
 
 Standard **2-hour peak-time set**. Quote the *Ask*. Expect to land near *Target*.
 **Never sign below the Floor.**

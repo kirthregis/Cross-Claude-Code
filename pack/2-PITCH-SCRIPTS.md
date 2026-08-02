@@ -22,7 +22,7 @@ EPK: https://emyvisiongroup.com
 We can hold the date for you today — shall I send the booking confirmation over?
 
 Kirth · Emy Vision Group
-+971 50 660 7743
++971 50 344 3281
 ```
 
 ### Email
@@ -61,7 +61,7 @@ We can hold the date for 48 hours pending confirmation. Happy to jump on a call 
 Kind regards,
 Kirth
 Business Development, Emy Vision Group
-+971 50 660 7743 · admin@emyvisiongroup.com
++971 50 344 3281 · admin@emyvisiongroup.com
 https://emyvisiongroup.com
 ```
 
@@ -85,7 +85,7 @@ EPK: https://emyvisiongroup.com
 We can hold the date for you today — shall I send the booking confirmation over?
 
 Kirth · Emy Vision Group
-+971 50 660 7743
++971 50 344 3281
 ```
 
 ### Email
@@ -124,7 +124,7 @@ We can hold the date for 48 hours pending confirmation. Happy to jump on a call 
 Kind regards,
 Kirth
 Business Development, Emy Vision Group
-+971 50 660 7743 · admin@emyvisiongroup.com
++971 50 344 3281 · admin@emyvisiongroup.com
 https://emyvisiongroup.com
 ```
 
@@ -148,7 +148,7 @@ EPK: https://emyvisiongroup.com
 We can hold the date for you today — shall I send the booking confirmation over?
 
 Kirth · Emy Vision Group
-+971 50 660 7743
++971 50 344 3281
 ```
 
 ### Email
@@ -187,7 +187,7 @@ We can hold the date for 48 hours pending confirmation. Happy to jump on a call 
 Kind regards,
 Kirth
 Business Development, Emy Vision Group
-+971 50 660 7743 · admin@emyvisiongroup.com
++971 50 344 3281 · admin@emyvisiongroup.com
 https://emyvisiongroup.com
 ```
 
@@ -211,7 +211,7 @@ EPK: https://emyvisiongroup.com
 We can hold the date for you today — shall I send the booking confirmation over?
 
 Kirth · Emy Vision Group
-+971 50 660 7743
++971 50 344 3281
 ```
 
 ### Email
@@ -250,7 +250,7 @@ We can hold the date for 48 hours pending confirmation. Happy to jump on a call 
 Kind regards,
 Kirth
 Business Development, Emy Vision Group
-+971 50 660 7743 · admin@emyvisiongroup.com
++971 50 344 3281 · admin@emyvisiongroup.com
 https://emyvisiongroup.com
 ```
 
@@ -274,7 +274,7 @@ EPK: https://emyvisiongroup.com
 We can hold the date for you today — shall I send the booking confirmation over?
 
 Kirth · Emy Vision Group
-+971 50 660 7743
++971 50 344 3281
 ```
 
 ### Email
@@ -313,7 +313,7 @@ We can hold the date for 48 hours pending confirmation. Happy to jump on a call 
 Kind regards,
 Kirth
 Business Development, Emy Vision Group
-+971 50 660 7743 · admin@emyvisiongroup.com
++971 50 344 3281 · admin@emyvisiongroup.com
 https://emyvisiongroup.com
 ```
 

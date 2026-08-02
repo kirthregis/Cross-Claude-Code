@@ -13,7 +13,7 @@ Emy Vision Group FZC, trading as Emy Vision Group
 Trade Licence No: 4427087.01
 Business Centre, Sharjah Publishing City Free Zone, Sharjah, United Arab Emirates
 Attn: Kirth, Business Development
-admin@emyvisiongroup.com · +971 50 660 7743
+admin@emyvisiongroup.com · +971 50 344 3281
 
 **THE ARTIST** (performer, engaged through the Company)
 Imen Mannai professionally known as "DJ Emy"

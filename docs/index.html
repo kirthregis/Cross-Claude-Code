@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>DJ Emy — Booking Tool</title>
+<title>EVG DJ Booking Tool</title>
 <meta name="theme-color" content="#0a0a0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DJ Emy">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiREogRW15IOKAlCBCb29raW5nIFRvb2wiLCJzaG9ydF9uYW1lIjoiREogRW15Iiwic3RhcnRfdXJsIjoiLi9pbmRleC5odG1sIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzBhMGEwZiIsInRoZW1lX2NvbG9yIjoiIzBhMGEwZiIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBMU1USWdOVEV5SWo0OGNtVmpkQ0IzYVdSMGFEMGlOVEV5SWlCb1pXbG5hSFE5SWpVeE1pSWdjbmc5SWpFeE1pSWdabWxzYkQwaUl6QmhNR0V3WmlJdlBqeGphWEpqYkdVZ1kzZzlJakkxTmlJZ1kzazlJakkxTmlJZ2NqMGlNVFV3SWlCbWFXeHNQU0p1YjI1bElpQnpkSEp2YTJVOUlpTmtZekkyTWpZaUlITjBjbTlyWlMxM2FXUjBhRDBpTVRRaUlHOXdZV05wZEhrOUlpNHpJaTgrUEdOcGNtTnNaU0JqZUQwaU1qVTJJaUJqZVQwaU1qVTJJaUJ5UFNJeE1EQWlJR1pwYkd3OUltNXZibVVpSUhOMGNtOXJaVDBpSTJSak1qWXlOaUlnYzNSeWIydGxMWGRwWkhSb1BTSXhOQ0lnYjNCaFkybDBlVDBpTGpVMUlpOCtQR05wY21Oc1pTQmplRDBpTWpVMklpQmplVDBpTWpVMklpQnlQU0kxTUNJZ1ptbHNiRDBpYm05dVpTSWdjM1J5YjJ0bFBTSWpaV1kwTkRRMElpQnpkSEp2YTJVdGQybGtkR2c5SWpFMElpOCtQR05wY21Oc1pTQmplRDBpTWpVMklpQmplVDBpTWpVMklpQnlQU0l4T0NJZ1ptbHNiRDBpSTJZNE56RTNNU0l2UGp4amFYSmpiR1VnWTNnOUlqTTFNaUlnWTNrOUlqRTJPQ0lnY2owaU1qWWlJR1pwYkd3OUlpTmtZekkyTWpZaUx6NDhMM04yWno0PSIsInNpemVzIjoiYW55IiwidHlwZSI6ImltYWdlL3N2Zyt4bWwiLCJwdXJwb3NlIjoiYW55IG1hc2thYmxlIn1dfQ==">
+<meta name="apple-mobile-web-app-title" content="EVG Booking">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRVZHIERKIEJvb2tpbmcgVG9vbCIsInNob3J0X25hbWUiOiJFVkcgQm9va2luZyIsInN0YXJ0X3VybCI6Ii4vaW5kZXguaHRtbCIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBhMGYiLCJ0aGVtZV9jb2xvciI6IiMwYTBhMGYiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhacFpYZENiM2c5SWpBZ01DQTFNVElnTlRFeUlqNDhjbVZqZENCM2FXUjBhRDBpTlRFeUlpQm9aV2xuYUhROUlqVXhNaUlnY25nOUlqRXhNaUlnWm1sc2JEMGlJekJoTUdFd1ppSXZQanhqYVhKamJHVWdZM2c5SWpJMU5pSWdZM2s5SWpJMU5pSWdjajBpTVRVd0lpQm1hV3hzUFNKdWIyNWxJaUJ6ZEhKdmEyVTlJaU5rWXpJMk1qWWlJSE4wY205clpTMTNhV1IwYUQwaU1UUWlJRzl3WVdOcGRIazlJaTR6SWk4K1BHTnBjbU5zWlNCamVEMGlNalUySWlCamVUMGlNalUySWlCeVBTSXhNREFpSUdacGJHdzlJbTV2Ym1VaUlITjBjbTlyWlQwaUkyUmpNall5TmlJZ2MzUnliMnRsTFhkcFpIUm9QU0l4TkNJZ2IzQmhZMmwwZVQwaUxqVTFJaTgrUEdOcGNtTnNaU0JqZUQwaU1qVTJJaUJqZVQwaU1qVTJJaUJ5UFNJMU1DSWdabWxzYkQwaWJtOXVaU0lnYzNSeWIydGxQU0lqWldZME5EUTBJaUJ6ZEhKdmEyVXRkMmxrZEdnOUlqRTBJaTgrUEdOcGNtTnNaU0JqZUQwaU1qVTJJaUJqZVQwaU1qVTJJaUJ5UFNJeE9DSWdabWxzYkQwaUkyWTROekUzTVNJdlBqeGphWEpqYkdVZ1kzZzlJak0xTWlJZ1kzazlJakUyT0NJZ2NqMGlNallpSUdacGJHdzlJaU5rWXpJMk1qWWlMejQ4TDNOMlp6ND0iLCJzaXplcyI6ImFueSIsInR5cGUiOiJpbWFnZS9zdmcreG1sIiwicHVycG9zZSI6ImFueSBtYXNrYWJsZSJ9XX0=">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#0a0a0f;color:#e4e4e7;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
@@ -65,8 +65,8 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 <body>
 <div class="wrap">
   <header style="margin-bottom:14px">
-    <h1>DJ <span>Emy</span> — Booking Tool</h1>
-    <div class="sub">Emy Vision Group · +971 50 660 7743</div>
+    <h1>EVG <span>DJ</span> Booking Tool</h1>
+    <div class="sub">Emy Vision Group · +971 50 344 3281</div>
   </header>
 
   <!-- ============ PRICE ============ -->
@@ -193,21 +193,26 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
       <div class="kv"><span>Legal name</span><span>Emy Vision Group FZC</span></div>
       <div class="kv"><span>Licence no.</span><span>4427087.01</span></div>
       <div class="kv"><span>Formation no.</span><span>4427087</span></div>
-      <div class="kv"><span>Licence expiry</span><span>06/01/2027</span></div>
       <div class="kv"><span>Type</span><span>Free Zone Company</span></div>
-      <div class="kv"><span>Booking contact</span><span>Kirth · +971 50 660 7743</span></div>
+      <div class="kv"><span>Manager</span><span>Imen Mannai</span></div>
+      <div class="kv"><span>Licence expiry</span><span>06/01/2027</span></div>
+      <div class="kv"><span>Address</span><span>Business Centre, Sharjah Publishing City Free Zone, Sharjah, UAE</span></div>
+      <div class="kv"><span>Booking contact</span><span>+971 50 344 3281</span></div>
       <div class="kv"><span>Email</span><span>admin@emyvisiongroup.com</span></div>
+      <div class="kv"><span>Instagram</span><span>@evgroup2026</span></div>
     </div>
     <div class="card"><h2>Bank — for invoices</h2>
-      <div class="kv"><span>Account name</span><span>EMY VISION GROUP FZC</span></div>
+      <div class="kv"><span>Beneficiary</span><span>EMY VISION GROUP FZC</span></div>
       <div class="kv"><span>Bank</span><span>Mashreqbank PSC (Mashreq NEO BIZ)</span></div>
+      
+      <div class="kv"><span>Account no.</span><span>019102008190</span></div>
       <div class="kv"><span>IBAN (AED)</span><span>AE060330000019102008190</span></div>
       <div class="kv"><span>SWIFT / BIC</span><span>BOMLAEAD</span></div>
       <div class="kv"><span>IBAN (GBP)</span><span>AE760330000019102008191</span></div>
       <div class="kv"><span>IBAN (USD)</span><span>AE490330000019102008192</span></div>
       <div class="kv"><span>IBAN (EUR)</span><span>AE220330000019102008193</span></div>
       <button class="btn alt" onclick="copyBank(this)">Copy bank details</button>
-      <div class="warn">Never send the Mashreq customer number (CIF) to a client — it's also the password for the bank's statements. Payments only need the account name, IBAN and SWIFT.</div>
+      <div class="warn">Never send the Mashreq customer number (CIF) to a client — it is also the password for the bank's statements. Payments only need the beneficiary name, IBAN and SWIFT.</div>
     </div>
     <div class="card"><h2>Tech rider</h2>
       <div class="kv"><span>Players</span><span>2× Pioneer CDJ-3000<br>(2000NXS2 acceptable)</span></div>
@@ -224,10 +229,9 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
       <div class="kv"><span>Cancel &lt;30 days</span><span>50% payable</span></div>
       <div class="kv"><span>Governing law</span><span>Dubai / UAE</span></div>
     </div>
-    <div class="card"><h2>Artist</h2>
-      <div class="kv"><span>Instagram</span><span>@dj_emy_</span></div>
-      <div class="kv"><span>Live sets</span><span>youtube.com/@DJEMY-o6d</span></div>
+    <div class="card"><h2>Sound</h2>
       <div class="kv"><span>Genres</span><span>Afro House, Afro Tech, Tribal, Melodic House, Organic House</span></div>
+      <div class="kv"><span>Live sets</span><span>youtube.com/@DJEMY-o6d</span></div>
       <div class="note">Works offline. Add to Home Screen to use it like an app.</div>
     </div>
   </section>
@@ -309,13 +313,13 @@ function buildPitch(fee,hrs){
     ? "She's known for golden-hour rooftop sessions — deep, tribal grooves that open a room and lift it."
     : "She's one of the GCC's few female Afro House DJs commanding a peak-time floor — 100% live, reads the room.";
 
-  var t='Hi '+who+' — Kirth here from Emy Vision Group, representing DJ Emy.\n\n'+
+  var t='Hi '+who+' — Emy Vision Group here, representing DJ Emy.\n\n'+
     "Saw you're booking for "+date+(venue?' at '+venue:'')+". DJ Emy is available and it's exactly her sound (Afro House, Afro Tech, Tribal).\n\n"+
     hook+'\n\n'+
     'Fee for a '+hrs+'-hour set is AED '+fmt(fee)+', all-in. She travels with USB and works with your house Pioneer setup.\n\n'+
     'Live sets: https://youtube.com/@DJEMY-o6d\nEPK: https://emyvisiongroup.com\n\n'+
     'We can hold the date for you today — shall I send the booking confirmation over?\n\n'+
-    'Kirth · Emy Vision Group\n+971 50 660 7743';
+    'Emy Vision Group\n+971 50 344 3281';
 
   $('pitch').textContent=t;
   $('waLink').href='https://wa.me/?text='+encodeURIComponent(t);
@@ -331,7 +335,7 @@ function copyTxt(t,b,msg){
 }
 function copyPitch(b){copyTxt($('pitch').textContent,b,'Copied ✓')}
 function copyBank(b){copyTxt(
- 'Account name: EMY VISION GROUP FZC\nBank: Mashreqbank PSC (Mashreq NEO BIZ)\nIBAN (AED): AE060330000019102008190\nSWIFT/BIC: BOMLAEAD',b,'Copied ✓')}
+ 'Beneficiary: EMY VISION GROUP FZC\nBank: Mashreqbank PSC (Mashreq NEO BIZ)\nIBAN: AE060330000019102008190\nSWIFT/BIC: BOMLAEAD',b,'Copied ✓')}
 
 ['tier','hrs','slot','night','season','budget','who','venue','date'].forEach(function(id){
   $(id).addEventListener('input',calc); $(id).addEventListener('change',calc);
