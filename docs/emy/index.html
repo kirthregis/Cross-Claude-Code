@@ -558,56 +558,24 @@ function buildReply(){
 
   var msg;
   if(isEmail){
-    msg=DEAR(who)+'
-
-'+INTRO_LONG+'
-
-'+
-      'I understand you are booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'
-
-'+
-      hook+'
-
-'+
-      'Proposed terms:
-'+
-      '  • Performance: '+hrs+'-hour set
-'+
-      '  • Fee: AED '+fmt(fee)+', all-in
-'+
-      '  • Payment: 50% deposit to confirm the date, balance on the night
-'+
-      '  • Technical: 2× CDJ-3000 (or 2000NXS2) + DJM-900NXS2; '+USB+'
-
-'+
-      'Live sets: https://youtube.com/@DJEMY-o6d
-EPK: ' + EPK + '
-
-' +
-      'We can hold the date for 48 hours pending confirmation.
-
-'+
-      'Kind regards,
-'+SIGN;
+    msg=DEAR(who)+'\n\n'+INTRO_LONG+'\n\n'+
+      'I understand you are booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'\n\n'+
+      hook+'\n\n'+
+      'Proposed terms:\n'+
+      '  \u2022 Performance: '+hrs+'-hour set\n'+
+      '  \u2022 Fee: AED '+fmt(fee)+', all-in\n'+
+      '  \u2022 Payment: 50% deposit to confirm the date, balance on the night\n'+
+      '  \u2022 Technical: 2\u00d7 CDJ-3000 (or 2000NXS2) + DJM-900NXS2; '+USB+'\n\n'+
+      'Live sets: https://youtube.com/@DJEMY-o6d\nEPK: ' + EPK + '\n\n' +
+      'We can hold the date for 48 hours pending confirmation.\n\n'+
+      'Kind regards,\n'+SIGN;
   } else {
-    msg='Hi '+who+' — '+INTRO_SHORT+'
-
-'+
-      'Saw you’re booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'
-
-'+
-      hook+'
-
-'+
-      'Fee for a '+hrs+'-hour set is AED '+fmt(fee)+', all-in. '+USB_CAP+'
-
-'+
-      'Live sets: https://youtube.com/@DJEMY-o6d
-
-'+
-      'Happy to hold the date today — shall I send the booking confirmation over?
-
-'+
+    msg='Hi '+who+' \u2014 '+INTRO_SHORT+'\n\n'+
+      'Saw you\u2019re booking for '+date+(venue?' at '+venue:'')+'. '+AVAIL+'\n\n'+
+      hook+'\n\n'+
+      'Fee for a '+hrs+'-hour set is AED '+fmt(fee)+', all-in. '+USB_CAP+'\n\n'+
+      'Live sets: https://youtube.com/@DJEMY-o6d\n\n'+
+      'Happy to hold the date today \u2014 shall I send the booking confirmation over?\n\n'+
       SIGN;
   }
   $('gMsg').textContent=msg;
@@ -630,7 +598,7 @@ EPK: ' + EPK + '
     w.classList.remove('hide');
   }
 }
-function copyMsg(b){copyTxt($('gMsg').textContent,b,'Copied ✓')}
+function copyMsg(b){copyTxt($('gMsg').textContent,b,'Copied \u2713')}
 ['gFee','gWho','gVenue','gDate','gSubj'].forEach(function(id){
   $(id).addEventListener('input',buildReply)});
 
@@ -643,7 +611,18 @@ function copyMsg(b){copyTxt($('gMsg').textContent,b,'Copied ✓')}
    - shows a notification for gigs added to the shared feed (feed.json),
      checked whenever the app is open or resumed
    For true always-on push, deploy the server build (see repo README). */
-var ALERTS_KEY='emy_alerts_on', SEEN_KEY='emy_seen_gigs';
+var ALERTS_KEY='emy_alerts_on', SEEN_KEY='emy_seen_gigs', API_KEY='emy_api';
+function API(){return (localStorage.getItem(API_KEY)||'').replace(/\/+$/,'')}
+function setApi(){
+  var v=prompt('Paste your Cloudflare Worker address\\\
+(e.g. https://emy-gigradar.workers.dev)', API());
+  if(v===null)return;
+  localStorage.setItem(API_KEY, v.trim()); paintAlerts(); checkFeed();
+}
+function urlB64(s){
+  var p='='.repeat((4-s.length%4)%4), b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));
+  return Uint8Array.from(b, function(c){return c.charCodeAt(0)});
+}
 function alertsOn(){return localStorage.getItem(ALERTS_KEY)==='1'}
 
 function paintAlerts(){
@@ -659,19 +638,57 @@ function paintAlerts(){
     return;
   }
   b.textContent = alertsOn() ? 'Turn off alerts' : 'Turn on alerts';
-  st.textContent = alertsOn()
-    ? 'On. New gigs ping this phone when the app is open or you reopen it.'
-    : '';
+  var api=API();
+  var link='<a href="#" onclick="setApi();return false" style="color:#ef4444">'
+    + (api ? 'Server: '+api.replace(/^https?:\/\//,'') : 'Connect server for background alerts')
+    + '</a>';
+  var state='';
+  if(alertsOn()) state = api
+    ? 'On — gigs ping this phone even with the app closed.'
+    : 'On — pings while the app is open. Connect the server for alerts when it is closed.';
+  st.innerHTML = state + '<br>' + link;
 }
 
 function toggleAlerts(){
-  if(alertsOn()){ localStorage.setItem(ALERTS_KEY,'0'); paintAlerts(); return; }
+  if(alertsOn()){
+    localStorage.setItem(ALERTS_KEY,'0');
+    if(API()&&navigator.serviceWorker) navigator.serviceWorker.ready.then(function(r){
+      r.pushManager.getSubscription().then(function(sub){
+        if(!sub)return;
+        fetch(API()+'/unsubscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({endpoint:sub.endpoint})}).catch(function(){});
+        sub.unsubscribe();
+      });
+    });
+    paintAlerts(); return;
+  }
   Notification.requestPermission().then(function(p){
-    if(p==='granted'){
-      localStorage.setItem(ALERTS_KEY,'1'); paintAlerts();
-      notify('Alerts on', 'You will be pinged when a new gig lands.');
-      checkFeed();
-    } else paintAlerts();
+    if(p!=='granted'){ paintAlerts(); return; }
+    localStorage.setItem(ALERTS_KEY,'1'); paintAlerts();
+    subscribePush();
+    checkFeed();
+  });
+}
+
+/* Real Web Push — arrives with the app CLOSED. Needs the Worker. */
+function subscribePush(){
+  var api=API();
+  if(!api||!('serviceWorker' in navigator)||!('PushManager' in window)){
+    notify('Alerts on','New gigs ping you when the app is open.');
+    return;
+  }
+  fetch(api+'/vapid').then(function(r){return r.json()}).then(function(d){
+    if(!d.key) throw 0;
+    return navigator.serviceWorker.ready.then(function(reg){
+      return reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(d.key)});
+    });
+  }).then(function(sub){
+    return fetch(api+'/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(sub)});
+  }).then(function(){ paintAlerts(); })
+  .catch(function(){
+    notify('Alerts on','New gigs ping you when the app is open.');
+    paintAlerts();
   });
 }
 
@@ -690,14 +707,14 @@ function notify(title, body, tag){
    installed phone picks them up. */
 function checkFeed(){
   if(!alertsOn()) return;
-  fetch('feed.json?t='+Date.now()).then(function(r){return r.ok?r.json():null}).then(function(d){
+  fetch((API()? API()+'/feed.json' : 'feed.json')+'?t='+Date.now()).then(function(r){return r.ok?r.json():null}).then(function(d){
     if(!d||!d.gigs) return;
     var seen={};
     try{seen=JSON.parse(localStorage.getItem(SEEN_KEY)||'{}')}catch(e){}
     var fresh=d.gigs.filter(function(g){return !seen[g.id]});
     fresh.slice(0,3).forEach(function(g){
       notify('New gig: '+(g.venue||'opportunity'),
-             [g.date,g.fee?('AED '+g.fee.toLocaleString()):null].filter(Boolean).join(' · '),
+             [g.date,g.fee?('AED '+g.fee.toLocaleString()):null].filter(Boolean).join(' \u00b7 '),
              g.id);
       seen[g.id]=1;
     });
