@@ -9,7 +9,7 @@
 import type { Gig } from "./types";
 import type { Scored } from "./score";
 import { quote } from "./pricing";
-import { logAlert } from "./db";
+import { logAlert, deferAlert, pendingDeferred, markDeferredReleased } from "./db";
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
@@ -111,16 +111,101 @@ async function sendWebhook(g: Gig, s: Scored): Promise<boolean> {
   }
 }
 
-export async function alert(g: Gig, s: Scored): Promise<{ sent: string[]; skipped?: string }> {
+/** Dubai local hour (UTC+4, no DST). */
+export function dubaiHour(now: Date = new Date()): number {
+  return (now.getUTCHours() + 4) % 24;
+}
+
+/** 02:00–09:00 Dubai. Only `urgent` may break through. */
+export function isQuietHours(now: Date = new Date()): boolean {
+  const h = dubaiHour(now);
+  return h >= 2 && h < 9;
+}
+
+export async function alert(g: Gig, s: Scored, now: Date = new Date()): Promise<{ sent: string[]; skipped?: string }> {
   if (s.tier === "suppress") return { sent: [], skipped: "below alert threshold" };
 
-  // Quiet hours: only urgent gigs may buzz between 02:00 and 09:00 Dubai time.
-  const dubaiHour = (new Date().getUTCHours() + 4) % 24;
-  const quiet = dubaiHour >= 2 && dubaiHour < 9;
-  if (quiet && s.tier !== "urgent") return { sent: [], skipped: "quiet hours — queued for morning digest" };
+  // Quiet hours: hold non-urgent gigs for the morning digest.
+  // These are QUEUED, never dropped — a strong 3am lead must still be seen.
+  if (isQuietHours(now) && s.tier !== "urgent") {
+    deferAlert(g.id, s.tier);
+    return { sent: [], skipped: "quiet hours — queued for morning digest" };
+  }
 
   const sent: string[] = [];
   if (await sendTelegram(g, s)) sent.push("telegram");
   if (await sendWebhook(g, s)) sent.push("webhook");
   return { sent };
+}
+
+/**
+ * Sends everything held overnight as ONE message, so she wakes to a single
+ * ranked briefing rather than a wall of individual pings.
+ */
+export async function sendMorningDigest(): Promise<{ sent: boolean; count: number }> {
+  const pending = pendingDeferred();
+  if (!pending.length) return { sent: false, count: 0 };
+
+  const token = env("TELEGRAM_BOT_TOKEN");
+  const chat = env("TELEGRAM_CHAT_ID");
+  const appUrl = env("APP_URL") ?? "";
+
+  const lines = [
+    `☀️ *Morning briefing* — ${pending.length} gig${pending.length > 1 ? "s" : ""} came in overnight`,
+    ``,
+    ...pending.slice(0, 10).map(({ gig }, i) => {
+      const q = quote({
+        venueTier: gig.venueTier,
+        eventDate: gig.eventDate,
+        setLengthMins: gig.setLengthMins ?? 120,
+        slot: gig.slot ?? "unknown",
+        exclusivity: !!gig.exclusivity,
+        travelRequired: !!gig.travelRequired,
+        recurring: !!gig.recurring,
+        budgetStatedAed: gig.budgetStatedAed,
+      });
+      const when = gig.eventDate
+        ? new Date(gig.eventDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+        : "TBC";
+      const ask = Math.max(q.askAed, gig.budgetStatedAed ?? 0);
+      return `${i + 1}. *${gig.venueName ?? gig.sourceName}* · ${when} · AED ${ask.toLocaleString()} · ${gig.score}/100${appUrl ? `\n   ${appUrl}/gig/${gig.id}` : ""}`;
+    }),
+    pending.length > 10 ? `\n…and ${pending.length - 10} more in the app.` : "",
+  ].filter(Boolean).join("\n");
+
+  let ok = false;
+  if (token && chat) {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chat, text: lines, parse_mode: "Markdown" }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      ok = res.ok;
+    } catch { ok = false; }
+  }
+
+  const hook = env("ALERT_WEBHOOK_URL");
+  if (hook) {
+    try {
+      const res = await fetch(hook, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: lines, digest: true, count: pending.length }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      ok = ok || res.ok;
+    } catch { /* ignore */ }
+  }
+
+  if (ok) {
+    for (const p of pending) logAlert(p.gig.id, "digest", "telegram-digest", true);
+    markDeferredReleased(pending.map((p) => p.gig.id));
+  }
+  return { sent: ok, count: pending.length };
+}
+
+/** Digest goes out at 09:00 Dubai, once quiet hours end. */
+export function isDigestTime(now: Date = new Date()): boolean {
+  return dubaiHour(now) === 9;
 }

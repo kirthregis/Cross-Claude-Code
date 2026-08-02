@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { normalise, detectTravel, detectArea } from "../extract";
-import { pitch, quoteFor } from "../outreach";
+import { pitch, quoteFor, negotiationPlaybook } from "../outreach";
 import { generateDealPack } from "../contract";
 import { scoreGig } from "../score";
 import { DJ_EMY } from "../artist";
@@ -133,5 +133,17 @@ describe("regression: exclusivity must actually be detected", () => {
     const no = gig("Afro House DJ, superclub, 2hr peak set.");
     expect(ex.exclusivity).toBe(true);
     expect(quoteFor(ex).targetAed).toBeGreaterThan(quoteFor(no).targetAed);
+  });
+});
+
+describe("market-anchored negotiation", () => {
+  it("counters the 'going rate is 2-3k' objection with the FIFA credential", () => {
+    const g = gig("Afro House DJ at a superclub, 2hr peak set");
+    const pb = negotiationPlaybook(g);
+    const counter = pb.find((c) => /going rate|2,000/i.test(c.objection));
+    expect(counter).toBeTruthy();
+    expect(counter!.response).toMatch(/FIFA/);
+    expect(counter!.response).toMatch(/Emy Vision Group/);
+    expect(counter!.response).toMatch(/reframe the category/i);
   });
 });

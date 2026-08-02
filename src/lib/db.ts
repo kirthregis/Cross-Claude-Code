@@ -8,14 +8,27 @@ import { mkdirSync } from "fs";
 import { dirname } from "path";
 import type { Gig, DealStage } from "./types";
 
-const DB_PATH = process.env.DB_PATH ?? "./data/gigradar.db";
+const dbPath = () => process.env.DB_PATH ?? "./data/gigradar.db";
 
 let _db: Database.Database | null = null;
+let _openPath: string | null = null;
+
+/** Close the current handle (tests, or switching database file). */
+export function closeDb() {
+  try { _db?.close(); } catch { /* already closed */ }
+  _db = null;
+  _openPath = null;
+}
 
 export function db(): Database.Database {
-  if (_db) return _db;
+  const DB_PATH = dbPath();
+  // Re-open if the configured path changed — otherwise a cached handle would
+  // silently keep serving the previous database.
+  if (_db && _openPath === DB_PATH) return _db;
+  if (_db) closeDb();
   mkdirSync(dirname(DB_PATH), { recursive: true });
   _db = new Database(DB_PATH);
+  _openPath = DB_PATH;
   _db.pragma("journal_mode = WAL");
   _db.exec(`
     CREATE TABLE IF NOT EXISTS gigs (
@@ -38,6 +51,14 @@ export function db(): Database.Database {
       sent_at TEXT NOT NULL,
       ok INTEGER NOT NULL,
       detail TEXT
+    );
+
+    -- Gigs held back by quiet hours, released in the morning digest.
+    CREATE TABLE IF NOT EXISTS deferred (
+      gig_id TEXT PRIMARY KEY,
+      tier TEXT NOT NULL,
+      queued_at TEXT NOT NULL,
+      released_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS sweeps (
@@ -103,6 +124,33 @@ export function logAlert(gigId: string, tier: string, channel: string, ok: boole
 export function alreadyAlerted(gigId: string): boolean {
   const row = db().prepare("SELECT 1 FROM alerts WHERE gig_id = ? AND ok = 1 LIMIT 1").get(gigId);
   return !!row;
+}
+
+/** Hold a gig for the morning digest instead of dropping it. */
+export function deferAlert(gigId: string, tier: string) {
+  db().prepare(
+    `INSERT INTO deferred (gig_id, tier, queued_at) VALUES (?,?,?)
+     ON CONFLICT(gig_id) DO NOTHING`
+  ).run(gigId, tier, new Date().toISOString());
+}
+
+/** Gigs waiting in the digest queue, best first. */
+export function pendingDeferred(): { gig: Gig; tier: string; queuedAt: string }[] {
+  const rows = db().prepare(
+    `SELECT d.gig_id, d.tier, d.queued_at, g.data
+     FROM deferred d JOIN gigs g ON g.id = d.gig_id
+     WHERE d.released_at IS NULL
+     ORDER BY g.score DESC`
+  ).all() as { gig_id: string; tier: string; queued_at: string; data: string }[];
+  return rows.map((r) => ({ gig: JSON.parse(r.data) as Gig, tier: r.tier, queuedAt: r.queued_at }));
+}
+
+export function markDeferredReleased(gigIds: string[]) {
+  if (!gigIds.length) return;
+  const stmt = db().prepare("UPDATE deferred SET released_at = ? WHERE gig_id = ?");
+  const now = new Date().toISOString();
+  const tx = db().transaction((ids: string[]) => { for (const id of ids) stmt.run(now, id); });
+  tx(gigIds);
 }
 
 export function recordSweep(found: number, newGigs: number, errors: string[]) {

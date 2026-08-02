@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const r = await sweep();
   return NextResponse.json({
     found: r.found, newGigs: r.newGigs, alerted: r.alerted,
+    digested: r.digested ?? 0,
     errors: r.errors, at: new Date().toISOString(),
   });
 }

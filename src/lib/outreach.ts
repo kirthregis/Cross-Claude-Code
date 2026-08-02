@@ -140,6 +140,10 @@ export function negotiationPlaybook(g: Gig): Counter[] {
       response: `"That works for a standard night — this is a ${g.eventDate ? new Date(g.eventDate).toLocaleDateString("en-GB", { weekday: "long" }) : "peak"} ${g.slot === "peak" ? "peak slot" : "slot"}. I can do AED ${target} and I'll confirm right now." Anchoring on the specific night beats arguing about averages.`,
     },
     {
+      objection: "We can get a DJ for AED 2,000–3,000 / that's the going rate",
+      response: `True for the open-format pool — Dubai marketplaces average about AED 2,400 across hundreds of part-time DJs. That is not the comparable set. "${activeProfile().name} was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025, she's one of the few female Afro House DJs holding a peak-time floor in the GCC, and she's contracted through ${activeProfile().management.company}. The premium tier in Dubai runs AED 6,000–15,000 — we're at AED ${target}." Never argue against the average; reframe the category.`,
+    },
+    {
       objection: "Can you do it for exposure / it's great for your profile",
       response: `"I'd love to work with you — my rate for this type of event is AED ${target}. If budget is genuinely fixed this round, let's do a paid trial at AED ${floor} and agree a rate for the following bookings in writing." Never work free; always convert exposure into a written future rate.`,
     },

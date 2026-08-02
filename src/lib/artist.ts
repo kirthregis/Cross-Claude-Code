@@ -49,13 +49,33 @@ export interface ArtistProfile {
 
 export interface Management {
   company: string;
+  /** Registered entity name exactly as on the trade licence. */
   legalName: string;
+  /** Trade licence number — makes the agreement enforceable. */
+  tradeLicenceNo?: string;
   contactName: string;
   contactRole: string;
   email: string;
   phone: string;
   instagram?: string;
   website?: string;
+  /**
+   * Settlement details for invoices.
+   *
+   * SENSITIVE. Stored locally in your own SQLite file, rendered only on the
+   * invoice, and never sent to any third party or logged. Enter these in
+   * /profile — do not paste them into chat or email.
+   */
+  bank?: BankDetails;
+}
+
+export interface BankDetails {
+  accountName: string;
+  bankName: string;
+  iban: string;
+  swift?: string;
+  /** Free-text for branch / account no. / anything else the payer needs. */
+  notes?: string;
 }
 
 export interface TechRider {
@@ -82,7 +102,7 @@ export interface ContractDefaults {
 
 export const DJ_EMY: ArtistProfile = {
   name: "DJ Emy",
-  legalName: "PLACEHOLDER — artist's full legal name (contracts are signed by EVG, but the artist is named)",
+  legalName: "Imen Mannai",
   tagline: "GCC-based Afro House, Afro Tech and open-format DJ",
   basedIn: "GCC (UAE & Qatar)",
   // She works both sides of the Gulf — Doha is not a "travel" gig for her.
@@ -126,24 +146,42 @@ export const DJ_EMY: ArtistProfile = {
     phone: "+971 50 660 7743",
     instagram: "@evgroup2026",
     website: "https://emyvisiongroup.com",
+    // Fill these in at /profile — they come off the trade licence and the
+    // Mashreq account. Never paste them into a chat or an email thread.
+    tradeLicenceNo: undefined,
+    bank: undefined,
   },
 
   /**
-   * PLACEHOLDER — GCC market ballpark, uplifted for her positioning:
-   * FIFA-level credits, genuine genre scarcity, and full EVG representation
-   * put her above a generic local DJ rate. Replace with her real numbers.
+   * Market-researched base rates for a standard 2h peak set — see
+   * RATE-RESEARCH.md for the full working and sources.
+   *
+   * Dubai's four-tier market (Bella / Box Entertainment, djsdubai, Soundtribe):
+   *   entry 1.5–3k · mid 3–5.5k · premium 6–15k · celebrity/international 20k+
+   *
+   * Emy sits at the top of "premium", entering "celebrity" for brand work, on
+   * five levers: FIFA World Cup 2022 + Arab Cup 2025 official tournament DJ,
+   * Afro House genre scarcity, bilingual EN/AR floors, full EVG representation,
+   * and named venue history (Zeus, Amwaj, international touring).
+   *
+   * The AED ~2,400 marketplace average is a saturated pool of part-time
+   * open-format DJs — it is NOT her comparable set.
+   *
+   * ⚠️ Still estimates, not her realised fees. Enter real past bookings at
+   * /profile to make these history-backed.
    */
   baseRatesAed: {
+    brand_activation: 15000,
+    festival: 13000,
+    private_event: 10000,
     superclub: 8000,
     beach_club: 7000,
-    festival: 12000,
-    brand_activation: 14000,
-    private_event: 10000,
+    unknown: 6000,
     hotel_lounge: 5000,
     bar_restaurant: 3000,
-    unknown: 6000,
   },
-  hardFloorAed: 2500,
+  /** Above the "professional event DJ" entry point (3,500) less haggling room. */
+  hardFloorAed: 3000,
 
   techRider: {
     mixer: ["1x Pioneer DJM-900NXS2"],

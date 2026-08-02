@@ -63,7 +63,13 @@ export function profileGaps(p: ArtistProfile = getProfile()): string[] {
     gaps.push("Artist's full legal name — named as performer in every contract");
   }
   if (/PLACEHOLDER/i.test(p.management.legalName)) {
-    gaps.push("EVG registered legal entity name + trade licence no. — EVG is the contracting party, so this is what makes the agreement enforceable");
+    gaps.push("EVG registered legal entity name — EVG is the contracting party, so this is what makes the agreement enforceable");
+  }
+  if (!p.management.tradeLicenceNo) {
+    gaps.push("EVG trade licence number — goes on every contract (from the business licence)");
+  }
+  if (!p.management.bank?.iban) {
+    gaps.push("EVG bank details (account name, bank, IBAN) — invoices can't be paid without them");
   }
   if (Object.values(p.baseRatesAed).some((v) => !v)) gaps.push("Base rates");
   return gaps;
