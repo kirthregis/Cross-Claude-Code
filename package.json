@@ -11,7 +11,8 @@
     "sweep": "tsx scripts/sweep.mts",
     "seed": "tsx scripts/seed.mts",
     "pack": "tsx scripts/export-pack.mts",
-    "standalone": "tsx scripts/build-standalone.mts"
+    "standalone": "tsx scripts/build-standalone.mts",
+    "standalone:public": "PUBLIC=1 tsx scripts/build-standalone.mts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.2",
