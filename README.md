@@ -1,1 +1,149 @@
-# Cross-Claude-Code
+# GigRadar — DJ Emy
+
+Every Dubai gig, the minute it appears. Found, scored, priced, pitched, negotiated and contracted.
+
+A gig-acquisition engine for a working DJ. It watches every source where Dubai bookings surface, pushes the good ones to her phone within seconds, tells her exactly what to charge and who to call, and generates the entire paperwork pack the moment a deal is agreed.
+
+---
+
+## The flow
+
+```
+sources ──▶ normalise ──▶ dedupe ──▶ score ──▶ ALERT (phone, seconds)
+                                       │
+                                       ▼
+                              price  ·  who to call  ·  what to say
+                                       │
+                                       ▼
+                    contract · tech rider · runsheet · invoice · press/IP
+```
+
+## What it does
+
+**1. Finds gigs, everywhere**
+Instagram promoters and venues, WhatsApp promoter groups, the booking inbox, event calendars (Platinumlist / RA / Time Out), gig boards and agency roster calls. Every source is optional and independent — unconfigured feeds are skipped, and one slow or broken feed never blocks the rest.
+
+**2. Understands messy text**
+A promoter's caption or a WhatsApp voice-note transcript becomes structured data: venue, tier, area, date, set length, slot, genres, budget, exclusivity, travel, residency, and every contactable person ranked by how close they are to the money.
+
+**3. Deduplicates ruthlessly**
+The same gig hits Instagram, a WhatsApp group and an agency mailout. Content-based fingerprinting collapses all of them into one alert.
+
+**4. Scores before it interrupts**
+0–100 on genre fit, money, venue quality, contactability, urgency and freshness. Only urgent gigs may buzz between 02:00 and 09:00 Dubai time — she is never woken for a 1,500 AED weeknight bar slot.
+
+**5. Prices with a reasoned model**
+Base rate by venue tier, then transparent multipliers: Dubai season curve, night of week, set length, slot, short-notice premium, Ramadan, exclusivity, travel, residency. Returns an **opening ask**, a **realistic target**, and a **hard walk-away** — with every adjustment itemised so she can argue the number.
+
+**6. Tells her exactly who to contact and what to say**
+Contacts ranked by decision power, the right channel for each, and ready-to-send WhatsApp / Instagram DM / email pitches. Plus a negotiation playbook for the objections that actually come up in Dubai — including "do it for exposure".
+
+**7. Generates the whole deal pack**
+Performance agreement (fee schedule, cancellation tiers, technical rider, hospitality, sound-limit liability, **IP and press rights**, force majeure, exclusivity, Dubai governing law), a night-of runsheet with timings and checklists, an invoice, and a press/content pack.
+
+---
+
+## Quick start
+
+```bash
+npm install
+cp .env.example .env.local     # optional — the app runs fully without it
+npm run seed                   # loads realistic Dubai sample leads
+npm run dev                    # http://localhost:3000
+```
+
+`npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
+
+```bash
+npm test          # 58 tests
+npm run build
+npm run sweep     # run one ingest sweep from the CLI
+```
+
+---
+
+## Turning on real alerts (5 minutes)
+
+Telegram is the fastest path to instant phone notifications — no app store, no review, free, with tappable action buttons on the lock screen.
+
+1. Message **@BotFather** on Telegram → `/newbot` → copy the token.
+2. Message your new bot once, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy your chat id.
+3. Put both in `.env.local`:
+
+```env
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
+APP_URL=https://your-deployment.com
+```
+
+Alerts arrive with the venue, date, recommended ask, best contact, and buttons for **Open deal** and **WhatsApp now**.
+
+## Turning on sources
+
+Everything is env-driven; see `.env.example` and the in-app **/sources** page, which shows live vs. not-set-up for each feed with its exact setup instructions.
+
+| Source | How |
+|---|---|
+| WhatsApp groups | POST to `/api/ingest/whatsapp` from a WhatsApp Business webhook or Baileys bridge |
+| Booking inbox | Forward mail to `/api/ingest/email` (SendGrid Inbound Parse / Cloudflare Email Workers) |
+| Instagram | `IG_SCRAPER_URL` + `IG_WATCH_HANDLES` |
+| Calendars | `CALENDAR_FEEDS` — RSS or JSON, both supported |
+| Gig boards | `BOARD_FEEDS` — JSON endpoints |
+| Anything | Paste it into the box on the dashboard, or POST `/api/ingest/manual` |
+
+Inbound webhooks are authenticated with `INGEST_KEY`; the sweep endpoint with `CRON_KEY`.
+
+### Keeping the radar sweeping
+
+Hit `GET /api/sweep` every 60 seconds. On Vercel add to `vercel.json`:
+
+```json
+{ "crons": [{ "path": "/api/sweep", "schedule": "* * * * *" }] }
+```
+
+WhatsApp and email leads bypass the sweep and are processed the instant they arrive.
+
+---
+
+## ⚠️ Before real use — replace the placeholders
+
+The pricing and contract output is only as good as the profile behind it. Everything below lives in **`src/lib/artist.ts`** and is marked `PLACEHOLDER`:
+
+- **`legalName`** — required for contracts to be valid
+- **`baseRatesAed`** — currently Dubai market ballpark, not Emy's actual rates. Feed in 5–10 past bookings and these become genuinely accurate.
+- **`hardFloorAed`** — her real never-below number
+- **Contact details, Instagram handle, EPK URL**
+- **Tech rider** — confirm the exact equipment she asks for
+- **Bank details** for the invoice template
+
+Also review:
+- `RAMADAN_WINDOWS` in `src/lib/pricing.ts` — approximate, refine yearly
+- `IG_WATCH_HANDLES` in `.env.example` — swap in the promoters who actually book her
+
+**⚖️ Legal note:** the contract generator produces a solid industry-standard performance agreement covering fees, cancellation, technical requirements, IP, press rights and UAE governing law — but it is a template, not legal advice. Have a UAE-qualified lawyer review it once before using it on high-value bookings.
+
+---
+
+## Architecture
+
+| Path | Role |
+|---|---|
+| `src/lib/artist.ts` | Emy's profile, rates, rider, contract defaults — **the single source of truth** |
+| `src/lib/extract.ts` | Free text → structured gig; dedupe fingerprinting |
+| `src/lib/pricing.ts` | The pricing brain — ask / target / walk-away with itemised reasoning |
+| `src/lib/score.ts` | Fit scoring and alert tiering (incl. quiet hours) |
+| `src/lib/sources/` | Pluggable source adapters — one file to add a feed |
+| `src/lib/ingest.ts` | The sweep: fetch → normalise → dedupe → score → alert |
+| `src/lib/notify.ts` | Telegram + webhook delivery |
+| `src/lib/outreach.ts` | Pitches, contact strategy, negotiation playbook |
+| `src/lib/contract.ts` | Contract, runsheet, invoice, press/IP pack |
+| `src/lib/db.ts` | SQLite persistence (swap for Postgres by replacing this file) |
+
+Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA.
+
+## Tests
+
+58 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+
+- a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
+- pitches **underquoted a budget the client had already stated**, handing money back

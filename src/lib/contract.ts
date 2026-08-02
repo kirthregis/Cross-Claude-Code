@@ -1,0 +1,316 @@
+/**
+ * Deal pack generation: contract, technical rider, logistics runsheet,
+ * financial schedule, press/content requirements and IP terms.
+ *
+ * Output is Markdown so it renders in the app, exports to PDF, and pastes
+ * into an email untouched.
+ *
+ * ⚖️  NOT LEGAL ADVICE. This produces a solid industry-standard performance
+ * agreement, but have a UAE-qualified lawyer review the template once before
+ * it's used on high-value bookings.
+ */
+
+import { DJ_EMY } from "./artist";
+import type { Gig } from "./types";
+import { quoteFor } from "./outreach";
+
+export interface DealTerms {
+  agreedFeeAed: number;
+  eventDate: string;
+  loadInTime?: string;
+  setStart?: string;
+  setEnd?: string;
+  clientLegalName?: string;
+  clientAddress?: string;
+  venueAddress?: string;
+  exclusivityKm?: number;
+}
+
+const money = (n: number) => `AED ${n.toLocaleString()}`;
+
+export function deriveTerms(g: Gig, overrides: Partial<DealTerms> = {}): DealTerms {
+  const q = quoteFor(g);
+  return {
+    agreedFeeAed: overrides.agreedFeeAed ?? g.budgetStatedAed ?? q.targetAed,
+    eventDate: overrides.eventDate ?? g.eventDate ?? "TBC",
+    setStart: overrides.setStart ?? "23:00",
+    setEnd: overrides.setEnd ?? "01:00",
+    loadInTime: overrides.loadInTime ?? "22:00",
+    clientLegalName: overrides.clientLegalName ?? g.venueName ?? "[CLIENT LEGAL NAME]",
+    clientAddress: overrides.clientAddress ?? "[CLIENT REGISTERED ADDRESS]",
+    venueAddress: overrides.venueAddress ?? [g.venueName, g.area, "Dubai, UAE"].filter(Boolean).join(", "),
+    exclusivityKm: overrides.exclusivityKm ?? (g.exclusivity ? DJ_EMY.contractDefaults.defaultExclusivityKm : 0),
+  };
+}
+
+export function generateContract(g: Gig, t: DealTerms): string {
+  const c = DJ_EMY.contractDefaults;
+  const deposit = Math.round((t.agreedFeeAed * c.depositPercent) / 100);
+  const balance = t.agreedFeeAed - deposit;
+  const dateStr = t.eventDate !== "TBC"
+    ? new Date(t.eventDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    : "TBC";
+
+  return `# DJ PERFORMANCE AGREEMENT
+
+**Date of Agreement:** ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+
+This Agreement is made between:
+
+**THE ARTIST**
+${DJ_EMY.legalName} professionally known as "${DJ_EMY.name}"
+${DJ_EMY.basedIn}
+${DJ_EMY.email} · ${DJ_EMY.phone}
+
+**THE CLIENT**
+${t.clientLegalName}
+${t.clientAddress}
+
+---
+
+## 1. ENGAGEMENT
+
+The Client engages the Artist to perform a DJ set on the terms below.
+
+| Item | Detail |
+|---|---|
+| Event | ${g.title} |
+| Venue | ${t.venueAddress} |
+| Date | ${dateStr} |
+| Load-in / soundcheck | ${t.loadInTime} |
+| Performance time | ${t.setStart} – ${t.setEnd} |
+| Set length | ${g.setLengthMins ? `${(g.setLengthMins / 60).toFixed(1)} hours` : "2 hours"} |
+| Format | ${g.genresWanted.length ? g.genresWanted.join(", ") : DJ_EMY.genres.join(", ")} |
+
+## 2. FEE AND PAYMENT
+
+| | Amount | Due |
+|---|---|---|
+| **Total fee** | **${money(t.agreedFeeAed)}** | — |
+| Deposit (${c.depositPercent}%) | ${money(deposit)} | On signature, no later than ${c.depositDueDays} days before the Event |
+| Balance | ${money(balance)} | ${c.balanceDueDays === 0 ? "On the night, immediately following the performance" : `Within ${c.balanceDueDays} days of the Event`} |
+
+2.1 The fee is stated net of any bank charges, and net of VAT where applicable. Any withholding or transfer fees are borne by the Client.
+2.2 The date is **not** held or confirmed until the deposit is received. Prior to receipt the Artist may accept competing engagements for the same date.
+2.3 Late payment of the balance accrues interest at 2% per month or the maximum permitted by law, whichever is lower.
+2.4 Any extension of the performance beyond the times in Clause 1, if agreed by the Artist on the night, is charged at ${money(Math.round(t.agreedFeeAed * 0.35))} per additional hour, payable same night.
+
+## 3. CANCELLATION
+
+3.1 If the Client cancels:
+${c.cancellationTiers
+  .sort((a, b) => a.withinDays - b.withinDays)
+  .map((tier) => `  - Within ${tier.withinDays} days of the Event: the Artist retains ${tier.artistKeepsPercent}% of the total fee.`)
+  .join("\n")}
+  - More than ${Math.max(...c.cancellationTiers.map((x) => x.withinDays))} days before the Event: the deposit is retained by the Artist as a booking fee.
+
+3.2 If the Artist cancels other than for reasons under Clause 8, the Artist shall refund the deposit in full and use reasonable efforts to propose a suitable replacement artist of comparable standing.
+
+3.3 Postponement by the Client is treated as cancellation unless a replacement date within 6 months is agreed in writing within 7 days.
+
+## 4. TECHNICAL REQUIREMENTS
+
+The Client shall provide, at its own cost, in full working order and tested no later than 24 hours before the Event:
+
+${DJ_EMY.techRider.mixer.map((x) => `- ${x}`).join("\n")}
+${DJ_EMY.techRider.players.map((x) => `- ${x}`).join("\n")}
+- ${DJ_EMY.techRider.monitors}
+${DJ_EMY.techRider.booth.map((x) => `- ${x}`).join("\n")}
+${DJ_EMY.techRider.connectivity.map((x) => `- ${x}`).join("\n")}
+
+${DJ_EMY.techRider.notes.map((x) => `4.x ${x}`).join("\n")}
+
+4.9 Failure to provide the specified equipment does not reduce the fee. If the Artist cannot reasonably perform due to equipment failure attributable to the Client, the full fee remains payable.
+
+## 5. HOSPITALITY AND LOGISTICS
+
+${DJ_EMY.hospitalityRider.map((x) => `- ${x}`).join("\n")}
+${g.travelRequired ? `- Travel outside Dubai: return transport and, where the Event ends after 01:00 or is more than 90 minutes from Dubai, single-occupancy accommodation, both at the Client's cost.` : ""}
+
+## 6. SOUND LIMITS AND VENUE COMPLIANCE
+
+6.1 ${c.soundLimitPolicy}
+6.2 The Client warrants it holds all licences, permits and approvals required for live/recorded music at the Venue on the date, including any permissions required from the relevant Dubai authorities.
+
+## 7. PRESS, CONTENT AND INTELLECTUAL PROPERTY
+
+7.1 **Artist IP.** ${c.ipPolicy}
+7.2 **Recording.** ${c.recordingPolicy}
+7.3 **Billing.** The Artist shall be billed as "${DJ_EMY.name}" in all promotional material. Artwork featuring the Artist's name or likeness shall be supplied to the Artist for approval not less than 48 hours before publication; approval shall not be unreasonably withheld.
+7.4 **Content deliverables.** Where the Client requires the Artist to produce social content (reels, stories, posts) beyond incidental coverage of the performance, this is a separate deliverable and is charged separately. Nothing in this Agreement obliges the Artist to post.
+7.5 **Client marks.** The Artist may use the Client's name, the Venue name and footage of the performance in her own portfolio, EPK and social channels.
+7.6 **Music licensing.** Responsibility for public performance royalties in respect of recorded music played at the Venue rests with the Client.
+
+## 8. FORCE MAJEURE
+
+${c.forceMajeure}
+
+## 9. EXCLUSIVITY
+
+${
+  t.exclusivityKm
+    ? `9.1 The Artist agrees not to perform at any other public venue within ${t.exclusivityKm}km of the Venue in the 7 days before and 7 days after the Event. This restriction is reflected in the fee at Clause 2 and does not apply to private events, radio, streamed sets or festivals.`
+    : `9.1 No exclusivity or radius restriction applies. The Artist is free to accept other engagements before, on and after the date of the Event.`
+}
+
+## 10. GENERAL
+
+10.1 The Artist performs as an independent contractor. Nothing creates employment, partnership or agency.
+10.2 The Artist shall not be required to perform in conditions that are unsafe or that breach applicable law.
+10.3 This Agreement is the entire agreement and supersedes prior discussions. Variations must be in writing and signed by both parties.
+10.4 **Governing law.** ${c.governingLaw} The parties submit to the exclusive jurisdiction of the Dubai Courts.
+
+---
+
+## SIGNATURES
+
+**THE ARTIST**
+
+Name: ${DJ_EMY.legalName} ("${DJ_EMY.name}")
+
+Signature: __________________________  Date: ____________
+
+
+**THE CLIENT**
+
+Name: ______________________________  Position: ____________________
+
+For and on behalf of: ${t.clientLegalName}
+
+Signature: __________________________  Date: ____________
+
+---
+*Generated by GigRadar. Template — have a UAE-qualified lawyer review before first use.*
+`;
+}
+
+export function generateRunsheet(g: Gig, t: DealTerms): string {
+  const dateStr = t.eventDate !== "TBC" ? new Date(t.eventDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "TBC";
+  const minus = (time: string, mins: number) => {
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date(Date.UTC(2000, 0, 1, h, m - mins));
+    return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  };
+
+  return `# RUNSHEET — ${g.venueName ?? g.title}
+**${dateStr}** · ${t.venueAddress}
+
+## Timings
+| Time | Item |
+|---|---|
+| ${minus(t.loadInTime ?? "22:00", 60)} | Leave home — check traffic, Dubai weekend routes add 30min |
+| ${t.loadInTime} | Load-in, meet venue contact, confirm booth access |
+| ${minus(t.setStart ?? "23:00", 45)} | Soundcheck — test both CDJs, mixer channels, booth monitor level |
+| ${minus(t.setStart ?? "23:00", 10)} | USBs loaded, backup USB in bag, phone on silent, water in booth |
+| **${t.setStart}** | **SET START** |
+| ${t.setEnd} | Set end — do not overrun without written agreement (extra hour = ${money(Math.round(t.agreedFeeAed * 0.35))}) |
+| +15 min | Collect balance ${money(t.agreedFeeAed - Math.round((t.agreedFeeAed * DJ_EMY.contractDefaults.depositPercent) / 100))}, photo of payment confirmation |
+
+## Pre-event checklist (T-7 days)
+- [ ] Deposit received and cleared
+- [ ] Contract signed by both parties, countersigned copy filed
+- [ ] Tech rider acknowledged in writing by venue
+- [ ] Equipment list confirmed — get a photo of the actual booth
+- [ ] Artwork approved, correct billing "${DJ_EMY.name}"
+- [ ] Guest list name submitted (+1)
+- [ ] Parking / access instructions received
+- [ ] Set prepared, crate built for the room and slot (${g.slot})
+
+## Day-of kit
+- [ ] 2x USB drives (primary + identical backup), both tested
+- [ ] Headphones + spare
+- [ ] RCA cable, USB-C hub, laptop + charger
+- [ ] Cleaning wipes, gaffer tape
+- [ ] Printed/PDF contract on phone
+- [ ] Payment method ready (bank details card / payment link)
+
+## On-the-night rules
+1. Photograph the booth setup on arrival — evidence if equipment differs from rider.
+2. Do not start until booth monitor level is under your control.
+3. Any request to extend: agree the fee in writing (a WhatsApp message counts) BEFORE playing on.
+4. Collect the balance before leaving the venue. Do not accept "we'll transfer Monday" unless it's in the contract.
+5. Capture 2–3 short clips for content — you own this footage (Clause 7.5).
+
+## Emergency contacts
+${g.contacts.length ? g.contacts.map((c) => `- ${[c.name, c.role, c.phone ?? c.email ?? c.instagram].filter(Boolean).join(" · ")}`).join("\n") : "- ⚠️ No contacts on file — get the venue duty manager's mobile before the day."}
+`;
+}
+
+export function generateInvoice(g: Gig, t: DealTerms): string {
+  const deposit = Math.round((t.agreedFeeAed * DJ_EMY.contractDefaults.depositPercent) / 100);
+  const num = `INV-${new Date().getFullYear()}-${g.id.slice(0, 5).toUpperCase()}`;
+  return `# INVOICE ${num}
+
+**From:** ${DJ_EMY.legalName} ("${DJ_EMY.name}") · ${DJ_EMY.email} · ${DJ_EMY.phone}
+**To:** ${t.clientLegalName}, ${t.clientAddress}
+**Date:** ${new Date().toLocaleDateString("en-GB")}
+**Event:** ${g.title} — ${t.eventDate}
+
+| Description | Amount |
+|---|---|
+| DJ performance, ${t.setStart}–${t.setEnd}, ${t.venueAddress} | ${money(t.agreedFeeAed)} |
+| Less deposit received | −${money(deposit)} |
+| **Balance due** | **${money(t.agreedFeeAed - deposit)}** |
+
+**Payment terms:** ${DJ_EMY.contractDefaults.balanceDueDays === 0 ? "Due on the night of performance." : `Due within ${DJ_EMY.contractDefaults.balanceDueDays} days.`}
+**Bank details:** [ADD BANK NAME / IBAN / ACCOUNT NAME]
+
+*Late payments accrue interest at 2% per month.*
+`;
+}
+
+export function generatePressPack(g: Gig): string {
+  return `# PRESS & CONTENT PACK — ${g.venueName ?? g.title}
+
+## Approved billing
+**${DJ_EMY.name}**
+
+## Short bio (50 words)
+${DJ_EMY.name} is a ${DJ_EMY.basedIn}-based DJ working across ${DJ_EMY.genres.join(", ")}. [REPLACE FROM EPK — residencies, notable rooms, standout sets.]
+
+## What the venue must supply to the Artist
+- Event artwork for approval, min 48h before publication
+- Confirmed billing position and set time for announcement
+- Venue social handles for tagging
+- Photographer/videographer contact, if any
+
+## What the Artist supplies
+- 2x approved press images (landscape + portrait)
+- Logo files (PNG, transparent)
+- 30s promo clip for stories
+- Bio (50 / 150 word versions)
+
+## Content rights summary
+- Venue may use Artist name + approved images to promote **this event only**, licence ends 30 days after.
+- Short-form clips under 90s permitted with credit and tag.
+- Full-set recording for commercial release requires written consent and a separate fee.
+- Artist retains all rights in her performance, name, likeness and mixes.
+- Artist may use venue name and performance footage in her own portfolio and socials.
+
+## Announcement checklist
+- [ ] Artwork received and approved
+- [ ] Name spelled correctly: **${DJ_EMY.name}**
+- [ ] Artist tagged: ${DJ_EMY.instagram ?? "[handle]"}
+- [ ] Set time correct
+- [ ] Artist reposts to story on announcement day
+`;
+}
+
+export interface DealPack {
+  contract: string;
+  runsheet: string;
+  invoice: string;
+  pressPack: string;
+  terms: DealTerms;
+}
+
+export function generateDealPack(g: Gig, overrides: Partial<DealTerms> = {}): DealPack {
+  const terms = deriveTerms(g, overrides);
+  return {
+    terms,
+    contract: generateContract(g, terms),
+    runsheet: generateRunsheet(g, terms),
+    invoice: generateInvoice(g, terms),
+    pressPack: generatePressPack(g),
+  };
+}
