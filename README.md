@@ -1,7 +1,15 @@
 # GigRadar — DJ Emy
 
-> **New here? Read [START-HERE.md](START-HERE.md)** — how to open the app,
-> where `/profile` is, and how to switch on WhatsApp + email alerts.
+> ### 📄 Want the documents without running anything?
+> Open the **[`pack/`](pack/)** folder. Rate card, pitch scripts, negotiation
+> playbook, contract, invoice, runsheet and press pack — all generated, all
+> usable right now. Nothing to install.
+>
+> ### 🚀 Want the live app with phone alerts?
+> One click, no terminal:
+> [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkirthregis%2FCross-Claude-Code%2Ftree%2Farena%2F019fc128-cross-claude-code)
+>
+> Then see [START-HERE.md](START-HERE.md) for switching on WhatsApp + email.
 
 Every GCC gig, the minute it appears. Found, scored, priced, pitched, negotiated and contracted.
 
