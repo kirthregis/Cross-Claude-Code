@@ -1,7 +1,7 @@
 # Agent notes — GigRadar
 
 ## Commands
-- `npm run dev` · `npm run build` · `npm test` (vitest, 96 tests) · `npm run lint`
+- `npm run dev` · `npm run build` · `npm test` (vitest, 115 tests) · `npm run lint`
 - `npm run seed` — realistic Dubai sample leads into SQLite
 - `npm run sweep` — one ingest sweep from the CLI
 
@@ -37,6 +37,16 @@
   She is GCC-based, not Dubai-only.
 - Regex stems: never put a trailing `\b` after a partial stem. `\bexclusiv\b`
   matches nothing; use `\bexclusiv\w*`.
+
+## Document import
+- `src/lib/docparse.ts` extracts entity/licence/bank fields from PDFs and text.
+  Pure and unit-tested; `extractText()` is the only part touching pdf-parse.
+- pdf.js needs its worker resolved from the installed package — Next does not
+  emit `pdf.worker.mjs` into the server chunks. `serverExternalPackages:
+  ["pdf-parse"]` in next.config.ts plus `PDFParse.setWorker()` handles this.
+  Unit tests do NOT catch a regression here; test an actual HTTP upload.
+- Uploads are parsed in memory only. Never persist the file, never log the
+  extracted values, never echo more than the bounded `preview`.
 
 ## Placeholders that must be replaced before production
 - Artist legal name is set: **Imen Mannai**. Still needed: EVG's registered
