@@ -10,6 +10,8 @@ import type { Gig } from "./types";
 import type { Scored } from "./score";
 import { quote } from "./pricing";
 import { logAlert, deferAlert, pendingDeferred, markDeferredReleased } from "./db";
+import { sendWhatsApp, sendEmail, actionLinks, whatsappConfigured, emailConfigured } from "./channels";
+import { pitch } from "./outreach";
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
@@ -20,6 +22,55 @@ const TIER_PREFIX: Record<string, string> = {
   digest: "📋 Possible gig",
   suppress: "",
 };
+
+/**
+ * Plain-text alert with tap-through links. WhatsApp renders bare URLs as
+ * links, so no markup is needed — and markup would show as literal asterisks.
+ */
+export function buildPlainMessage(g: Gig, s: Scored): string {
+  const q = quote({
+    venueTier: g.venueTier,
+    eventDate: g.eventDate,
+    setLengthMins: g.setLengthMins ?? 120,
+    slot: g.slot ?? "unknown",
+    exclusivity: !!g.exclusivity,
+    travelRequired: !!g.travelRequired,
+    recurring: !!g.recurring,
+    budgetStatedAed: g.budgetStatedAed,
+  });
+  const ask = Math.max(q.askAed, g.budgetStatedAed ?? 0);
+  const appUrl = env("APP_URL") ?? "";
+  const pitchText = pitch(g, "whatsapp").body;
+
+  const when = g.eventDate
+    ? new Date(g.eventDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+    : "Date TBC";
+
+  const lines: (string | undefined)[] = [
+    `${TIER_PREFIX[s.tier]} (${s.score}/100)`,
+    ``,
+    g.venueName ?? g.title,
+    `${when}${g.area ? ` · ${g.area}` : ""}`,
+    g.setLengthMins ? `${(g.setLengthMins / 60).toFixed(1)}h · ${g.slot} slot` : undefined,
+    ``,
+    `Ask AED ${ask.toLocaleString()}  (target ${q.targetAed.toLocaleString()}, floor ${q.walkAwayAed.toLocaleString()})`,
+    g.budgetStatedAed ? `They said AED ${g.budgetStatedAed.toLocaleString()}` : undefined,
+    ``,
+    `Via ${g.sourceName}`,
+    ``,
+  ];
+
+  for (const a of actionLinks(g, pitchText)) lines.push(`${a.label}: ${a.url}`);
+  if (appUrl) lines.push(`Full deal + contract: ${appUrl}/gig/${g.id}`);
+
+  // Keep intentional blank lines (readability on a phone); drop only the
+  // placeholders left by absent optional fields.
+  return lines
+    .filter((l) => l !== undefined && l !== null)
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 
 export function buildMessage(g: Gig, s: Scored): string {
   const q = quote({
@@ -133,6 +184,19 @@ export async function alert(g: Gig, s: Scored, now: Date = new Date()): Promise<
   }
 
   const sent: string[] = [];
+  const plain = buildPlainMessage(g, s);
+
+  // WhatsApp first — it's where she actually is.
+  if (whatsappConfigured()) {
+    const r = await sendWhatsApp(plain, g.id, s.tier);
+    if (r.ok) sent.push("whatsapp");
+  }
+  if (emailConfigured()) {
+    const subj = `${s.tier === "urgent" ? "URGENT gig" : "Gig"}: ${g.venueName ?? g.sourceName}`
+      + (g.eventDate ? ` — ${g.eventDate}` : "");
+    const r = await sendEmail(subj, plain, g.id, s.tier);
+    if (r.ok) sent.push("email");
+  }
   if (await sendTelegram(g, s)) sent.push("telegram");
   if (await sendWebhook(g, s)) sent.push("webhook");
   return { sent };
@@ -174,6 +238,17 @@ export async function sendMorningDigest(): Promise<{ sent: boolean; count: numbe
   ].filter(Boolean).join("\n");
 
   let ok = false;
+
+  // Same channels she actually uses.
+  if (whatsappConfigured()) {
+    const r = await sendWhatsApp(lines.replace(/\*/g, ""));
+    ok = ok || r.ok;
+  }
+  if (emailConfigured()) {
+    const r = await sendEmail(`Morning briefing — ${pending.length} gig${pending.length > 1 ? "s" : ""} overnight`, lines.replace(/\*/g, ""));
+    ok = ok || r.ok;
+  }
+
   if (token && chat) {
     try {
       const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

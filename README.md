@@ -1,5 +1,8 @@
 # GigRadar — DJ Emy
 
+> **New here? Read [START-HERE.md](START-HERE.md)** — how to open the app,
+> where `/profile` is, and how to switch on WhatsApp + email alerts.
+
 Every GCC gig, the minute it appears. Found, scored, priced, pitched, negotiated and contracted.
 
 A gig-acquisition engine for DJ Emy, represented by **Emy Vision Group**. It watches every source where UAE and Qatar bookings surface, pushes the good ones to her phone within seconds, tells her exactly what to charge and who to call, and generates the entire paperwork pack the moment a deal is agreed.
@@ -55,16 +58,25 @@ npm run dev                    # http://localhost:3000
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 115 tests
+npm test          # 126 tests
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 ```
 
 ---
 
-## Turning on real alerts (5 minutes)
+## Turning on real alerts
 
-Telegram is the fastest path to instant phone notifications — no app store, no review, free, with tappable action buttons on the lock screen.
+Full walkthrough in **[START-HERE.md](START-HERE.md)**. Summary:
+
+| Channel | Status | Notes |
+|---|---|---|
+| **WhatsApp** | ✅ supported | Meta Cloud API. Main channel — it's where she already is. |
+| **Email** | ✅ supported | Resend. Easiest to set up, works immediately. |
+| **Instagram** | ❌ not possible | Meta forbids API DMs to your own account; unofficial tools get accounts banned. IG gigs are alerted via WhatsApp/email with a one-tap link into the thread. |
+| Telegram | optional | Alternative if you want it. |
+
+### Telegram (optional alternative)
 
 1. Message **@BotFather** on Telegram → `/newbot` → copy the token.
 2. Message your new bot once, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy your chat id.
@@ -209,7 +221,7 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-115 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+126 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back
