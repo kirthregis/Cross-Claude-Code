@@ -10,6 +10,10 @@ import { scoreGig } from "./score";
 import { alert } from "./notify";
 import { upsertGig, alreadyAlerted, recordSweep } from "./db";
 import type { Gig, RawLead } from "./types";
+import { registerProfileLoader } from "./profile-store";
+
+// Inbound leads are scored and priced — make sure saved rate overrides apply.
+registerProfileLoader();
 
 export interface SweepResult {
   found: number;

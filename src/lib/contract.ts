@@ -10,7 +10,7 @@
  * it's used on high-value bookings.
  */
 
-import { DJ_EMY } from "./artist";
+import { activeProfile } from "./active-profile";
 import type { Gig } from "./types";
 import { quoteFor } from "./outreach";
 
@@ -39,12 +39,12 @@ export function deriveTerms(g: Gig, overrides: Partial<DealTerms> = {}): DealTer
     clientLegalName: overrides.clientLegalName ?? g.venueName ?? "[CLIENT LEGAL NAME]",
     clientAddress: overrides.clientAddress ?? "[CLIENT REGISTERED ADDRESS]",
     venueAddress: overrides.venueAddress ?? [g.venueName, g.area, "Dubai, UAE"].filter(Boolean).join(", "),
-    exclusivityKm: overrides.exclusivityKm ?? (g.exclusivity ? DJ_EMY.contractDefaults.defaultExclusivityKm : 0),
+    exclusivityKm: overrides.exclusivityKm ?? (g.exclusivity ? activeProfile().contractDefaults.defaultExclusivityKm : 0),
   };
 }
 
 export function generateContract(g: Gig, t: DealTerms): string {
-  const c = DJ_EMY.contractDefaults;
+  const c = activeProfile().contractDefaults;
   const deposit = Math.round((t.agreedFeeAed * c.depositPercent) / 100);
   const balance = t.agreedFeeAed - deposit;
   const dateStr = t.eventDate !== "TBC"
@@ -58,9 +58,9 @@ export function generateContract(g: Gig, t: DealTerms): string {
 This Agreement is made between:
 
 **THE ARTIST**
-${DJ_EMY.legalName} professionally known as "${DJ_EMY.name}"
-${DJ_EMY.basedIn}
-${DJ_EMY.email} · ${DJ_EMY.phone}
+${activeProfile().legalName} professionally known as "${activeProfile().name}"
+${activeProfile().basedIn}
+${activeProfile().email} · ${activeProfile().phone}
 
 **THE CLIENT**
 ${t.clientLegalName}
@@ -80,7 +80,7 @@ The Client engages the Artist to perform a DJ set on the terms below.
 | Load-in / soundcheck | ${t.loadInTime} |
 | Performance time | ${t.setStart} – ${t.setEnd} |
 | Set length | ${g.setLengthMins ? `${(g.setLengthMins / 60).toFixed(1)} hours` : "2 hours"} |
-| Format | ${g.genresWanted.length ? g.genresWanted.join(", ") : DJ_EMY.genres.join(", ")} |
+| Format | ${g.genresWanted.length ? g.genresWanted.join(", ") : activeProfile().genres.join(", ")} |
 
 ## 2. FEE AND PAYMENT
 
@@ -112,19 +112,19 @@ ${c.cancellationTiers
 
 The Client shall provide, at its own cost, in full working order and tested no later than 24 hours before the Event:
 
-${DJ_EMY.techRider.mixer.map((x) => `- ${x}`).join("\n")}
-${DJ_EMY.techRider.players.map((x) => `- ${x}`).join("\n")}
-- ${DJ_EMY.techRider.monitors}
-${DJ_EMY.techRider.booth.map((x) => `- ${x}`).join("\n")}
-${DJ_EMY.techRider.connectivity.map((x) => `- ${x}`).join("\n")}
+${activeProfile().techRider.mixer.map((x) => `- ${x}`).join("\n")}
+${activeProfile().techRider.players.map((x) => `- ${x}`).join("\n")}
+- ${activeProfile().techRider.monitors}
+${activeProfile().techRider.booth.map((x) => `- ${x}`).join("\n")}
+${activeProfile().techRider.connectivity.map((x) => `- ${x}`).join("\n")}
 
-${DJ_EMY.techRider.notes.map((x) => `4.x ${x}`).join("\n")}
+${activeProfile().techRider.notes.map((x) => `4.x ${x}`).join("\n")}
 
 4.9 Failure to provide the specified equipment does not reduce the fee. If the Artist cannot reasonably perform due to equipment failure attributable to the Client, the full fee remains payable.
 
 ## 5. HOSPITALITY AND LOGISTICS
 
-${DJ_EMY.hospitalityRider.map((x) => `- ${x}`).join("\n")}
+${activeProfile().hospitalityRider.map((x) => `- ${x}`).join("\n")}
 ${g.travelRequired ? `- Travel outside Dubai: return transport and, where the Event ends after 01:00 or is more than 90 minutes from Dubai, single-occupancy accommodation, both at the Client's cost.` : ""}
 
 ## 6. SOUND LIMITS AND VENUE COMPLIANCE
@@ -136,7 +136,7 @@ ${g.travelRequired ? `- Travel outside Dubai: return transport and, where the Ev
 
 7.1 **Artist IP.** ${c.ipPolicy}
 7.2 **Recording.** ${c.recordingPolicy}
-7.3 **Billing.** The Artist shall be billed as "${DJ_EMY.name}" in all promotional material. Artwork featuring the Artist's name or likeness shall be supplied to the Artist for approval not less than 48 hours before publication; approval shall not be unreasonably withheld.
+7.3 **Billing.** The Artist shall be billed as "${activeProfile().name}" in all promotional material. Artwork featuring the Artist's name or likeness shall be supplied to the Artist for approval not less than 48 hours before publication; approval shall not be unreasonably withheld.
 7.4 **Content deliverables.** Where the Client requires the Artist to produce social content (reels, stories, posts) beyond incidental coverage of the performance, this is a separate deliverable and is charged separately. Nothing in this Agreement obliges the Artist to post.
 7.5 **Client marks.** The Artist may use the Client's name, the Venue name and footage of the performance in her own portfolio, EPK and social channels.
 7.6 **Music licensing.** Responsibility for public performance royalties in respect of recorded music played at the Venue rests with the Client.
@@ -166,7 +166,7 @@ ${
 
 **THE ARTIST**
 
-Name: ${DJ_EMY.legalName} ("${DJ_EMY.name}")
+Name: ${activeProfile().legalName} ("${activeProfile().name}")
 
 Signature: __________________________  Date: ____________
 
@@ -204,14 +204,14 @@ export function generateRunsheet(g: Gig, t: DealTerms): string {
 | ${minus(t.setStart ?? "23:00", 10)} | USBs loaded, backup USB in bag, phone on silent, water in booth |
 | **${t.setStart}** | **SET START** |
 | ${t.setEnd} | Set end — do not overrun without written agreement (extra hour = ${money(Math.round(t.agreedFeeAed * 0.35))}) |
-| +15 min | Collect balance ${money(t.agreedFeeAed - Math.round((t.agreedFeeAed * DJ_EMY.contractDefaults.depositPercent) / 100))}, photo of payment confirmation |
+| +15 min | Collect balance ${money(t.agreedFeeAed - Math.round((t.agreedFeeAed * activeProfile().contractDefaults.depositPercent) / 100))}, photo of payment confirmation |
 
 ## Pre-event checklist (T-7 days)
 - [ ] Deposit received and cleared
 - [ ] Contract signed by both parties, countersigned copy filed
 - [ ] Tech rider acknowledged in writing by venue
 - [ ] Equipment list confirmed — get a photo of the actual booth
-- [ ] Artwork approved, correct billing "${DJ_EMY.name}"
+- [ ] Artwork approved, correct billing "${activeProfile().name}"
 - [ ] Guest list name submitted (+1)
 - [ ] Parking / access instructions received
 - [ ] Set prepared, crate built for the room and slot (${g.slot})
@@ -237,11 +237,11 @@ ${g.contacts.length ? g.contacts.map((c) => `- ${[c.name, c.role, c.phone ?? c.e
 }
 
 export function generateInvoice(g: Gig, t: DealTerms): string {
-  const deposit = Math.round((t.agreedFeeAed * DJ_EMY.contractDefaults.depositPercent) / 100);
+  const deposit = Math.round((t.agreedFeeAed * activeProfile().contractDefaults.depositPercent) / 100);
   const num = `INV-${new Date().getFullYear()}-${g.id.slice(0, 5).toUpperCase()}`;
   return `# INVOICE ${num}
 
-**From:** ${DJ_EMY.legalName} ("${DJ_EMY.name}") · ${DJ_EMY.email} · ${DJ_EMY.phone}
+**From:** ${activeProfile().legalName} ("${activeProfile().name}") · ${activeProfile().email} · ${activeProfile().phone}
 **To:** ${t.clientLegalName}, ${t.clientAddress}
 **Date:** ${new Date().toLocaleDateString("en-GB")}
 **Event:** ${g.title} — ${t.eventDate}
@@ -252,7 +252,7 @@ export function generateInvoice(g: Gig, t: DealTerms): string {
 | Less deposit received | −${money(deposit)} |
 | **Balance due** | **${money(t.agreedFeeAed - deposit)}** |
 
-**Payment terms:** ${DJ_EMY.contractDefaults.balanceDueDays === 0 ? "Due on the night of performance." : `Due within ${DJ_EMY.contractDefaults.balanceDueDays} days.`}
+**Payment terms:** ${activeProfile().contractDefaults.balanceDueDays === 0 ? "Due on the night of performance." : `Due within ${activeProfile().contractDefaults.balanceDueDays} days.`}
 **Bank details:** [ADD BANK NAME / IBAN / ACCOUNT NAME]
 
 *Late payments accrue interest at 2% per month.*
@@ -263,10 +263,10 @@ export function generatePressPack(g: Gig): string {
   return `# PRESS & CONTENT PACK — ${g.venueName ?? g.title}
 
 ## Approved billing
-**${DJ_EMY.name}**
+**${activeProfile().name}**
 
 ## Short bio (50 words)
-${DJ_EMY.name} is a ${DJ_EMY.basedIn}-based DJ working across ${DJ_EMY.genres.join(", ")}. [REPLACE FROM EPK — residencies, notable rooms, standout sets.]
+${activeProfile().name} is a ${activeProfile().basedIn}-based DJ working across ${activeProfile().genres.join(", ")}. [REPLACE FROM EPK — residencies, notable rooms, standout sets.]
 
 ## What the venue must supply to the Artist
 - Event artwork for approval, min 48h before publication
@@ -289,8 +289,8 @@ ${DJ_EMY.name} is a ${DJ_EMY.basedIn}-based DJ working across ${DJ_EMY.genres.jo
 
 ## Announcement checklist
 - [ ] Artwork received and approved
-- [ ] Name spelled correctly: **${DJ_EMY.name}**
-- [ ] Artist tagged: ${DJ_EMY.instagram ?? "[handle]"}
+- [ ] Name spelled correctly: **${activeProfile().name}**
+- [ ] Artist tagged: ${activeProfile().instagram ?? "[handle]"}
 - [ ] Set time correct
 - [ ] Artist reposts to story on announcement day
 `;

@@ -55,7 +55,7 @@ npm run dev                    # http://localhost:3000
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 58 tests
+npm test          # 62 tests
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 ```
@@ -105,9 +105,14 @@ WhatsApp and email leads bypass the sweep and are processed the instant they arr
 
 ---
 
-## ⚠️ Before real use — replace the placeholders
+## ⚠️ Before real use — fill in the profile
 
-The pricing and contract output is only as good as the profile behind it. Everything below lives in **`src/lib/artist.ts`** and is marked `PLACEHOLDER`:
+Open **`/profile`** in the app. It lists exactly what's still missing and lets you edit
+rates, contact details and contract defaults without touching code — changes take effect
+immediately across pricing, pitches and contracts.
+
+The compiled-in defaults live in **`src/lib/artist.ts`**; the `/profile` screen writes
+overrides on top of them. What must be replaced:
 
 - **`legalName`** — required for contracts to be valid
 - **`baseRatesAed`** — currently Dubai market ballpark, not Emy's actual rates. Feed in 5–10 past bookings and these become genuinely accurate.
@@ -128,7 +133,8 @@ Also review:
 
 | Path | Role |
 |---|---|
-| `src/lib/artist.ts` | Emy's profile, rates, rider, contract defaults — **the single source of truth** |
+| `src/lib/artist.ts` | Compiled-in defaults: rates, rider, contract terms |
+| `src/lib/profile-store.ts` | DB-backed overrides from `/profile`, deep-merged over the defaults |
 | `src/lib/extract.ts` | Free text → structured gig; dedupe fingerprinting |
 | `src/lib/pricing.ts` | The pricing brain — ask / target / walk-away with itemised reasoning |
 | `src/lib/score.ts` | Fit scoring and alert tiering (incl. quiet hours) |
@@ -143,7 +149,7 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-58 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+62 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back

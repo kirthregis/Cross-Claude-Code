@@ -3,7 +3,7 @@
  * negotiation counters for the objections that actually come up in Dubai.
  */
 
-import { DJ_EMY } from "./artist";
+import { activeProfile } from "./active-profile";
 import type { Gig, Contact } from "./types";
 import { quote } from "./pricing";
 
@@ -48,13 +48,13 @@ export function pitch(g: Gig, channel: Channel, contact?: Contact): { subject?: 
   if (channel === "whatsapp" || channel === "instagram_dm") {
     return {
       body: [
-        `Hi ${who}! ${DJ_EMY.name} here — Dubai-based ${DJ_EMY.genres.slice(0, 2).join(" / ")} DJ.`,
+        `Hi ${who}! ${activeProfile().name} here — Dubai-based ${activeProfile().genres.slice(0, 2).join(" / ")} DJ.`,
         ``,
         `Saw you're looking for a DJ for ${when}${g.venueName ? ` at ${venue}` : ""}. I'm available and it's exactly my sound.`,
         ``,
         `My fee for a ${set} set is AED ${fee}, all-in. I bring my own USBs and can work with your existing backline.`,
         ``,
-        `EPK + mixes: ${DJ_EMY.epkUrl ?? DJ_EMY.instagram}`,
+        `EPK + mixes: ${activeProfile().epkUrl ?? activeProfile().instagram}`,
         ``,
         `Happy to hold the date for you today — shall I send the booking confirmation over?`,
       ].join("\n"),
@@ -66,23 +66,23 @@ export function pitch(g: Gig, channel: Channel, contact?: Contact): { subject?: 
     body: [
       `Dear ${contact?.name ?? "Booking Team"},`,
       ``,
-      `I'm ${DJ_EMY.name}, a Dubai-based DJ specialising in ${DJ_EMY.genres.join(", ")}.`,
+      `I'm ${activeProfile().name}, a Dubai-based DJ specialising in ${activeProfile().genres.join(", ")}.`,
       ``,
       `I understand you're programming for ${when}${g.venueName ? ` at ${venue}` : ""} and I'd like to put myself forward. I'm available on the date and the brief is a direct match for my sound.`,
       ``,
       `Proposed terms:`,
       `  • Performance: ${set} ${g.slot && g.slot !== "unknown" ? `${g.slot} ` : ""}set`,
       `  • Fee: AED ${fee} (inclusive of preparation and standard equipment use)`,
-      `  • Payment: ${DJ_EMY.contractDefaults.depositPercent}% deposit to confirm the date, balance on the night`,
+      `  • Payment: ${activeProfile().contractDefaults.depositPercent}% deposit to confirm the date, balance on the night`,
       `  • Technical: I can work with in-house backline; full rider attached`,
       ``,
-      `EPK, mixes and previous bookings: ${DJ_EMY.epkUrl ?? DJ_EMY.instagram}`,
+      `EPK, mixes and previous bookings: ${activeProfile().epkUrl ?? activeProfile().instagram}`,
       ``,
       `I can hold the date for 48 hours pending your confirmation. Happy to jump on a quick call if easier.`,
       ``,
       `Kind regards,`,
-      `${DJ_EMY.name}`,
-      `${DJ_EMY.phone} · ${DJ_EMY.email}`,
+      `${activeProfile().name}`,
+      `${activeProfile().phone} · ${activeProfile().email}`,
     ].join("\n"),
   };
 }
@@ -109,11 +109,11 @@ export function negotiationPlaybook(g: Gig): Counter[] {
     },
     {
       objection: "We need you exclusive that week",
-      response: `Exclusivity is a product, not a courtesy. "A ${DJ_EMY.contractDefaults.defaultExclusivityKm}km / 7-day radius clause is +30% — that's AED ${Math.round(q.targetAed * 1.3).toLocaleString()}. Without the clause it stays at AED ${target}." Let them choose.`,
+      response: `Exclusivity is a product, not a courtesy. "A ${activeProfile().contractDefaults.defaultExclusivityKm}km / 7-day radius clause is +30% — that's AED ${Math.round(q.targetAed * 1.3).toLocaleString()}. Without the clause it stays at AED ${target}." Let them choose.`,
     },
     {
       objection: "We'll confirm closer to the date",
-      response: `"I can pencil you in, but I release held dates to confirmed bookings. A ${DJ_EMY.contractDefaults.depositPercent}% deposit locks it." A deposit is the only real confirmation — verbal holds cost her paid work.`,
+      response: `"I can pencil you in, but I release held dates to confirmed bookings. A ${activeProfile().contractDefaults.depositPercent}% deposit locks it." A deposit is the only real confirmation — verbal holds cost her paid work.`,
     },
     {
       objection: "Payment 30/60 days after the event",

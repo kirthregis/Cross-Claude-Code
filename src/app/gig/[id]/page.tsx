@@ -36,7 +36,7 @@ export default function GigPage({ params }: { params: Promise<{ id: string }> })
 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-24 pt-6">
-      <Link href="/" className="text-xs text-indigo-400">← All gigs</Link>
+      <Link href="/" className="text-xs text-red-500">← All gigs</Link>
 
       <header className="mt-3">
         <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
@@ -53,7 +53,7 @@ export default function GigPage({ params }: { params: Promise<{ id: string }> })
         {STAGES.map((s) => (
           <button key={s} onClick={() => move(s)}
             className={`whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-medium ${
-              gig.stage === s ? "bg-indigo-600 text-white" : "bg-zinc-800/60 text-zinc-400"
+              gig.stage === s ? "bg-red-600 text-white" : "bg-zinc-800/60 text-zinc-400"
             }`}>
             {s}
           </button>
@@ -85,7 +85,7 @@ function PriceTab({ quote, gig, scored }: { quote: PriceQuote; gig: Gig; scored:
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: "Open at", v: quote.askAed, c: "text-emerald-400" },
-          { label: "Target", v: quote.targetAed, c: "text-indigo-300" },
+          { label: "Target", v: quote.targetAed, c: "text-red-400" },
           { label: "Never below", v: quote.walkAwayAed, c: "text-rose-400" },
         ].map((x) => (
           <div key={x.label} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-center">
@@ -104,7 +104,7 @@ function PriceTab({ quote, gig, scored }: { quote: PriceQuote; gig: Gig; scored:
 
       <Block title="What to do">
         <ul className="space-y-2 text-xs text-zinc-300">
-          {quote.rationale.map((r, i) => <li key={i} className="flex gap-2"><span className="text-indigo-400">▸</span>{r}</li>)}
+          {quote.rationale.map((r, i) => <li key={i} className="flex gap-2"><span className="text-red-500">▸</span>{r}</li>)}
         </ul>
       </Block>
 
@@ -129,7 +129,7 @@ function PriceTab({ quote, gig, scored }: { quote: PriceQuote; gig: Gig; scored:
 
       <Block title="Original post">
         <p className="whitespace-pre-wrap text-xs text-zinc-400">{gig.body}</p>
-        {gig.sourceUrl && <a href={gig.sourceUrl} className="mt-2 inline-block text-xs text-indigo-400 underline">Open source</a>}
+        {gig.sourceUrl && <a href={gig.sourceUrl} className="mt-2 inline-block text-xs text-red-500 underline">Open source</a>}
       </Block>
     </div>
   );
@@ -181,7 +181,7 @@ function ContactTab({ strategy, pitches }: { strategy: Detail["strategy"]; pitch
         <div className="mb-2 flex gap-1">
           {(["whatsapp", "instagram_dm", "email"] as const).map((c) => (
             <button key={c} onClick={() => setCh(c)}
-              className={`rounded px-2.5 py-1 text-[11px] ${ch === c ? "bg-indigo-600" : "bg-zinc-800 text-zinc-400"}`}>
+              className={`rounded px-2.5 py-1 text-[11px] ${ch === c ? "bg-red-600" : "bg-zinc-800 text-zinc-400"}`}>
               {c.replace("_", " ")}
             </button>
           ))}
@@ -190,7 +190,7 @@ function ContactTab({ strategy, pitches }: { strategy: Detail["strategy"]; pitch
         <pre className="whitespace-pre-wrap rounded-lg bg-zinc-950 p-3 text-xs leading-relaxed text-zinc-200">{p.body}</pre>
         <button
           onClick={() => { navigator.clipboard.writeText(p.body); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-          className="mt-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium">
+          className="mt-2 rounded-lg bg-red-600 px-4 py-2 text-xs font-medium">
           {copied ? "Copied ✓" : "Copy message"}
         </button>
       </Block>
@@ -233,7 +233,7 @@ function PaperworkTab({ id, defaultFee }: { id: string; defaultFee: number }) {
       <div className="flex gap-1 overflow-x-auto">
         {(Object.keys(LABELS) as (keyof typeof LABELS)[]).map((k) => (
           <button key={k} onClick={() => setDoc(k)}
-            className={`whitespace-nowrap rounded px-2.5 py-1 text-[11px] ${doc === k ? "bg-indigo-600" : "bg-zinc-800 text-zinc-400"}`}>
+            className={`whitespace-nowrap rounded px-2.5 py-1 text-[11px] ${doc === k ? "bg-red-600" : "bg-zinc-800 text-zinc-400"}`}>
             {LABELS[k]}
           </button>
         ))}
@@ -246,7 +246,7 @@ function PaperworkTab({ id, defaultFee }: { id: string; defaultFee: number }) {
           </div>
           <div className="flex gap-2">
             <button onClick={() => navigator.clipboard.writeText(data[doc])}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium">Copy Markdown</button>
+              className="rounded-lg bg-red-600 px-4 py-2 text-xs font-medium">Copy Markdown</button>
             <button onClick={() => window.print()}
               className="rounded-lg border border-zinc-700 px-4 py-2 text-xs">Print / Save PDF</button>
           </div>

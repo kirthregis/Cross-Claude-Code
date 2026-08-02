@@ -5,7 +5,7 @@
  * she should never be woken at 3am for a 1,500 AED weeknight bar slot.
  */
 
-import { DJ_EMY } from "./artist";
+import { activeProfile } from "./active-profile";
 import type { Gig } from "./types";
 import { quote } from "./pricing";
 import { daysUntil } from "./dates";
@@ -26,9 +26,9 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
 
   // --- Genre fit
   const wants = g.genresWanted;
-  const primary = wants.filter((x) => DJ_EMY.genres.includes(x));
-  const secondary = wants.filter((x) => DJ_EMY.secondaryGenres.includes(x));
-  const blocked = wants.filter((x) => DJ_EMY.wontPlay.includes(x));
+  const primary = wants.filter((x) => activeProfile().genres.includes(x));
+  const secondary = wants.filter((x) => activeProfile().secondaryGenres.includes(x));
+  const blocked = wants.filter((x) => activeProfile().wontPlay.includes(x));
   if (primary.length) { score += 20; reasons.push(`Core genre match: ${primary.join(", ")}`); }
   else if (secondary.length) { score += 8; reasons.push(`Secondary genre: ${secondary.join(", ")}`); }
   if (blocked.length && !primary.length) {
