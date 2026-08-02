@@ -191,24 +191,12 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
   <section id="p-info" class="hide">
     <div class="card"><h2>Company</h2>
       <div class="kv"><span>Legal name</span><span>Emy Vision Group FZC</span></div>
-      <div class="kv"><span>Licence no.</span><span>4427087.01</span></div>
-      <div class="kv"><span>Formation no.</span><span>4427087</span></div>
-      <div class="kv"><span>Licence expiry</span><span>06/01/2027</span></div>
+      
       <div class="kv"><span>Type</span><span>Free Zone Company</span></div>
       <div class="kv"><span>Booking contact</span><span>Kirth · +971 50 660 7743</span></div>
       <div class="kv"><span>Email</span><span>admin@emyvisiongroup.com</span></div>
     </div>
-    <div class="card"><h2>Bank — for invoices</h2>
-      <div class="kv"><span>Account name</span><span>EMY VISION GROUP FZC</span></div>
-      <div class="kv"><span>Bank</span><span>Mashreqbank PSC (Mashreq NEO BIZ)</span></div>
-      <div class="kv"><span>IBAN (AED)</span><span>AE060330000019102008190</span></div>
-      <div class="kv"><span>SWIFT / BIC</span><span>BOMLAEAD</span></div>
-      <div class="kv"><span>IBAN (GBP)</span><span>AE760330000019102008191</span></div>
-      <div class="kv"><span>IBAN (USD)</span><span>AE490330000019102008192</span></div>
-      <div class="kv"><span>IBAN (EUR)</span><span>AE220330000019102008193</span></div>
-      <button class="btn alt" onclick="copyBank(this)">Copy bank details</button>
-      <div class="warn">Never send the Mashreq customer number (CIF) to a client — it's also the password for the bank's statements. Payments only need the account name, IBAN and SWIFT.</div>
-    </div>
+    
     <div class="card"><h2>Tech rider</h2>
       <div class="kv"><span>Players</span><span>2× Pioneer CDJ-3000<br>(2000NXS2 acceptable)</span></div>
       <div class="kv"><span>Mixer</span><span>1× Pioneer DJM-900NXS2</span></div>
@@ -330,8 +318,7 @@ function copyTxt(t,b,msg){
     document.body.removeChild(a);}
 }
 function copyPitch(b){copyTxt($('pitch').textContent,b,'Copied ✓')}
-function copyBank(b){copyTxt(
- 'Account name: EMY VISION GROUP FZC\nBank: Mashreqbank PSC (Mashreq NEO BIZ)\nIBAN (AED): AE060330000019102008190\nSWIFT/BIC: BOMLAEAD',b,'Copied ✓')}
+
 
 ['tier','hrs','slot','night','season','budget','who','venue','date'].forEach(function(id){
   $(id).addEventListener('input',calc); $(id).addEventListener('change',calc);

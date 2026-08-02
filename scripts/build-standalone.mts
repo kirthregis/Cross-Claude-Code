@@ -22,6 +22,15 @@ const TIERS = [
   ["bar_restaurant", "Bar / restaurant", 3000],
 ] as const;
 
+/**
+ * PUBLIC=1 builds a shareable version with NO settlement or registration data.
+ *
+ * Emy needs pricing, pitches and negotiation on her phone — she never needs
+ * IBANs mid-conversation. Those belong to EVG's invoicing, not to a link that
+ * gets forwarded around WhatsApp.
+ */
+const PUBLIC = process.env.PUBLIC === "1";
+
 const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -218,14 +227,14 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
   <section id="p-info" class="hide">
     <div class="card"><h2>Company</h2>
       <div class="kv"><span>Legal name</span><span>${M.legalName}</span></div>
-      <div class="kv"><span>Licence no.</span><span>${M.tradeLicenceNo}</span></div>
+      ${PUBLIC ? "" : `<div class="kv"><span>Licence no.</span><span>${M.tradeLicenceNo}</span></div>
       <div class="kv"><span>Formation no.</span><span>4427087</span></div>
+      <div class="kv"><span>Licence expiry</span><span>06/01/2027</span></div>`}
       <div class="kv"><span>Type</span><span>Free Zone Company</span></div>
-      <div class="kv"><span>Manager</span><span>Imen Mannai</span></div>
-      <div class="kv"><span>Licence expiry</span><span>06/01/2027</span></div>
-      <div class="kv"><span>Address</span><span>${M.address}</span></div>
+      <div class="kv"><span>Booking contact</span><span>${M.contactName} · ${M.phone}</span></div>
+      <div class="kv"><span>Email</span><span>${M.email}</span></div>
     </div>
-    <div class="card"><h2>Bank — for invoices</h2>
+    ${PUBLIC ? "" : `<div class="card"><h2>Bank — for invoices</h2>
       <div class="kv"><span>Account name</span><span>${B.accountName}</span></div>
       <div class="kv"><span>Bank</span><span>${B.bankName}</span></div>
       <div class="kv"><span>IBAN (AED)</span><span>${B.iban}</span></div>
@@ -233,7 +242,7 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
       ${(B.alternates ?? []).map((a) => `<div class="kv"><span>IBAN (${a.currency})</span><span>${a.iban}</span></div>`).join("\n      ")}
       <button class="btn alt" onclick="copyBank(this)">Copy bank details</button>
       <div class="warn">Never send the Mashreq customer number (CIF) to a client — it's also the password for the bank's statements. Payments only need the account name, IBAN and SWIFT.</div>
-    </div>
+    </div>`}
     <div class="card"><h2>Tech rider</h2>
       <div class="kv"><span>Players</span><span>2× Pioneer CDJ-3000<br>(2000NXS2 acceptable)</span></div>
       <div class="kv"><span>Mixer</span><span>1× Pioneer DJM-900NXS2</span></div>
@@ -250,7 +259,6 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
       <div class="kv"><span>Governing law</span><span>Dubai / UAE</span></div>
     </div>
     <div class="card"><h2>Artist</h2>
-      <div class="kv"><span>Legal name</span><span>Imen Mannai</span></div>
       <div class="kv"><span>Instagram</span><span>${P.instagram}</span></div>
       <div class="kv"><span>Live sets</span><span>youtube.com/@DJEMY-o6d</span></div>
       <div class="kv"><span>Genres</span><span>${P.genres.join(", ")}</span></div>
@@ -356,8 +364,8 @@ function copyTxt(t,b,msg){
     document.body.removeChild(a);}
 }
 function copyPitch(b){copyTxt($('pitch').textContent,b,'Copied ✓')}
-function copyBank(b){copyTxt(
- 'Account name: ${B.accountName}\\nBank: ${B.bankName}\\nIBAN (AED): ${B.iban}\\nSWIFT/BIC: ${B.swift}',b,'Copied ✓')}
+${PUBLIC ? "" : `function copyBank(b){copyTxt(
+ 'Account name: ${B.accountName}\\nBank: ${B.bankName}\\nIBAN (AED): ${B.iban}\\nSWIFT/BIC: ${B.swift}',b,'Copied ✓')}`}
 
 ['tier','hrs','slot','night','season','budget','who','venue','date'].forEach(function(id){
   $(id).addEventListener('input',calc); $(id).addEventListener('change',calc);
@@ -367,8 +375,18 @@ calc();
 </body>
 </html>`;
 
-mkdirSync("docs", { recursive: true });
-writeFileSync("docs/index.html", html);
-console.log(`docs/index.html — ${(html.length / 1024).toFixed(0)} KB`);
-if (html.includes("016087359")) { console.error("FATAL: CIF leaked into the app"); process.exit(1); }
-console.log("✓ CIF absent");
+const out = PUBLIC ? "public/index.html" : "docs/index.html";
+mkdirSync(PUBLIC ? "public" : "docs", { recursive: true });
+writeFileSync(out, html);
+console.log(`${out} — ${(html.length / 1024).toFixed(0)} KB`);
+
+// Hard gate: never ship credentials or settlement data in a shareable build.
+const banned: [string, string][] = [["016087359", "Mashreq CIF"]];
+if (PUBLIC) {
+  banned.push([B.iban, "AED IBAN"], [M.tradeLicenceNo!, "trade licence no."]);
+  for (const a of B.alternates ?? []) banned.push([a.iban, a.currency + " IBAN"]);
+}
+for (const [needle, what] of banned) {
+  if (html.includes(needle)) { console.error(`FATAL: ${what} leaked into ${out}`); process.exit(1); }
+}
+console.log(PUBLIC ? "✓ no IBANs, licence no. or CIF — safe to publish" : "✓ CIF absent");
