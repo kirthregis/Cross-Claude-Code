@@ -41,6 +41,18 @@ const LEADS: RawLead[] = [
     postedAt: new Date(Date.now() - 4 * 3600000).toISOString(),
     body: `Al Quoz warehouse, Hard Techno and Drum & Bass night, ${inDays(20)}. Looking for support DJs, AED 800 for 1 hour.`,
   },
+  {
+    sourceKind: "whatsapp", sourceName: "Doha Nightlife Group",
+    title: "Afro House DJ — The Pearl",
+    postedAt: new Date(Date.now() - 20 * 60000).toISOString(),
+    body: `Looking for an Afro House DJ for a rooftop opening at The Pearl, Doha on ${inDays(12)}. 2 hour sunset set, Arabic and international crowd. Budget QAR equivalent AED 11,000. Contact +974 5512 3344`,
+  },
+  {
+    sourceKind: "email", sourceName: "talent@gulfevents.example",
+    title: "Tournament fan zone — official DJ",
+    postedAt: new Date(Date.now() - 15 * 60000).toISOString(),
+    body: `We are staffing the official fan zone stage for a major sporting event on ${inDays(75)}. Seeking a headline DJ with tournament experience, Afro House / open format, 3 hour main stage set. Fee AED 25,000. Exclusive to our event that week.`,
+  },
 ];
 
 const r = await processLeads(LEADS);

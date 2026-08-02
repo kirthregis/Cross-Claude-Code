@@ -55,12 +55,20 @@ export function generateContract(g: Gig, t: DealTerms): string {
 
 **Date of Agreement:** ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
 
-This Agreement is made between:
+This Agreement is made between the Client and Emy Vision Group, which furnishes
+the services of the Artist. All fees, notices and approvals are handled by the
+Company as the Client's single point of contact.
 
-**THE ARTIST**
+Parties:
+
+**THE COMPANY** (contracting party, furnishing the services of the Artist)
+${activeProfile().management.legalName}, trading as ${activeProfile().management.company}
+Attn: ${activeProfile().management.contactName}, ${activeProfile().management.contactRole}
+${activeProfile().management.email} · ${activeProfile().management.phone}
+
+**THE ARTIST** (performer, engaged through the Company)
 ${activeProfile().legalName} professionally known as "${activeProfile().name}"
 ${activeProfile().basedIn}
-${activeProfile().email} · ${activeProfile().phone}
 
 **THE CLIENT**
 ${t.clientLegalName}
@@ -90,7 +98,7 @@ The Client engages the Artist to perform a DJ set on the terms below.
 | Deposit (${c.depositPercent}%) | ${money(deposit)} | On signature, no later than ${c.depositDueDays} days before the Event |
 | Balance | ${money(balance)} | ${c.balanceDueDays === 0 ? "On the night, immediately following the performance" : `Within ${c.balanceDueDays} days of the Event`} |
 
-2.1 The fee is stated net of any bank charges, and net of VAT where applicable. Any withholding or transfer fees are borne by the Client.
+2.1 All sums are payable to ${activeProfile().management.company}, not to the Artist directly. The fee is stated net of any bank charges, and net of VAT where applicable. Any withholding or transfer fees are borne by the Client.
 2.2 The date is **not** held or confirmed until the deposit is received. Prior to receipt the Artist may accept competing engagements for the same date.
 2.3 Late payment of the balance accrues interest at 2% per month or the maximum permitted by law, whichever is lower.
 2.4 Any extension of the performance beyond the times in Clause 1, if agreed by the Artist on the night, is charged at ${money(Math.round(t.agreedFeeAed * 0.35))} per additional hour, payable same night.
@@ -153,20 +161,28 @@ ${
     : `9.1 No exclusivity or radius restriction applies. The Artist is free to accept other engagements before, on and after the date of the Event.`
 }
 
-## 10. GENERAL
+## 10. NON-CIRCUMVENTION
 
-10.1 The Artist performs as an independent contractor. Nothing creates employment, partnership or agency.
-10.2 The Artist shall not be required to perform in conditions that are unsafe or that breach applicable law.
-10.3 This Agreement is the entire agreement and supersedes prior discussions. Variations must be in writing and signed by both parties.
-10.4 **Governing law.** ${c.governingLaw} The parties submit to the exclusive jurisdiction of the Dubai Courts.
+10.0 For 12 months following the Event, the Client shall not engage the Artist,
+directly or through any third party, other than through ${activeProfile().management.company}. Any re-booking,
+residency or additional date arising from this engagement shall be contracted
+through the Company on the same terms.
+
+## 11. GENERAL
+
+11.1 The Artist performs as an independent contractor. Nothing creates employment, partnership or agency.
+11.2 The Artist shall not be required to perform in conditions that are unsafe or that breach applicable law.
+11.3 This Agreement is the entire agreement and supersedes prior discussions. Variations must be in writing and signed by both parties.
+11.4 **Governing law.** ${c.governingLaw} The parties submit to the exclusive jurisdiction of the Dubai Courts.
 
 ---
 
 ## SIGNATURES
 
-**THE ARTIST**
+**FOR THE COMPANY — ${activeProfile().management.company}**
+(for and on behalf of the Artist, ${activeProfile().name})
 
-Name: ${activeProfile().legalName} ("${activeProfile().name}")
+Name: ${activeProfile().management.contactName}   Position: ${activeProfile().management.contactRole}
 
 Signature: __________________________  Date: ____________
 
@@ -241,7 +257,9 @@ export function generateInvoice(g: Gig, t: DealTerms): string {
   const num = `INV-${new Date().getFullYear()}-${g.id.slice(0, 5).toUpperCase()}`;
   return `# INVOICE ${num}
 
-**From:** ${activeProfile().legalName} ("${activeProfile().name}") · ${activeProfile().email} · ${activeProfile().phone}
+**From:** ${activeProfile().management.legalName} t/a ${activeProfile().management.company}
+${activeProfile().management.email} · ${activeProfile().management.phone}
+Re: performance by ${activeProfile().name}
 **To:** ${t.clientLegalName}, ${t.clientAddress}
 **Date:** ${new Date().toLocaleDateString("en-GB")}
 **Event:** ${g.title} — ${t.eventDate}
@@ -253,7 +271,8 @@ export function generateInvoice(g: Gig, t: DealTerms): string {
 | **Balance due** | **${money(t.agreedFeeAed - deposit)}** |
 
 **Payment terms:** ${activeProfile().contractDefaults.balanceDueDays === 0 ? "Due on the night of performance." : `Due within ${activeProfile().contractDefaults.balanceDueDays} days.`}
-**Bank details:** [ADD BANK NAME / IBAN / ACCOUNT NAME]
+**Bank details:** [ADD EVG BANK NAME / IBAN / ACCOUNT NAME]
+*Payment to ${activeProfile().management.company} only. Direct payment to the Artist does not discharge this invoice.*
 
 *Late payments accrue interest at 2% per month.*
 `;
@@ -266,9 +285,24 @@ export function generatePressPack(g: Gig): string {
 **${activeProfile().name}**
 
 ## Short bio (50 words)
-${activeProfile().name} is a ${activeProfile().basedIn}-based DJ working across ${activeProfile().genres.join(", ")}. [REPLACE FROM EPK — residencies, notable rooms, standout sets.]
+${activeProfile().name} is a GCC-based Afro House, Afro Tech and open-format DJ — one of the region's
+few female artists commanding a peak-time floor in the genre. Born of the Middle East
+and built for the world, she reads a room in real time, moving fluently between English
+and Arabic crowds. Every set is played live.
 
-## What the venue must supply to the Artist
+## Selected appearances
+${activeProfile().selectedAppearances.map((x) => `- ${x}`).join("\n")}
+
+## Handles — tag all of these
+- Artist: ${activeProfile().instagram}
+- Management: ${activeProfile().management.instagram} (${activeProfile().management.company})
+- Live sets: ${activeProfile().youtube ?? ""}
+
+## Approvals route
+All artwork, billing and content approvals go through ${activeProfile().management.company}
+(${activeProfile().management.email}), not to the Artist directly.
+
+## What the venue must supply
 - Event artwork for approval, min 48h before publication
 - Confirmed billing position and set time for announcement
 - Venue social handles for tagging
@@ -291,6 +325,7 @@ ${activeProfile().name} is a ${activeProfile().basedIn}-based DJ working across 
 - [ ] Artwork received and approved
 - [ ] Name spelled correctly: **${activeProfile().name}**
 - [ ] Artist tagged: ${activeProfile().instagram ?? "[handle]"}
+- [ ] Management tagged: ${activeProfile().management.instagram ?? ""}
 - [ ] Set time correct
 - [ ] Artist reposts to story on announcement day
 `;

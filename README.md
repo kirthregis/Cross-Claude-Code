@@ -1,8 +1,8 @@
 # GigRadar — DJ Emy
 
-Every Dubai gig, the minute it appears. Found, scored, priced, pitched, negotiated and contracted.
+Every GCC gig, the minute it appears. Found, scored, priced, pitched, negotiated and contracted.
 
-A gig-acquisition engine for a working DJ. It watches every source where Dubai bookings surface, pushes the good ones to her phone within seconds, tells her exactly what to charge and who to call, and generates the entire paperwork pack the moment a deal is agreed.
+A gig-acquisition engine for DJ Emy, represented by **Emy Vision Group**. It watches every source where UAE and Qatar bookings surface, pushes the good ones to her phone within seconds, tells her exactly what to charge and who to call, and generates the entire paperwork pack the moment a deal is agreed.
 
 ---
 
@@ -55,7 +55,7 @@ npm run dev                    # http://localhost:3000
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 62 tests
+npm test          # 81 tests
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 ```
@@ -105,6 +105,27 @@ WhatsApp and email leads bypass the sweep and are processed the instant they arr
 
 ---
 
+## Bookings route through Emy Vision Group
+
+She is represented end-to-end by EVG, so the app never pitches first-person from the
+artist — that undercuts the "one accountable, contracted point of contact" positioning
+and invites direct-to-artist fee haggling. Instead:
+
+- **Pitches** are signed by Kirth at EVG, and lead with the proof point that fits the
+  room: FIFA World Cup Qatar 2022 / Arab Cup 2025 for brand and festival work, bilingual
+  English–Arabic positioning for Arabic floors, golden-hour rooftop credentials for lounges.
+- **Contracts** name EVG as the contracting party furnishing the Artist's services, with
+  EVG signing on her behalf and a **non-circumvention clause** protecting the relationship.
+- **Invoices** are payable to EVG only, with an explicit note that direct payment to the
+  artist does not discharge the invoice.
+- **Approvals** (artwork, billing, content) route to EVG, not the artist.
+
+### GCC, not just Dubai
+
+She works both sides of the Gulf. Doha, Abu Dhabi and the wider UAE are **home markets** —
+a Doha booking carries no travel premium, which would otherwise have priced her out of
+half her own territory. Riyadh, Kuwait, London etc. do carry it.
+
 ## ⚠️ Before real use — fill in the profile
 
 Open **`/profile`** in the app. It lists exactly what's still missing and lets you edit
@@ -149,7 +170,8 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-62 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+81 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back
+- `\bexclusiv\b` **never matched "exclusive"** — the trailing word boundary meant exclusivity was silently never detected, losing the +30% premium (worth ~AED 8,650 on a single seeded booking)

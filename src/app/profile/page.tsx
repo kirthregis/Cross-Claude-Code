@@ -13,10 +13,11 @@ const TIERS: VenueTier[] = [
 export default function ProfilePage() {
   const [p, setP] = useState<ArtistProfile | null>(null);
   const [gaps, setGaps] = useState<string[]>([]);
+  const [estimates, setEstimates] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch("/api/profile").then((r) => r.json()).then((d) => { setP(d.profile); setGaps(d.gaps); });
+    fetch("/api/profile").then((r) => r.json()).then((d) => { setP(d.profile); setGaps(d.gaps); setEstimates(d.ratesAreEstimates); });
   }, []);
 
   if (!p) return <main className="p-6 text-sm text-zinc-500">Loading…</main>;
@@ -28,7 +29,7 @@ export default function ProfilePage() {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p),
     });
     const d = await res.json();
-    setP(d.profile); setGaps(d.gaps);
+    setP(d.profile); setGaps(d.gaps); setEstimates(d.ratesAreEstimates);
     setSaved(true); setTimeout(() => setSaved(false), 2000);
   }
 
@@ -62,7 +63,31 @@ export default function ProfilePage() {
         <Field label="Phone / WhatsApp" value={p.phone} onChange={(v) => set({ phone: v })} />
         <Field label="Instagram" value={p.instagram ?? ""} onChange={(v) => set({ instagram: v })} />
         <Field label="EPK / mixes URL" value={p.epkUrl ?? ""} onChange={(v) => set({ epkUrl: v })} />
+        <Field label="YouTube (live sets)" value={p.youtube ?? ""} onChange={(v) => set({ youtube: v })} />
         <Field label="SoundCloud" value={p.soundcloud ?? ""} onChange={(v) => set({ soundcloud: v })} />
+      </Section>
+
+      <Section title="Management — Emy Vision Group">
+        <p className="mb-2 text-[11px] leading-relaxed text-zinc-500">
+          EVG is the contracting party on every booking. Pitches are sent from here, payments
+          are made here, and the contract is signed here on the artist&apos;s behalf.
+        </p>
+        <Field label="Company (trading name)" value={p.management.company}
+          onChange={(v) => set({ management: { ...p.management, company: v } })} />
+        <Field label="Registered legal entity + trade licence no." value={p.management.legalName}
+          onChange={(v) => set({ management: { ...p.management, legalName: v } })} />
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Contact name" value={p.management.contactName}
+            onChange={(v) => set({ management: { ...p.management, contactName: v } })} />
+          <Field label="Role" value={p.management.contactRole}
+            onChange={(v) => set({ management: { ...p.management, contactRole: v } })} />
+        </div>
+        <Field label="Booking email" value={p.management.email}
+          onChange={(v) => set({ management: { ...p.management, email: v } })} />
+        <Field label="Booking phone" value={p.management.phone}
+          onChange={(v) => set({ management: { ...p.management, phone: v } })} />
+        <Field label="Instagram" value={p.management.instagram ?? ""}
+          onChange={(v) => set({ management: { ...p.management, instagram: v } })} />
       </Section>
 
       <Section title="Sound">
@@ -72,6 +97,16 @@ export default function ProfilePage() {
       </Section>
 
       <Section title="Rates — AED for a standard 2h peak set">
+        {estimates && (
+          <div className="mb-3 rounded-lg border border-amber-600/40 bg-amber-500/10 p-3">
+            <p className="text-xs font-semibold text-amber-300">These are market estimates, not her real rates.</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-amber-200/80">
+              They&apos;re set for her positioning — FIFA credits, genre scarcity, full EVG
+              representation — but every quote, pitch and contract is built on them.
+              Enter her actual fees from past bookings to make the engine accurate.
+            </p>
+          </div>
+        )}
         <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
           These are the base numbers every quote is built from. Multipliers for season, night,
           set length, exclusivity and short notice are applied on top automatically.

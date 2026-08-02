@@ -38,52 +38,88 @@ const dateLabel = (g: Gig) =>
     ? new Date(g.eventDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
     : "the date you have in mind";
 
+/**
+ * Pitches are written from Emy Vision Group, not from the artist.
+ *
+ * She is represented end-to-end by EVG — a venue books one accountable,
+ * contracted point of contact. Pitching first-person from the artist
+ * undercuts that positioning and invites direct-to-artist fee haggling.
+ */
 export function pitch(g: Gig, channel: Channel, contact?: Contact): { subject?: string; body: string } {
+  const p = activeProfile();
+  const m = p.management;
   const who = contact?.name ? contact.name.split(" ")[0] : "there";
   const venue = g.venueName ?? "your venue";
   const when = dateLabel(g);
   const fee = pitchFee(g).toLocaleString();
   const set = g.setLengthMins ? `${(g.setLengthMins / 60).toFixed(1)}-hour` : "2-hour";
+  const isArabicRoom = /\b(arabic|khaleeji|emirati|eid|ramadan|national day)\b/i.test(`${g.title} ${g.body}`);
+
+  // Lead with the single most relevant proof point for this room.
+  const hook =
+    g.venueTier === "brand_activation" || g.venueTier === "festival"
+      ? "She was an official tournament DJ for the FIFA World Cup Qatar 2022 and FIFA Arab Cup 2025."
+      : isArabicRoom
+        ? "She moves fluently between English and Arabic floors — and is one of the GCC's few female Afro House DJs holding a peak-time room."
+        : g.venueTier === "hotel_lounge" || g.slot === "warmup"
+          ? "She's known for golden-hour rooftop sessions — deep, tribal grooves that open a room and lift it."
+          : "She's one of the GCC's few female Afro House DJs commanding a peak-time floor — 100% live, reads the room.";
 
   if (channel === "whatsapp" || channel === "instagram_dm") {
     return {
       body: [
-        `Hi ${who}! ${activeProfile().name} here — Dubai-based ${activeProfile().genres.slice(0, 2).join(" / ")} DJ.`,
+        `Hi ${who} — ${m.contactName} here from ${m.company}, representing ${p.name}.`,
         ``,
-        `Saw you're looking for a DJ for ${when}${g.venueName ? ` at ${venue}` : ""}. I'm available and it's exactly my sound.`,
+        `Saw you're booking for ${when}${g.venueName ? ` at ${venue}` : ""}. ${p.name} is available and it's exactly her sound (${p.genres.slice(0, 3).join(", ")}).`,
         ``,
-        `My fee for a ${set} set is AED ${fee}, all-in. I bring my own USBs and can work with your existing backline.`,
+        hook,
         ``,
-        `EPK + mixes: ${activeProfile().epkUrl ?? activeProfile().instagram}`,
+        `Fee for a ${set} set is AED ${fee}, all-in. She travels with USB and works with your house Pioneer setup.`,
         ``,
-        `Happy to hold the date for you today — shall I send the booking confirmation over?`,
+        `Live sets: ${p.youtube ?? p.epkUrl}`,
+        `EPK: ${p.epkUrl}`,
+        ``,
+        `We can hold the date for you today — shall I send the booking confirmation over?`,
+        ``,
+        `${m.contactName} · ${m.company}`,
+        `${m.phone}`,
       ].join("\n"),
     };
   }
 
   return {
-    subject: `DJ availability — ${when}${g.venueName ? ` at ${venue}` : ""}`,
+    subject: `${p.name} — availability for ${when}${g.venueName ? ` at ${venue}` : ""}`,
     body: [
       `Dear ${contact?.name ?? "Booking Team"},`,
       ``,
-      `I'm ${activeProfile().name}, a Dubai-based DJ specialising in ${activeProfile().genres.join(", ")}.`,
+      `I'm ${m.contactName}, ${m.contactRole} at ${m.company}. We represent and manage ${p.name}, a GCC-based ${p.genres.slice(0, 3).join(", ")} DJ.`,
       ``,
-      `I understand you're programming for ${when}${g.venueName ? ` at ${venue}` : ""} and I'd like to put myself forward. I'm available on the date and the brief is a direct match for my sound.`,
+      `I understand you're programming for ${when}${g.venueName ? ` at ${venue}` : ""}. ${p.name} is available and the brief is a direct match.`,
+      ``,
+      `Why she fits this room:`,
+      ...p.sellingPoints.slice(0, 3).map((x) => `  • ${x}`),
+      ``,
+      `Selected appearances:`,
+      ...p.selectedAppearances.slice(0, 4).map((x) => `  • ${x}`),
       ``,
       `Proposed terms:`,
       `  • Performance: ${set} ${g.slot && g.slot !== "unknown" ? `${g.slot} ` : ""}set`,
       `  • Fee: AED ${fee} (inclusive of preparation and standard equipment use)`,
-      `  • Payment: ${activeProfile().contractDefaults.depositPercent}% deposit to confirm the date, balance on the night`,
-      `  • Technical: I can work with in-house backline; full rider attached`,
+      `  • Payment: ${p.contractDefaults.depositPercent}% deposit to confirm the date, balance on the night`,
+      `  • Technical: 2x CDJ-3000 (or 2000NXS2) + DJM-900NXS2; she travels with USB and adapts to venue equipment`,
+      `  • Contracting: a single accountable point of contact through ${m.company}`,
       ``,
-      `EPK, mixes and previous bookings: ${activeProfile().epkUrl ?? activeProfile().instagram}`,
+      `Live sets: ${p.youtube ?? ""}`,
+      `EPK and full-length mixes: ${p.epkUrl} (reels and long-form on request)`,
       ``,
-      `I can hold the date for 48 hours pending your confirmation. Happy to jump on a quick call if easier.`,
+      `We can hold the date for 48 hours pending confirmation. Happy to jump on a call if easier.`,
       ``,
       `Kind regards,`,
-      `${activeProfile().name}`,
-      `${activeProfile().phone} · ${activeProfile().email}`,
-    ].join("\n"),
+      `${m.contactName}`,
+      `${m.contactRole}, ${m.company}`,
+      `${m.phone} · ${m.email}`,
+      `${m.website ?? ""}`,
+    ].filter((l) => l !== undefined).join("\n"),
   };
 }
 

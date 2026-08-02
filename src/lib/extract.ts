@@ -11,7 +11,12 @@ import type { RawLead, VenueTier, Gig, Contact } from "./types";
 import { activeProfile } from "./active-profile";
 import { createHash } from "crypto";
 
-const DUBAI_AREAS = [
+const GCC_AREAS = [
+  // Qatar — she is equally active in Doha.
+  "Doha", "West Bay", "The Pearl", "Lusail", "Msheireb", "Katara",
+  // Abu Dhabi
+  "Abu Dhabi", "Yas Island", "Saadiyat", "Corniche",
+  // Dubai
   "Dubai Marina", "JBR", "Palm Jumeirah", "DIFC", "Downtown", "Business Bay",
   "Jumeirah", "Al Quoz", "Deira", "Bur Dubai", "City Walk", "Bluewaters",
   "Dubai Hills", "Barsha", "Media City", "Festival City", "Al Seef", "The Walk",
@@ -48,7 +53,7 @@ export function detectVenueTier(text: string): VenueTier {
 }
 
 export function detectArea(text: string): string | undefined {
-  return DUBAI_AREAS.find((a) => new RegExp(`\\b${a}\\b`, "i").test(text));
+  return GCC_AREAS.find((a) => new RegExp(`\\b${a}\\b`, "i").test(text));
 }
 
 /** Pull a fee from text. Handles AED/DHS/د.إ, "3k", ranges (takes the top). */
@@ -178,6 +183,17 @@ export function detectVenueName(text: string): string | undefined {
   return undefined;
 }
 
+/**
+ * Travel = outside her home markets. She works both the UAE and Qatar, so a
+ * Doha booking is NOT a travel gig and must not carry the +20% premium —
+ * that would price her out of half her own territory.
+ */
+export function detectTravel(text: string): boolean {
+  const home = activeProfile().homeMarkets;
+  if (home.some((m) => new RegExp(`\\b${m}\\b`, "i").test(text))) return false;
+  return /\b(riyadh|jeddah|kuwait|bahrain|manama|muscat|oman|cairo|beirut|london|ibiza|overseas|international|fly out|flights?)\b/i.test(text);
+}
+
 export function normalise(lead: RawLead): Omit<Gig, "id" | "score" | "stage"> {
   const text = `${lead.title}\n${lead.body}`;
   const eventDate = detectEventDate(text, lead.postedAt);
@@ -198,8 +214,10 @@ export function normalise(lead: RawLead): Omit<Gig, "id" | "score" | "stage"> {
     slot: detectSlot(text),
     genresWanted: detectGenres(text),
     budgetStatedAed: detectBudgetAed(text),
-    exclusivity: /\b(exclusiv|radius clause|no other)\b/i.test(text),
-    travelRequired: /\b(abu dhabi|ras al khaimah|sharjah|fujairah|doha|riyadh|travel|fly)\b/i.test(text),
+    // NOTE: no trailing \b after the stem — `\bexclusiv\b` never matches
+    // "exclusive"/"exclusivity", which silently lost the +30% premium.
+    exclusivity: /\b(exclusiv\w*|radius clause|no other (venue|booking|gig))/i.test(text),
+    travelRequired: detectTravel(text),
     recurring: /\b(residency|resident dj|weekly|every (friday|saturday|thursday)|monthly)\b/i.test(text),
     postedAt: lead.postedAt,
     discoveredAt: new Date().toISOString(),

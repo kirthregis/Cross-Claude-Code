@@ -59,11 +59,20 @@ export function saveProfile(patch: Partial<ArtistProfile>): ArtistProfile {
 /** Which PLACEHOLDER fields still need real data before production use. */
 export function profileGaps(p: ArtistProfile = getProfile()): string[] {
   const gaps: string[] = [];
-  if (/PLACEHOLDER/i.test(p.legalName)) gaps.push("Legal name — contracts are not valid without it");
-  if (/PLACEHOLDER|XXX/i.test(p.phone)) gaps.push("Phone number");
-  if (/djemy\.com/i.test(p.email)) gaps.push("Real booking email");
-  if (!p.epkUrl) gaps.push("EPK / mixes link — every pitch references it");
+  if (/PLACEHOLDER/i.test(p.legalName)) {
+    gaps.push("Artist's full legal name — named as performer in every contract");
+  }
+  if (/PLACEHOLDER/i.test(p.management.legalName)) {
+    gaps.push("EVG registered legal entity name + trade licence no. — EVG is the contracting party, so this is what makes the agreement enforceable");
+  }
+  if (Object.values(p.baseRatesAed).some((v) => !v)) gaps.push("Base rates");
   return gaps;
+}
+
+/** Rates are still the market-estimate defaults, not her real numbers. */
+export function ratesAreEstimates(p: ArtistProfile = getProfile()): boolean {
+  return (["superclub", "beach_club", "brand_activation"] as const)
+    .every((k) => p.baseRatesAed[k] === DJ_EMY.baseRatesAed[k]);
 }
 
 /**
