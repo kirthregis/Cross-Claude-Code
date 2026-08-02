@@ -6,33 +6,177 @@
   <title>FSG Training Division — Operating Platform (Pilot)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React 18 CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel for JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f8fafc;
-      color: #0f172a;
+      background-color: #020617;
+      color: #f8fafc;
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100">
-  <div id="root"></div>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+  <!-- TOP BANNER & HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/95 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center font-bold text-white shadow-lg shadow-red-600/30 text-base">
+          FSG
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            FSG Training Division <span class="text-slate-400 font-normal">— Operating Platform</span>
+          </h1>
+          <p class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+            PILOT — DEMONSTRATION SYSTEM · Local AED Currency
+          </p>
+        </div>
+      </div>
 
-    function FSGOperatingPlatform() {
-      const [activeTab, setActiveTab] = useState('dashboard');
+      <!-- Action Toolbar -->
+      <div class="flex items-center gap-3">
+        <button
+          onclick="openModal()"
+          class="px-3.5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition flex items-center gap-1.5"
+        >
+          <span>+ New Course Booking</span>
+        </button>
+      </div>
+    </div>
 
-      // Pilot Initial State Data (matching exact artifact specifications)
-      const [courses, setCourses] = useState([
+    <!-- NAVIGATION TABS -->
+    <div class="max-w-7xl mx-auto px-6 flex gap-6 border-t border-slate-800/80 text-sm overflow-x-auto" id="tab-nav">
+      <button onclick="setTab('dashboard')" id="tab-btn-dashboard" class="py-3 font-medium border-b-2 border-red-500 text-white transition flex items-center gap-2 whitespace-nowrap">
+        Reporting & Dashboard
+      </button>
+      <button onclick="setTab('bookings')" id="tab-btn-bookings" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
+        Bookings & Occupancy <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-normal">4</span>
+      </button>
+      <button onclick="setTab('costing')" id="tab-btn-costing" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
+        Costing & Profitability
+      </button>
+      <button onclick="setTab('certificates')" id="tab-btn-certificates" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
+        Certificates Register <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-normal">6</span>
+      </button>
+      <button onclick="setTab('enquiries')" id="tab-btn-enquiries" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
+        Live Enquiries <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-normal">2</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full" id="main-content">
+    <!-- Content injected via Vanilla JS -->
+  </main>
+
+  <!-- ADD BOOKING MODAL -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md p-6 shadow-2xl">
+      <h3 class="text-lg font-bold text-white mb-4">Add New Course Booking</h3>
+      <form id="booking-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Course Title</label>
+          <input
+            type="text"
+            id="form-title"
+            required
+            placeholder="e.g. NFPA 1041 Fire Instructor I"
+            class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Status</label>
+            <select
+              id="form-status"
+              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+            >
+              <option value="provisional">Provisional</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="delivered">Delivered</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Duration (Days)</label>
+            <input
+              type="number"
+              id="form-days"
+              required
+              value="5"
+              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Seats Filled</label>
+            <input
+              type="number"
+              id="form-seats"
+              required
+              value="15"
+              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Total Room Capacity</label>
+            <input
+              type="number"
+              id="form-totalseats"
+              required
+              value="25"
+              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Course Fee Billed (AED)</label>
+          <input
+            type="number"
+            id="form-billed"
+            required
+            value="100000"
+            class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+          />
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
+          <button
+            type="button"
+            onclick="closeModal()"
+            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-xs font-semibold transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition"
+          >
+            Add Booking
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500 mt-auto">
+    FSG Training Division — Operating Platform Pilot · Demonstration & Operations System
+  </footer>
+
+  <!-- VANILLA JS APP LOGIC -->
+  <script>
+    // Constants
+    const CREW_RATE = 2225;
+    const FOOD_RATE = 90;
+    const FIREGROUND_RATE = 1100;
+
+    // State
+    const state = {
+      activeTab: 'dashboard',
+      courses: [
         {
           id: 'BK-2026-001',
           title: 'HazMat Incident Command',
@@ -93,653 +237,585 @@
           date: '24-28 Aug 2026',
           location: 'FSG Industrial Pad'
         }
-      ]);
-
-      const [certificates, setCertificates] = useState([
+      ],
+      certificates: [
         { id: 'FSG-CERT-2026-0101', student: 'Ahmed Al-Mansoori', course: 'BK-2026-001 HazMat Incident Command', date: '15 Jul 2026', status: 'Issued' },
         { id: 'FSG-CERT-2026-0102', student: 'Rashid Al-Nuaimi', course: 'BK-2026-001 HazMat Incident Command', date: '15 Jul 2026', status: 'Issued' },
         { id: 'FSG-CERT-2026-0103', student: 'Khalid Al-Dhaheri', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' },
         { id: 'FSG-CERT-2026-0104', student: 'Sultan Al-Kaabi', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' },
         { id: 'FSG-CERT-2026-0105', student: 'Omar Al-Suwaidi', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' },
-        { id: 'FSG-CERT-2026-0106', student: 'Faisal Al-Mazrouei', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' },
-      ]);
-
-      const [enquiries, setEnquiries] = useState([
+        { id: 'FSG-CERT-2026-0106', student: 'Faisal Al-Mazrouei', course: 'BK-2026-002 NFPA 1081 Interior Structural', date: '23 Jul 2026', status: 'Issued' }
+      ],
+      enquiries: [
         { id: 'ENQ-2026-101', client: 'Abu Dhabi National Energy (TAQA)', course: 'NFPA 1081 Interior Structural', seats: 20, status: 'Quoted', value: 140000, date: '28 Jul 2026' },
         { id: 'ENQ-2026-102', client: 'Al Ain Distribution Co.', course: 'HazMat Incident Command', seats: 15, status: 'New', value: 95000, date: '01 Aug 2026' }
-      ]);
-
-      // Interactive Calculator State
-      const [calcSeats, setCalcSeats] = useState(20);
-      const [calcDays, setCalcDays] = useState(5);
-      const [calcFee, setCalcFee] = useState(130000);
-      const [calcGroundDays, setCalcGroundDays] = useState(4);
-
-      // Constants
-      const CREW_RATE = 2225;
-      const FOOD_RATE = 90;
-      const FIREGROUND_RATE = 1100;
-
-      // Calculate simulator costs
-      const simCrewCost = CREW_RATE * calcDays;
-      const simFoodCost = FOOD_RATE * calcSeats * calcDays;
-      const simGroundCost = FIREGROUND_RATE * calcGroundDays;
-      const simTotalCost = simCrewCost + simFoodCost + simGroundCost;
-      const simNetKept = calcFee - simTotalCost;
-      const simMargin = Math.round((simNetKept / calcFee) * 100) || 0;
-
-      // Modal state for adding a booking
-      const [showModal, setShowModal] = useState(false);
-      const [newBooking, setNewBooking] = useState({
-        title: '',
-        status: 'provisional',
-        seatsFilled: 15,
-        totalSeats: 25,
+      ],
+      calc: {
+        fee: 130000,
+        seats: 20,
         days: 5,
-        billed: 100000
+        groundDays: 4
+      }
+    };
+
+    function setTab(tabName) {
+      state.activeTab = tabName;
+      // Update button styling
+      const buttons = document.querySelectorAll('#tab-nav button');
+      buttons.forEach(btn => {
+        if (btn.id === `tab-btn-${tabName}`) {
+          btn.className = "py-3 font-medium border-b-2 border-red-500 text-white transition flex items-center gap-2 whitespace-nowrap";
+        } else {
+          btn.className = "py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap";
+        }
       });
-
-      const handleAddBooking = (e) => {
-        e.preventDefault();
-        const nextNum = courses.length + 1;
-        const newId = `BK-2026-00${nextNum}`;
-        const crewCost = CREW_RATE * newBooking.days;
-        const foodCost = FOOD_RATE * newBooking.seatsFilled * newBooking.days;
-        const groundCost = FIREGROUND_RATE * newBooking.days;
-        const net = newBooking.billed - (crewCost + foodCost + groundCost);
-        const margin = Math.round((net / newBooking.billed) * 100) || 0;
-
-        setCourses([...courses, {
-          id: newId,
-          ...newBooking,
-          crewDays: newBooking.days,
-          groundDays: newBooking.days,
-          netKept: net,
-          margin: margin,
-          date: 'Sept 2026',
-          location: 'FSG Fireground 1'
-        }]);
-        setShowModal(false);
-      };
-
-      return (
-        <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
-          {/* Top Banner */}
-          <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-            <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center font-bold text-white shadow-lg shadow-red-600/30">
-                  FSG
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-white tracking-tight">
-                    FSG Training Division <span className="text-slate-400 font-normal">— Operating Platform</span>
-                  </h1>
-                  <p className="text-xs text-slate-400 flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-                    PILOT — DEMONSTRATION SYSTEM · Local AED Currency
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Toolbar */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow-sm transition flex items-center gap-1.5"
-                >
-                  <span>+ New Course Booking</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Navigation Tabs */}
-            <div className="max-w-7xl mx-auto px-6 flex gap-6 border-t border-slate-800/80 text-sm overflow-x-auto">
-              {[
-                { id: 'dashboard', label: 'Reporting & Dashboard' },
-                { id: 'bookings', label: 'Bookings & Occupancy', badge: courses.length },
-                { id: 'costing', label: 'Costing & Profitability' },
-                { id: 'certificates', label: 'Certificates Register', badge: certificates.length },
-                { id: 'enquiries', label: 'Live Enquiries', badge: enquiries.length },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-3 font-medium border-b-2 transition flex items-center gap-2 whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'border-red-500 text-white'
-                      : 'border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {tab.label}
-                  {tab.badge !== undefined && (
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-normal">
-                      {tab.badge}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </header>
-
-          {/* Main Content Area */}
-          <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
-            {/* TAB 1: DASHBOARD & REPORTING */}
-            {activeTab === 'dashboard' && (
-              <div className="space-y-8">
-                {/* 4 Big KPI Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Billed This Month (before VAT)</p>
-                    <p className="text-3xl font-bold text-white mt-2">AED 0.00</p>
-                    <p className="text-xs text-slate-400 mt-2">
-                      Last month: <span className="text-slate-300 font-medium">AED 179,100.00</span>
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Waiting to be Paid</p>
-                    <p className="text-3xl font-bold text-amber-400 mt-2">AED 81,270.00</p>
-                    <p className="text-xs text-slate-400 mt-2">
-                      1 invoice sent, not yet paid
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Certificates Issued</p>
-                    <p className="text-3xl font-bold text-emerald-400 mt-2">6</p>
-                    <p className="text-xs text-slate-400 mt-2">
-                      Each with a unique register number
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Live Enquiries</p>
-                    <p className="text-3xl font-bold text-sky-400 mt-2">2</p>
-                    <p className="text-xs text-slate-400 mt-2">
-                      New or quoted, not yet decided
-                    </p>
-                  </div>
-                </div>
-
-                {/* Money Billed Graph Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-                    <h3 className="text-base font-semibold text-white">Money billed, this month against last</h3>
-                    <p className="text-xs text-slate-400 mt-1 mb-6">Before-VAT value of invoices sent or paid, by invoice date.</p>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-sm font-medium mb-1">
-                          <span className="text-slate-300">Jul 2026</span>
-                          <span className="text-emerald-400">AED 179,100.00</span>
-                        </div>
-                        <div className="w-full bg-slate-800 h-6 rounded-lg overflow-hidden">
-                          <div className="bg-emerald-500 h-full rounded-lg" style={{ width: '100%' }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-sm font-medium mb-1">
-                          <span className="text-slate-300">Aug 2026</span>
-                          <span className="text-slate-500">AED 0.00</span>
-                        </div>
-                        <div className="w-full bg-slate-800 h-6 rounded-lg overflow-hidden">
-                          <div className="bg-slate-700 h-full" style={{ width: '0%' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bookings by Status */}
-                  <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-base font-semibold text-white">Bookings by Status</h3>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Provisional means pencilled in; confirmed means the client has committed; delivered means it ran.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mt-6">
-                      <div className="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
-                        <p className="text-xs text-slate-400 font-medium">PROVISIONAL</p>
-                        <p className="text-2xl font-bold text-amber-400 mt-1">1</p>
-                      </div>
-                      <div className="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
-                        <p className="text-xs text-slate-400 font-medium">CONFIRMED</p>
-                        <p className="text-2xl font-bold text-sky-400 mt-1">1</p>
-                      </div>
-                      <div className="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
-                        <p className="text-xs text-slate-400 font-medium">DELIVERED</p>
-                        <p className="text-2xl font-bold text-emerald-400 mt-1">2</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Seat Occupancy Section Preview */}
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                    <div>
-                      <h3 className="text-base font-semibold text-white">Seats filled against the room we could sell</h3>
-                      <p className="text-xs text-slate-400 mt-1">
-                        The big costs of a course do not move when a seat is added — so every empty seat is money the run simply does not collect. Green is 90% full or better.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setActiveTab('bookings')}
-                      className="text-xs text-red-400 hover:text-red-300 font-medium mt-2 sm:mt-0"
-                    >
-                      View All Bookings &rarr;
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    {courses.map(course => {
-                      const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
-                      const isGreen = pct >= 90;
-                      return (
-                        <div key={course.id} className="bg-slate-950 border border-slate-800/80 p-4 rounded-lg">
-                          <div className="flex justify-between items-center text-sm mb-2">
-                            <span className="font-semibold text-slate-200">{course.id} · {course.title}</span>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                              isGreen ? 'bg-emerald-900/50 text-emerald-300' : 'bg-slate-800 text-slate-300'
-                            }`}>
-                              {course.seatsFilled} of {course.totalSeats} ({pct}%)
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-500 ${isGreen ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-500'}`}
-                              style={{ width: `${pct}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: BOOKINGS & OCCUPANCY */}
-            {activeTab === 'bookings' && (
-              <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-white">Course Schedule & Seat Occupancy</h2>
-                    <p className="text-xs text-slate-400">Monitoring fill rate and operational status across all scheduled courses.</p>
-                  </div>
-                  <button
-                    onClick={() => setShowModal(true)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition self-start"
-                  >
-                    + Add New Booking
-                  </button>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs uppercase tracking-wider">
-                          <th className="py-3 px-4">Course ID & Title</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4">Schedule & Location</th>
-                          <th className="py-3 px-4">Seats Occupancy</th>
-                          <th className="py-3 px-4 text-right">Billed (before VAT)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800 text-sm">
-                        {courses.map(course => {
-                          const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
-                          const isGreen = pct >= 90;
-                          return (
-                            <tr key={course.id} className="hover:bg-slate-800/40 transition">
-                              <td className="py-4 px-4 font-medium text-white">
-                                <div className="text-sm font-semibold">{course.id}</div>
-                                <div className="text-xs text-slate-400">{course.title}</div>
-                              </td>
-                              <td className="py-4 px-4">
-                                <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
-                                  course.status === 'delivered' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
-                                  course.status === 'confirmed' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
-                                  'bg-amber-950 text-amber-400 border border-amber-800'
-                                }`}>
-                                  {course.status}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 text-xs text-slate-300">
-                                <div>{course.date}</div>
-                                <div className="text-slate-500">{course.location}</div>
-                              </td>
-                              <td className="py-4 px-4 w-64">
-                                <div className="flex justify-between text-xs font-medium mb-1">
-                                  <span>{course.seatsFilled} of {course.totalSeats} seats</span>
-                                  <span className={isGreen ? 'text-emerald-400 font-bold' : 'text-slate-400'}>{pct}%</span>
-                                </div>
-                                <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full ${isGreen ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-500'}`}
-                                    style={{ width: `${pct}%` }}
-                                  ></div>
-                                </div>
-                              </td>
-                              <td className="py-4 px-4 text-right font-semibold text-white">
-                                AED {course.billed.toLocaleString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: COSTING & MARGIN REGISTER */}
-            {activeTab === 'costing' && (
-              <div className="space-y-8">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">What each delivered course kept, roughly</h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Money billed, less the crew at <span className="text-white font-medium">AED 2,225.00 a day</span>, feeding people at <span className="text-white font-medium">AED 90 a head a day</span>, and the training ground at <span className="text-white font-medium">AED 1,100.00 a fireground day</span>. A rough working figure — the full cost sheets live in the costing register.
-                  </p>
-                </div>
-
-                {/* Course Margins Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {courses.map(course => (
-                    <div key={course.id} className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-xs font-semibold text-slate-400 uppercase">{course.id}</span>
-                          <h3 className="text-base font-bold text-white mt-0.5">{course.title}</h3>
-                          <p className="text-xs text-slate-400">{course.days} days · {course.seatsFilled} students</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-2xl font-extrabold text-emerald-400">
-                            AED {course.netKept.toLocaleString()}
-                          </span>
-                          <p className="text-xs font-bold text-slate-300">{course.margin}% Net Margin</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 border-t border-slate-800/80 pt-4 space-y-2 text-xs text-slate-400">
-                        <div className="flex justify-between">
-                          <span>Total Billed (before VAT):</span>
-                          <span className="text-slate-200 font-medium">AED {course.billed.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Crew Cost ({course.crewDays} days @ AED 2,225):</span>
-                          <span className="text-slate-200 font-medium">- AED {(CREW_RATE * course.crewDays).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Feeding ({course.seatsFilled} pax × {course.days} days @ AED 90):</span>
-                          <span className="text-slate-200 font-medium">- AED {(FOOD_RATE * course.seatsFilled * course.days).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Fireground ({course.groundDays} days @ AED 1,100):</span>
-                          <span className="text-slate-200 font-medium">- AED {(FIREGROUND_RATE * course.groundDays).toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Interactive Cost & Margin Calculator */}
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl mt-8">
-                  <h3 className="text-base font-bold text-white">Course Margin Simulator</h3>
-                  <p className="text-xs text-slate-400 mt-1">Adjust course pricing, seating, and days to calculate projected Net Kept margin.</p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Course Fee Billed (AED)</label>
-                      <input
-                        type="number"
-                        value={calcFee}
-                        onChange={(e) => setCalcFee(Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Seats Filled</label>
-                      <input
-                        type="number"
-                        value={calcSeats}
-                        onChange={(e) => setCalcSeats(Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Crew Days (@ AED 2,225)</label>
-                      <input
-                        type="number"
-                        value={calcDays}
-                        onChange={(e) => setCalcDays(Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Fireground Days (@ AED 1,100)</label>
-                      <input
-                        type="number"
-                        value={calcGroundDays}
-                        onChange={(e) => setCalcGroundDays(Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-6 p-4 bg-slate-950 rounded-lg border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="flex gap-6 text-xs text-slate-400">
-                      <div>
-                        <span className="block text-slate-500">Crew Total</span>
-                        <span className="font-semibold text-slate-200">AED {simCrewCost.toLocaleString()}</span>
-                      </div>
-                      <div>
-                        <span className="block text-slate-500">Feeding Total</span>
-                        <span className="font-semibold text-slate-200">AED {simFoodCost.toLocaleString()}</span>
-                      </div>
-                      <div>
-                        <span className="block text-slate-500">Ground Total</span>
-                        <span className="font-semibold text-slate-200">AED {simGroundCost.toLocaleString()}</span>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs text-slate-400 block">Projected Net Kept:</span>
-                      <span className="text-2xl font-extrabold text-emerald-400">AED {simNetKept.toLocaleString()}</span>
-                      <span className="text-xs font-bold text-slate-300 ml-2">({simMargin}% margin)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: CERTIFICATE REGISTER */}
-            {activeTab === 'certificates' && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Certificates Register</h2>
-                  <p className="text-xs text-slate-400">Unique register numbers issued to graduates of FSG Training courses.</p>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs uppercase tracking-wider">
-                        <th className="py-3 px-4">Register Number</th>
-                        <th className="py-3 px-4">Student Name</th>
-                        <th className="py-3 px-4">Course Ref</th>
-                        <th className="py-3 px-4">Issue Date</th>
-                        <th className="py-3 px-4 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800 text-sm">
-                      {certificates.map(cert => (
-                        <tr key={cert.id} className="hover:bg-slate-800/40 transition">
-                          <td className="py-4 px-4 font-mono font-medium text-emerald-400">{cert.id}</td>
-                          <td className="py-4 px-4 font-semibold text-white">{cert.student}</td>
-                          <td className="py-4 px-4 text-xs text-slate-300">{cert.course}</td>
-                          <td className="py-4 px-4 text-xs text-slate-400">{cert.date}</td>
-                          <td className="py-4 px-4 text-right">
-                            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
-                              {cert.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 5: LIVE ENQUIRIES */}
-            {activeTab === 'enquiries' && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Live Enquiries & Pipeline</h2>
-                  <p className="text-xs text-slate-400">New or quoted training requirements under client evaluation.</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {enquiries.map(enq => (
-                    <div key={enq.id} className="bg-slate-900 border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start">
-                          <span className="text-xs font-mono font-semibold text-sky-400">{enq.id}</span>
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            enq.status === 'Quoted' ? 'bg-sky-950 text-sky-400 border border-sky-800' : 'bg-purple-950 text-purple-400 border border-purple-800'
-                          }`}>
-                            {enq.status}
-                          </span>
-                        </div>
-                        <h3 className="text-base font-bold text-white mt-2">{enq.client}</h3>
-                        <p className="text-xs text-slate-300 mt-1">Course Ref: <span className="text-white font-medium">{enq.course}</span></p>
-                        <p className="text-xs text-slate-400 mt-1">Estimated Pax: {enq.seats} students</p>
-                      </div>
-
-                      <div className="mt-6 border-t border-slate-800/80 pt-4 flex justify-between items-center">
-                        <div>
-                          <span className="text-xs text-slate-400 block">Quoted Value:</span>
-                          <span className="text-lg font-bold text-white">AED {enq.value.toLocaleString()}</span>
-                        </div>
-                        <span className="text-xs text-slate-400">{enq.date}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </main>
-
-          {/* ADD BOOKING MODAL */}
-          {showModal && (
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md p-6 shadow-2xl">
-                <h3 className="text-lg font-bold text-white mb-4">Add New Course Booking</h3>
-                <form onSubmit={handleAddBooking} className="space-y-4">
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Course Title</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. NFPA 1041 Fire Instructor I"
-                      value={newBooking.title}
-                      onChange={(e) => setNewBooking({ ...newBooking, title: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Status</label>
-                      <select
-                        value={newBooking.status}
-                        onChange={(e) => setNewBooking({ ...newBooking, status: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
-                      >
-                        <option value="provisional">Provisional</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="delivered">Delivered</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Duration (Days)</label>
-                      <input
-                        type="number"
-                        required
-                        value={newBooking.days}
-                        onChange={(e) => setNewBooking({ ...newBooking, days: Number(e.target.value) })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Seats Filled</label>
-                      <input
-                        type="number"
-                        required
-                        value={newBooking.seatsFilled}
-                        onChange={(e) => setNewBooking({ ...newBooking, seatsFilled: Number(e.target.value) })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1">Total Room Capacity</label>
-                      <input
-                        type="number"
-                        required
-                        value={newBooking.totalSeats}
-                        onChange={(e) => setNewBooking({ ...newBooking, totalSeats: Number(e.target.value) })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1">Course Fee Billed (AED)</label>
-                    <input
-                      type="number"
-                      required
-                      value={newBooking.billed}
-                      onChange={(e) => setNewBooking({ ...newBooking, billed: Number(e.target.value) })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
-                    <button
-                      type="button"
-                      onClick={() => setShowModal(false)}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-xs font-semibold transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition"
-                    >
-                      Add Booking
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* Footer */}
-          <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-            FSG Training Division — Operating Platform Pilot · Developed & Synced for Cross-Claude-Code
-          </footer>
-        </div>
-      );
+      render();
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<FSGOperatingPlatform />);
+    function openModal() {
+      document.getElementById('modal-backdrop').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const title = document.getElementById('form-title').value;
+      const status = document.getElementById('form-status').value;
+      const days = Number(document.getElementById('form-days').value);
+      const seatsFilled = Number(document.getElementById('form-seats').value);
+      const totalSeats = Number(document.getElementById('form-totalseats').value);
+      const billed = Number(document.getElementById('form-billed').value);
+
+      const nextNum = state.courses.length + 1;
+      const newId = `BK-2026-00${nextNum}`;
+
+      const crewCost = CREW_RATE * days;
+      const foodCost = FOOD_RATE * seatsFilled * days;
+      const groundCost = FIREGROUND_RATE * days;
+      const netKept = billed - (crewCost + foodCost + groundCost);
+      const margin = Math.round((netKept / billed) * 100) || 0;
+
+      state.courses.push({
+        id: newId,
+        title,
+        status,
+        seatsFilled,
+        totalSeats,
+        days,
+        billed,
+        crewDays: days,
+        groundDays: days,
+        netKept,
+        margin,
+        date: 'Sept 2026',
+        location: 'FSG Fireground 1'
+      });
+
+      closeModal();
+      render();
+    }
+
+    function updateCalculator() {
+      const feeInput = document.getElementById('calc-fee');
+      const seatsInput = document.getElementById('calc-seats');
+      const daysInput = document.getElementById('calc-days');
+      const groundInput = document.getElementById('calc-ground');
+
+      if (!feeInput) return;
+
+      state.calc.fee = Number(feeInput.value);
+      state.calc.seats = Number(seatsInput.value);
+      state.calc.days = Number(daysInput.value);
+      state.calc.groundDays = Number(groundInput.value);
+
+      const crewCost = CREW_RATE * state.calc.days;
+      const foodCost = FOOD_RATE * state.calc.seats * state.calc.days;
+      const groundCost = FIREGROUND_RATE * state.calc.groundDays;
+      const totalCost = crewCost + foodCost + groundCost;
+      const netKept = state.calc.fee - totalCost;
+      const margin = Math.round((netKept / state.calc.fee) * 100) || 0;
+
+      document.getElementById('sim-crew-cost').innerText = `AED ${crewCost.toLocaleString()}`;
+      document.getElementById('sim-food-cost').innerText = `AED ${foodCost.toLocaleString()}`;
+      document.getElementById('sim-ground-cost').innerText = `AED ${groundCost.toLocaleString()}`;
+      document.getElementById('sim-net-kept').innerText = `AED ${netKept.toLocaleString()}`;
+      document.getElementById('sim-margin').innerText = `(${margin}% margin)`;
+    }
+
+    function renderDashboard() {
+      let html = `
+        <div class="space-y-8">
+          <!-- 4 Big KPI Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Billed This Month (before VAT)</p>
+              <p class="text-3xl font-bold text-white mt-2">AED 0.00</p>
+              <p class="text-xs text-slate-400 mt-2">
+                Last month: <span class="text-slate-300 font-medium">AED 179,100.00</span>
+              </p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Waiting to be Paid</p>
+              <p class="text-3xl font-bold text-amber-400 mt-2">AED 81,270.00</p>
+              <p class="text-xs text-slate-400 mt-2">
+                1 invoice sent, not yet paid
+              </p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Certificates Issued</p>
+              <p class="text-3xl font-bold text-emerald-400 mt-2">6</p>
+              <p class="text-xs text-slate-400 mt-2">
+                Each with a unique register number
+              </p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Live Enquiries</p>
+              <p class="text-3xl font-bold text-sky-400 mt-2">2</p>
+              <p class="text-xs text-slate-400 mt-2">
+                New or quoted, not yet decided
+              </p>
+            </div>
+          </div>
+
+          <!-- Money Billed Graph Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+              <h3 class="text-base font-semibold text-white">Money billed, this month against last</h3>
+              <p class="text-xs text-slate-400 mt-1 mb-6">Before-VAT value of invoices sent or paid, by invoice date.</p>
+              
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between text-sm font-medium mb-1">
+                    <span class="text-slate-300">Jul 2026</span>
+                    <span class="text-emerald-400">AED 179,100.00</span>
+                  </div>
+                  <div class="w-full bg-slate-800 h-6 rounded-lg overflow-hidden">
+                    <div class="bg-emerald-500 h-full rounded-lg" style="width: 100%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-sm font-medium mb-1">
+                    <span class="text-slate-300">Aug 2026</span>
+                    <span class="text-slate-500">AED 0.00</span>
+                  </div>
+                  <div class="w-full bg-slate-800 h-6 rounded-lg overflow-hidden">
+                    <div class="bg-slate-700 h-full" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bookings by Status -->
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-white">Bookings by Status</h3>
+                <p class="text-xs text-slate-400 mt-1">
+                  Provisional means pencilled in; confirmed means the client has committed; delivered means it ran.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4 mt-6">
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
+                  <p class="text-xs text-slate-400 font-medium">PROVISIONAL</p>
+                  <p class="text-2xl font-bold text-amber-400 mt-1">1</p>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
+                  <p class="text-xs text-slate-400 font-medium">CONFIRMED</p>
+                  <p class="text-2xl font-bold text-sky-400 mt-1">1</p>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
+                  <p class="text-xs text-slate-400 font-medium">DELIVERED</p>
+                  <p class="text-2xl font-bold text-emerald-400 mt-1">2</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seat Occupancy Preview -->
+          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+              <div>
+                <h3 class="text-base font-semibold text-white">Seats filled against the room we could sell</h3>
+                <p class="text-xs text-slate-400 mt-1">
+                  The big costs of a course do not move when a seat is added — so every empty seat is money the run simply does not collect. Green is 90% full or better.
+                </p>
+              </div>
+              <button
+                onclick="setTab('bookings')"
+                class="text-xs text-red-400 hover:text-red-300 font-medium mt-2 sm:mt-0"
+              >
+                View All Bookings &rarr;
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      `;
+
+      state.courses.forEach(course => {
+        const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
+        const isGreen = pct >= 90;
+        html += `
+          <div class="bg-slate-950 border border-slate-800/80 p-4 rounded-lg">
+            <div class="flex justify-between items-center text-sm mb-2">
+              <span class="font-semibold text-slate-200">${course.id} · ${course.title}</span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded ${
+                isGreen ? 'bg-emerald-900/50 text-emerald-300' : 'bg-slate-800 text-slate-300'
+              }">
+                ${course.seatsFilled} of ${course.totalSeats} (${pct}%)
+              </span>
+            </div>
+            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+              <div
+                class="h-full transition-all duration-500 ${isGreen ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-500'}"
+                style="width: ${pct}%"
+              ></div>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    function renderBookings() {
+      let html = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-semibold text-white">Course Schedule & Seat Occupancy</h2>
+              <p class="text-xs text-slate-400">Monitoring fill rate and operational status across all scheduled courses.</p>
+            </div>
+            <button
+              onclick="openModal()"
+              class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition self-start"
+            >
+              + Add New Booking
+            </button>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs uppercase tracking-wider">
+                    <th class="py-3 px-4">Course ID & Title</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Schedule & Location</th>
+                    <th class="py-3 px-4">Seats Occupancy</th>
+                    <th class="py-3 px-4 text-right">Billed (before VAT)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-sm">
+      `;
+
+      state.courses.forEach(course => {
+        const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
+        const isGreen = pct >= 90;
+        const statusBadge = course.status === 'delivered' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                          course.status === 'confirmed' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
+                          'bg-amber-950 text-amber-400 border border-amber-800';
+        html += `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-4 px-4 font-medium text-white">
+              <div class="text-sm font-semibold">${course.id}</div>
+              <div class="text-xs text-slate-400">${course.title}</div>
+            </td>
+            <td class="py-4 px-4">
+              <span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${statusBadge}">
+                ${course.status}
+              </span>
+            </td>
+            <td class="py-4 px-4 text-xs text-slate-300">
+              <div>${course.date}</div>
+              <div class="text-slate-500">${course.location}</div>
+            </td>
+            <td class="py-4 px-4 w-64">
+              <div class="flex justify-between text-xs font-medium mb-1">
+                <span>${course.seatsFilled} of ${course.totalSeats} seats</span>
+                <span class="${isGreen ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${pct}%</span>
+              </div>
+              <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div
+                  class="h-full ${isGreen ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-500'}"
+                  style="width: ${pct}%"
+                ></div>
+              </div>
+            </td>
+            <td class="py-4 px-4 text-right font-semibold text-white">
+              AED ${course.billed.toLocaleString()}
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    function renderCosting() {
+      let html = `
+        <div class="space-y-8">
+          <div>
+            <h2 class="text-lg font-semibold text-white">What each delivered course kept, roughly</h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Money billed, less the crew at <span class="text-white font-medium">AED 2,225.00 a day</span>, feeding people at <span class="text-white font-medium">AED 90 a head a day</span>, and the training ground at <span class="text-white font-medium">AED 1,100.00 a fireground day</span>. A rough working figure — the full cost sheets live in the costing register.
+            </p>
+          </div>
+
+          <!-- Course Margins Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      `;
+
+      state.courses.forEach(course => {
+        html += `
+          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-xs font-semibold text-slate-400 uppercase">${course.id}</span>
+                <h3 class="text-base font-bold text-white mt-0.5">${course.title}</h3>
+                <p class="text-xs text-slate-400">${course.days} days · ${course.seatsFilled} students</p>
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-extrabold text-emerald-400">
+                  AED ${course.netKept.toLocaleString()}
+                </span>
+                <p class="text-xs font-bold text-slate-300">${course.margin}% Net Margin</p>
+              </div>
+            </div>
+
+            <div class="mt-6 border-t border-slate-800/80 pt-4 space-y-2 text-xs text-slate-400">
+              <div class="flex justify-between">
+                <span>Total Billed (before VAT):</span>
+                <span class="text-slate-200 font-medium">AED ${course.billed.toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Crew Cost (${course.crewDays} days @ AED 2,225):</span>
+                <span class="text-slate-200 font-medium">- AED ${(CREW_RATE * course.crewDays).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Feeding (${course.seatsFilled} pax × ${course.days} days @ AED 90):</span>
+                <span class="text-slate-200 font-medium">- AED ${(FOOD_RATE * course.seatsFilled * course.days).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Fireground (${course.groundDays} days @ AED 1,100):</span>
+                <span class="text-slate-200 font-medium">- AED ${(FIREGROUND_RATE * course.groundDays).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+
+          <!-- Interactive Cost & Margin Simulator -->
+          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mt-8">
+            <h3 class="text-base font-bold text-white">Course Margin Simulator</h3>
+            <p class="text-xs text-slate-400 mt-1">Adjust course pricing, seating, and days to calculate projected Net Kept margin.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Course Fee Billed (AED)</label>
+                <input
+                  type="number"
+                  id="calc-fee"
+                  value="${state.calc.fee}"
+                  oninput="updateCalculator()"
+                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Seats Filled</label>
+                <input
+                  type="number"
+                  id="calc-seats"
+                  value="${state.calc.seats}"
+                  oninput="updateCalculator()"
+                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Crew Days (@ AED 2,225)</label>
+                <input
+                  type="number"
+                  id="calc-days"
+                  value="${state.calc.days}"
+                  oninput="updateCalculator()"
+                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Fireground Days (@ AED 1,100)</label>
+                <input
+                  type="number"
+                  id="calc-ground"
+                  value="${state.calc.groundDays}"
+                  oninput="updateCalculator()"
+                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-slate-950 rounded-lg border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div class="flex gap-6 text-xs text-slate-400">
+                <div>
+                  <span class="block text-slate-500">Crew Total</span>
+                  <span class="font-semibold text-slate-200" id="sim-crew-cost">AED 0</span>
+                </div>
+                <div>
+                  <span class="block text-slate-500">Feeding Total</span>
+                  <span class="font-semibold text-slate-200" id="sim-food-cost">AED 0</span>
+                </div>
+                <div>
+                  <span class="block text-slate-500">Ground Total</span>
+                  <span class="font-semibold text-slate-200" id="sim-ground-cost">AED 0</span>
+                </div>
+              </div>
+
+              <div class="text-right">
+                <span class="text-xs text-slate-400 block">Projected Net Kept:</span>
+                <span class="text-2xl font-extrabold text-emerald-400" id="sim-net-kept">AED 0</span>
+                <span class="text-xs font-bold text-slate-300 ml-2" id="sim-margin">(0% margin)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    function renderCertificates() {
+      let html = `
+        <div class="space-y-6">
+          <div>
+            <h2 class="text-lg font-semibold text-white">Certificates Register</h2>
+            <p class="text-xs text-slate-400">Unique register numbers issued to graduates of FSG Training courses.</p>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs uppercase tracking-wider">
+                  <th class="py-3 px-4">Register Number</th>
+                  <th class="py-3 px-4">Student Name</th>
+                  <th class="py-3 px-4">Course Ref</th>
+                  <th class="py-3 px-4">Issue Date</th>
+                  <th class="py-3 px-4 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 text-sm">
+      `;
+
+      state.certificates.forEach(cert => {
+        html += `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-4 px-4 font-mono font-medium text-emerald-400">${cert.id}</td>
+            <td class="py-4 px-4 font-semibold text-white">${cert.student}</td>
+            <td class="py-4 px-4 text-xs text-slate-300">${cert.course}</td>
+            <td class="py-4 px-4 text-xs text-slate-400">${cert.date}</td>
+            <td class="py-4 px-4 text-right">
+              <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+                ${cert.status}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    function renderEnquiries() {
+      let html = `
+        <div class="space-y-6">
+          <div>
+            <h2 class="text-lg font-semibold text-white">Live Enquiries & Pipeline</h2>
+            <p class="text-xs text-slate-400">New or quoted training requirements under client evaluation.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      `;
+
+      state.enquiries.forEach(enq => {
+        const badge = enq.status === 'Quoted' ? 'bg-sky-950 text-sky-400 border border-sky-800' : 'bg-purple-950 text-purple-400 border border-purple-800';
+        html += `
+          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start">
+                <span class="text-xs font-mono font-semibold text-sky-400">${enq.id}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${badge}">
+                  ${enq.status}
+                </span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-2">${enq.client}</h3>
+              <p class="text-xs text-slate-300 mt-1">Course Ref: <span class="text-white font-medium">${enq.course}</span></p>
+              <p class="text-xs text-slate-400 mt-1">Estimated Pax: ${enq.seats} students</p>
+            </div>
+
+            <div class="mt-6 border-t border-slate-800/80 pt-4 flex justify-between items-center">
+              <div>
+                <span class="text-xs text-slate-400 block">Quoted Value:</span>
+                <span class="text-lg font-bold text-white">AED ${enq.value.toLocaleString()}</span>
+              </div>
+              <span class="text-xs text-slate-400">${enq.date}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    function render() {
+      const container = document.getElementById('main-content');
+      if (state.activeTab === 'dashboard') {
+        container.innerHTML = renderDashboard();
+      } else if (state.activeTab === 'bookings') {
+        container.innerHTML = renderBookings();
+      } else if (state.activeTab === 'costing') {
+        container.innerHTML = renderCosting();
+        updateCalculator();
+      } else if (state.activeTab === 'certificates') {
+        container.innerHTML = renderCertificates();
+      } else if (state.activeTab === 'enquiries') {
+        container.innerHTML = renderEnquiries();
+      }
+    }
+
+    // Initial render on load
+    window.addEventListener('DOMContentLoaded', () => {
+      render();
+    });
+    // In case DOM is already loaded
+    render();
   </script>
 </body>
 </html>
