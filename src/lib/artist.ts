@@ -140,7 +140,7 @@ export const DJ_EMY: ArtistProfile = {
   youtube: "https://youtube.com/@DJEMY-o6d",
   epkUrl: "https://emyvisiongroup.com",
   email: "mannaiiman1@gmail.com",
-  phone: "+974 74767686",
+  phone: "+971 50 344 3281",
 
   management: {
     company: "Emy Vision Group",
@@ -148,7 +148,7 @@ export const DJ_EMY: ArtistProfile = {
     contactName: "Kirth",
     contactRole: "Business Development",
     email: "admin@emyvisiongroup.com",
-    phone: "+971 50 660 7743",
+    phone: "+971 50 344 3281",
     instagram: "@evgroup2026",
     website: "https://emyvisiongroup.com",
     tradeLicenceNo: "4427087.01",

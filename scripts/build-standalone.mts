@@ -1,16 +1,17 @@
 /**
- * Builds `docs/index.html` — the whole tool as ONE self-contained file.
+ * Builds the booking tool as ONE self-contained HTML file.
  *
- * Why: the live Next.js app needs a server, an account and a deploy. This
- * needs none of that. It opens from a link, installs to a phone home screen,
- * and keeps working with no signal. Everything is computed in the browser.
+ * Two editions, same engine:
+ *   EVG      -> docs/index.html        "EVG DJ Booking Tool"      (company)
+ *   PERSONAL -> docs/emy/index.html    "DJ Emy Booking Tool"      (artist)
+ *
+ * No server, no install, no account. Opens from a link, installs to a phone
+ * home screen, works with no signal.
  */
 import { mkdirSync, writeFileSync } from "fs";
 import { DJ_EMY } from "../src/lib/artist";
 
 const P = DJ_EMY;
-const M = P.management;
-const B = M.bank!;
 
 const TIERS = [
   ["brand_activation", "Brand / corporate", 15000],
@@ -22,30 +23,108 @@ const TIERS = [
   ["bar_restaurant", "Bar / restaurant", 3000],
 ] as const;
 
-/**
- * PUBLIC=1 builds a shareable version with NO settlement or registration data.
- *
- * Emy needs pricing, pitches and negotiation on her phone — she never needs
- * IBANs mid-conversation. Those belong to EVG's invoicing, not to a link that
- * gets forwarded around WhatsApp.
- */
-const PUBLIC = process.env.PUBLIC === "1";
-// NOTE: GitHub Pages can only serve from the repo root or /docs — never
-// /public. docs/ is therefore the published build. Kirth has approved
-// including EVG's settlement details, so the default build carries them.
+interface Edition {
+  id: string;
+  title: string;        // shown in the header + app name
+  shortName: string;
+  outDir: string;
+  /** Who the pitch is written from. */
+  senderName: string;
+  senderLine: string;   // signature block under the pitch
+  phone: string;
+  email: string;
+  instagram: string;
+  website?: string;
+  /** Company card rows. */
+  company: [string, string][];
+  /** Settlement details for the invoice/bank card. */
+  bank: { accountName: string; bankName: string; bankAddress?: string;
+          accountNo?: string; iban: string; swift: string;
+          alternates?: { currency: string; iban: string }[] };
+  /** Extra rows on the artist card. */
+  showArtistLegalName: boolean;
+}
 
+const EVG: Edition = {
+  id: "evg",
+  title: "EVG DJ Booking Tool",
+  shortName: "EVG Booking",
+  outDir: "docs",
+  senderName: "Emy Vision Group",
+  senderLine: "Emy Vision Group",
+  // Company number is Imen's line, as instructed.
+  phone: "+971 50 344 3281",
+  email: "admin@emyvisiongroup.com",
+  instagram: "@evgroup2026",
+  website: "https://emyvisiongroup.com",
+  company: [
+    ["Legal name", "Emy Vision Group FZC"],
+    ["Licence no.", "4427087.01"],
+    ["Formation no.", "4427087"],
+    ["Type", "Free Zone Company"],
+    ["Manager", "Imen Mannai"],
+    ["Licence expiry", "06/01/2027"],
+    ["Address", "Business Centre, Sharjah Publishing City Free Zone, Sharjah, UAE"],
+  ],
+  bank: {
+    accountName: "EMY VISION GROUP FZC",
+    bankName: "Mashreqbank PSC (Mashreq NEO BIZ)",
+    accountNo: "***REDACTED-ACCT***",
+    iban: "***REDACTED-IBAN***",
+    swift: "***REDACTED-SWIFT***",
+    alternates: [
+      { currency: "GBP", iban: "***REDACTED-IBAN***" },
+      { currency: "USD", iban: "***REDACTED-IBAN***" },
+      { currency: "EUR", iban: "***REDACTED-IBAN***" },
+    ],
+  },
+  showArtistLegalName: false,
+};
+
+const PERSONAL: Edition = {
+  id: "emy",
+  title: "DJ Emy Booking Tool",
+  shortName: "DJ Emy",
+  outDir: "docs/emy",
+  senderName: "DJ Emy",
+  senderLine: "DJ Emy",
+  phone: "+971 50 344 3281",
+  email: "mannaiiman1@gmail.com",
+  instagram: "@dj_emy_",
+  website: "https://youtube.com/@DJEMY-o6d",
+  company: [
+    ["Name", "Imen Mannai"],
+    ["Known as", "DJ Emy"],
+    ["Based", "Dubai, UAE"],
+  ],
+  bank: {
+    accountName: "Imen Mannai",
+    bankName: "Mashreq Bank PSC",
+    bankAddress: "P.O. Box 1250, Dubai, UAE",
+    accountNo: "***REDACTED-ACCT***",
+    iban: "***REDACTED-IBAN***",
+    swift: "***REDACTED-SWIFT***",
+  },
+  showArtistLegalName: true,
+};
+
+/** PUBLIC=1 strips settlement details entirely (see public/README.md). */
+const PUBLIC = process.env.PUBLIC === "1";
+
+function build(E: Edition) {
+const B = E.bank;
 const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>DJ Emy — Booking Tool</title>
+<title>${E.title}</title>
 <meta name="theme-color" content="#0a0a0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DJ Emy">
+<meta name="apple-mobile-web-app-title" content="${E.shortName}">
 <link rel="manifest" href="data:application/json;base64,${Buffer.from(JSON.stringify({
-  name: "DJ Emy — Booking Tool", short_name: "DJ Emy", start_url: "./index.html",
+  name: E.title, short_name: E.shortName, start_url: "./index.html",
   display: "standalone", background_color: "#0a0a0f", theme_color: "#0a0a0f",
   icons: [{ src: "data:image/svg+xml;base64," + Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0a0a0f"/><circle cx="256" cy="256" r="150" fill="none" stroke="#dc2626" stroke-width="14" opacity=".3"/><circle cx="256" cy="256" r="100" fill="none" stroke="#dc2626" stroke-width="14" opacity=".55"/><circle cx="256" cy="256" r="50" fill="none" stroke="#ef4444" stroke-width="14"/><circle cx="256" cy="256" r="18" fill="#f87171"/><circle cx="352" cy="168" r="26" fill="#dc2626"/></svg>`
@@ -107,8 +186,8 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 <body>
 <div class="wrap">
   <header style="margin-bottom:14px">
-    <h1>DJ <span>Emy</span> — Booking Tool</h1>
-    <div class="sub">Emy Vision Group · ${M.phone}</div>
+    <h1>${E.id === "evg" ? 'EVG <span>DJ</span> Booking Tool' : 'DJ <span>Emy</span> Booking Tool'}</h1>
+    <div class="sub">${E.senderLine} · ${E.phone}</div>
   </header>
 
   <!-- ============ PRICE ============ -->
@@ -228,23 +307,22 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 
   <!-- ============ DETAILS ============ -->
   <section id="p-info" class="hide">
-    <div class="card"><h2>Company</h2>
-      <div class="kv"><span>Legal name</span><span>${M.legalName}</span></div>
-      ${PUBLIC ? "" : `<div class="kv"><span>Licence no.</span><span>${M.tradeLicenceNo}</span></div>
-      <div class="kv"><span>Formation no.</span><span>4427087</span></div>
-      <div class="kv"><span>Licence expiry</span><span>06/01/2027</span></div>`}
-      <div class="kv"><span>Type</span><span>Free Zone Company</span></div>
-      <div class="kv"><span>Booking contact</span><span>${M.contactName} · ${M.phone}</span></div>
-      <div class="kv"><span>Email</span><span>${M.email}</span></div>
+    <div class="card"><h2>${E.id === "evg" ? "Company" : "Artist"}</h2>
+      ${E.company.map(([k, v]) => `<div class="kv"><span>${k}</span><span>${v}</span></div>`).join("\n      ")}
+      <div class="kv"><span>Booking contact</span><span>${E.phone}</span></div>
+      <div class="kv"><span>Email</span><span>${E.email}</span></div>
+      <div class="kv"><span>Instagram</span><span>${E.instagram}</span></div>
     </div>
     ${PUBLIC ? "" : `<div class="card"><h2>Bank — for invoices</h2>
-      <div class="kv"><span>Account name</span><span>${B.accountName}</span></div>
+      <div class="kv"><span>Beneficiary</span><span>${B.accountName}</span></div>
       <div class="kv"><span>Bank</span><span>${B.bankName}</span></div>
+      ${B.bankAddress ? `<div class="kv"><span>Bank address</span><span>${B.bankAddress}</span></div>` : ""}
+      ${B.accountNo ? `<div class="kv"><span>Account no.</span><span>${B.accountNo}</span></div>` : ""}
       <div class="kv"><span>IBAN (AED)</span><span>${B.iban}</span></div>
       <div class="kv"><span>SWIFT / BIC</span><span>${B.swift}</span></div>
       ${(B.alternates ?? []).map((a) => `<div class="kv"><span>IBAN (${a.currency})</span><span>${a.iban}</span></div>`).join("\n      ")}
       <button class="btn alt" onclick="copyBank(this)">Copy bank details</button>
-      <div class="warn">Never send the Mashreq customer number (CIF) to a client — it's also the password for the bank's statements. Payments only need the account name, IBAN and SWIFT.</div>
+      <div class="warn">Never send the Mashreq customer number (CIF) to a client — it is also the password for the bank's statements. Payments only need the beneficiary name, IBAN and SWIFT.</div>
     </div>`}
     <div class="card"><h2>Tech rider</h2>
       <div class="kv"><span>Players</span><span>2× Pioneer CDJ-3000<br>(2000NXS2 acceptable)</span></div>
@@ -261,10 +339,9 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
       <div class="kv"><span>Cancel &lt;30 days</span><span>50% payable</span></div>
       <div class="kv"><span>Governing law</span><span>Dubai / UAE</span></div>
     </div>
-    <div class="card"><h2>Artist</h2>
-      <div class="kv"><span>Instagram</span><span>${P.instagram}</span></div>
-      <div class="kv"><span>Live sets</span><span>youtube.com/@DJEMY-o6d</span></div>
+    <div class="card"><h2>Sound</h2>
       <div class="kv"><span>Genres</span><span>${P.genres.join(", ")}</span></div>
+      <div class="kv"><span>Live sets</span><span>youtube.com/@DJEMY-o6d</span></div>
       <div class="note">Works offline. Add to Home Screen to use it like an app.</div>
     </div>
   </section>
@@ -341,18 +418,20 @@ function buildPitch(fee,hrs){
   var who=$('who').value.trim()||'there', venue=$('venue').value.trim(), date=$('date').value.trim()||'[date]';
   var k=$('tier').options[$('tier').selectedIndex].dataset.k;
   var hook = (k==='brand_activation'||k==='festival')
-    ? "She was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025."
+    ? ${E.id === "evg" ? '"She was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025."' : '"I was an official tournament DJ for the FIFA World Cup Qatar 2022 and the FIFA Arab Cup 2025."'}
     : (k==='hotel_lounge')
-    ? "She's known for golden-hour rooftop sessions — deep, tribal grooves that open a room and lift it."
-    : "She's one of the GCC's few female Afro House DJs commanding a peak-time floor — 100% live, reads the room.";
+    ? ${E.id === "evg" ? '"She\'s known for golden-hour rooftop sessions — deep, tribal grooves that open a room and lift it."' : '"I\'m known for golden-hour rooftop sessions — deep, tribal grooves that open a room and lift it."'}
+    : ${E.id === "evg" ? '"She\'s one of the GCC\'s few female Afro House DJs commanding a peak-time floor — 100% live, reads the room."' : '"I\'m one of the GCC\'s few female Afro House DJs commanding a peak-time floor — 100% live, I read the room."'};
 
-  var t='Hi '+who+' — ${M.contactName} here from ${M.company}, representing DJ Emy.\\n\\n'+
-    "Saw you're booking for "+date+(venue?' at '+venue:'')+". DJ Emy is available and it's exactly her sound (Afro House, Afro Tech, Tribal).\\n\\n"+
+  var t=${E.id === "evg"
+    ? "'Hi '+who+' — Emy Vision Group here, representing DJ Emy.\\n\\n'+"
+    : "'Hi '+who+' — DJ Emy here.\\n\\n'+"}
+    "Saw you're booking for "+date+(venue?' at '+venue:'')+". ${E.id === "evg" ? "DJ Emy is available and it's" : "I'm available and it's"} exactly ${E.id === "evg" ? "her" : "my"} sound (Afro House, Afro Tech, Tribal).\\n\\n"+
     hook+'\\n\\n'+
-    'Fee for a '+hrs+'-hour set is AED '+fmt(fee)+', all-in. She travels with USB and works with your house Pioneer setup.\\n\\n'+
-    'Live sets: https://youtube.com/@DJEMY-o6d\\nEPK: ${M.website}\\n\\n'+
+    'Fee for a '+hrs+'-hour set is AED '+fmt(fee)+', all-in. ${E.id === "evg" ? "She travels" : "I travel"} with USB and work${E.id === "evg" ? "s" : ""} with your house Pioneer setup.\\n\\n'+
+    'Live sets: https://youtube.com/@DJEMY-o6d\\nEPK: ${E.website}\\n\\n'+
     'We can hold the date for you today — shall I send the booking confirmation over?\\n\\n'+
-    '${M.contactName} · ${M.company}\\n${M.phone}';
+    '${E.senderLine}\\n${E.phone}';
 
   $('pitch').textContent=t;
   $('waLink').href='https://wa.me/?text='+encodeURIComponent(t);
@@ -368,7 +447,7 @@ function copyTxt(t,b,msg){
 }
 function copyPitch(b){copyTxt($('pitch').textContent,b,'Copied ✓')}
 ${PUBLIC ? "" : `function copyBank(b){copyTxt(
- 'Account name: ${B.accountName}\\nBank: ${B.bankName}\\nIBAN (AED): ${B.iban}\\nSWIFT/BIC: ${B.swift}',b,'Copied ✓')}`}
+ 'Beneficiary: ${B.accountName}\\nBank: ${B.bankName}\\nIBAN: ${B.iban}\\nSWIFT/BIC: ${B.swift}',b,'Copied ✓')}`}
 
 ['tier','hrs','slot','night','season','budget','who','venue','date'].forEach(function(id){
   $(id).addEventListener('input',calc); $(id).addEventListener('change',calc);
@@ -378,20 +457,49 @@ calc();
 </body>
 </html>`;
 
-const out = PUBLIC ? "public/index.html" : "docs/index.html";
-mkdirSync(PUBLIC ? "public" : "docs", { recursive: true });
+const out = `${PUBLIC ? "public" : E.outDir}/index.html`;
+mkdirSync(PUBLIC ? "public" : E.outDir, { recursive: true });
 writeFileSync(out, html);
-console.log(`${out} — ${(html.length / 1024).toFixed(0)} KB`);
 
-// Hard gate: never ship credentials or settlement data in a shareable build.
-// The CIF is the password to Mashreq's protected statements, so it is a
-// credential and must never ship — regardless of what else is included.
+// Hard gate. The CIF is the password to Mashreq's protected statements, so it
+// is a credential and must never ship in any edition.
 const banned: [string, string][] = [["016087359", "Mashreq CIF (bank password)"]];
 if (PUBLIC) {
-  banned.push([B.iban, "AED IBAN"], [M.tradeLicenceNo!, "trade licence no."]);
+  banned.push([B.iban, "IBAN"]);
   for (const a of B.alternates ?? []) banned.push([a.iban, a.currency + " IBAN"]);
 }
 for (const [needle, what] of banned) {
   if (html.includes(needle)) { console.error(`FATAL: ${what} leaked into ${out}`); process.exit(1); }
 }
-console.log(PUBLIC ? "✓ no IBANs, licence no. or CIF — safe to publish" : "✓ CIF absent");
+
+// The two editions must never cross-contaminate settlement details.
+const other = E.id === "evg" ? PERSONAL : EVG;
+if (!PUBLIC && html.includes(other.bank.iban)) {
+  console.error(`FATAL: ${other.title} IBAN leaked into ${out}`); process.exit(1);
+}
+
+console.log(`${out.padEnd(24)} ${(html.length / 1024).toFixed(0)} KB  — ${E.title}`);
+}
+
+build(EVG);
+if (!PUBLIC) build(PERSONAL);
+
+// A tiny chooser so ONE link reaches both editions.
+if (!PUBLIC) {
+  writeFileSync("docs/pick.html", `<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Booking Tools</title><style>
+body{margin:0;background:#0a0a0f;color:#e4e4e7;font:16px/1.5 -apple-system,system-ui,sans-serif;
+ display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.w{max-width:420px;width:100%}h1{font-size:22px;margin:0 0 4px}h1 span{color:#ef4444}
+p{color:#71717a;font-size:13px;margin:0 0 22px}
+a{display:block;background:#18181b;border:1px solid #27272a;border-radius:14px;padding:18px;
+ margin-bottom:12px;text-decoration:none;color:#fff}
+a b{display:block;font-size:17px}a small{color:#71717a;font-size:12.5px}
+</style></head><body><div class="w">
+<h1>Booking <span>Tools</span></h1><p>Choose which one to open.</p>
+<a href="./index.html"><b>EVG DJ Booking Tool</b><small>Company edition — pitches from Emy Vision Group, EVG bank details</small></a>
+<a href="./emy/"><b>DJ Emy Booking Tool</b><small>Personal edition — pitches from Emy, her own account</small></a>
+</div></body></html>`);
+  console.log("docs/pick.html            chooser");
+}
