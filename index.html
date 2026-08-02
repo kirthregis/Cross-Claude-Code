@@ -7,91 +7,104 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap');
+    
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #020617;
-      color: #f8fafc;
+      background-color: #fafaf9;
+      color: #1c1917;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-editorial {
+      font-family: 'IBM Plex Serif', Georgia, serif;
+    }
+    /* Elegant subtle border transitions */
+    .card-border {
+      border: 1px solid #e7e5e4;
+      background-color: #ffffff;
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+<body class="min-h-screen flex flex-col font-sans">
 
-  <!-- TOP BANNER & HEADER -->
-  <header class="border-b border-slate-800 bg-slate-900/95 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center font-bold text-white shadow-lg shadow-red-600/30 text-base">
-          FSG
+  <!-- TOP BRANDING & NAVIGATION BAR -->
+  <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-5xl mx-auto px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">
+          <span>FSG Training Division</span>
+          <span>·</span>
+          <span>Operating Platform (Pilot)</span>
         </div>
-        <div>
-          <h1 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-            FSG Training Division <span class="text-slate-400 font-normal">— Operating Platform</span>
-          </h1>
-          <p class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-            PILOT — DEMONSTRATION SYSTEM · Local AED Currency
-          </p>
-        </div>
+        <h1 class="text-2xl font-editorial font-semibold text-stone-900 tracking-tight">
+          FSG Training Division — Operating Platform
+        </h1>
       </div>
 
-      <!-- Action Toolbar -->
+      <!-- Demonstration Badge & Action -->
       <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-700 border border-stone-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          PILOT — DEMONSTRATION SYSTEM
+        </span>
         <button
           onclick="openModal()"
-          class="px-3.5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition flex items-center gap-1.5"
+          class="px-3.5 py-1.5 bg-stone-900 hover:bg-stone-800 text-white rounded-md text-xs font-medium shadow-sm transition"
         >
-          <span>+ New Course Booking</span>
+          + New Booking
         </button>
       </div>
     </div>
 
-    <!-- NAVIGATION TABS -->
-    <div class="max-w-7xl mx-auto px-6 flex gap-6 border-t border-slate-800/80 text-sm overflow-x-auto" id="tab-nav">
-      <button onclick="setTab('dashboard')" id="tab-btn-dashboard" class="py-3 font-medium border-b-2 border-red-500 text-white transition flex items-center gap-2 whitespace-nowrap">
-        Reporting & Dashboard
+    <!-- DOCUMENT TABS (CLEAN EDITORIAL TABS) -->
+    <div class="max-w-5xl mx-auto px-6 flex gap-8 border-t border-stone-200 text-sm overflow-x-auto" id="tab-nav">
+      <button onclick="setTab('reporting')" id="tab-btn-reporting" class="py-3 font-medium border-b-2 border-stone-900 text-stone-900 transition flex items-center gap-2 whitespace-nowrap">
+        Reporting
       </button>
-      <button onclick="setTab('bookings')" id="tab-btn-bookings" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
-        Bookings & Occupancy <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-normal">4</span>
+      <button onclick="setTab('bookings')" id="tab-btn-bookings" class="py-3 font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-900 transition flex items-center gap-2 whitespace-nowrap">
+        Bookings & Occupancy
       </button>
-      <button onclick="setTab('costing')" id="tab-btn-costing" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
+      <button onclick="setTab('costing')" id="tab-btn-costing" class="py-3 font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-900 transition flex items-center gap-2 whitespace-nowrap">
         Costing & Profitability
       </button>
-      <button onclick="setTab('certificates')" id="tab-btn-certificates" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
-        Certificates Register <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-normal">6</span>
+      <button onclick="setTab('certificates')" id="tab-btn-certificates" class="py-3 font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-900 transition flex items-center gap-2 whitespace-nowrap">
+        Certificates (6)
       </button>
-      <button onclick="setTab('enquiries')" id="tab-btn-enquiries" class="py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap">
-        Live Enquiries <span class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-normal">2</span>
+      <button onclick="setTab('enquiries')" id="tab-btn-enquiries" class="py-3 font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-900 transition flex items-center gap-2 whitespace-nowrap">
+        Live Enquiries (2)
       </button>
     </div>
   </header>
 
-  <!-- MAIN CONTENT AREA -->
-  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full" id="main-content">
-    <!-- Content injected via Vanilla JS -->
+  <!-- MAIN DOCUMENT CONTENT -->
+  <main class="max-w-5xl mx-auto px-6 py-10 flex-1 w-full" id="main-content">
+    <!-- Rendered via JavaScript -->
   </main>
 
   <!-- ADD BOOKING MODAL -->
-  <div id="modal-backdrop" class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md p-6 shadow-2xl">
-      <h3 class="text-lg font-bold text-white mb-4">Add New Course Booking</h3>
-      <form id="booking-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+  <div id="modal-backdrop" class="fixed inset-0 bg-stone-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 hidden">
+    <div class="bg-white border border-stone-200 rounded-xl w-full max-w-md p-6 shadow-xl">
+      <div class="flex justify-between items-center mb-4 border-b border-stone-200 pb-3">
+        <h3 class="text-base font-semibold text-stone-900 font-editorial">Add New Course Booking</h3>
+        <button onclick="closeModal()" class="text-stone-400 hover:text-stone-600 text-lg font-bold">&times;</button>
+      </div>
+      <form id="booking-form" onsubmit="handleFormSubmit(event)" class="space-y-4 text-sm">
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Course Title</label>
+          <label class="block text-xs font-medium text-stone-700 mb-1">Course Title</label>
           <input
             type="text"
             id="form-title"
             required
             placeholder="e.g. NFPA 1041 Fire Instructor I"
-            class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+            class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm outline-none focus:border-stone-900"
           />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Status</label>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Status</label>
             <select
               id="form-status"
-              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+              class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm outline-none focus:border-stone-900"
             >
               <option value="provisional">Provisional</option>
               <option value="confirmed">Confirmed</option>
@@ -99,60 +112,60 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Duration (Days)</label>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Duration (Days)</label>
             <input
               type="number"
               id="form-days"
               required
               value="5"
-              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+              class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm outline-none focus:border-stone-900"
             />
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Seats Filled</label>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Seats Filled</label>
             <input
               type="number"
               id="form-seats"
               required
               value="15"
-              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+              class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm outline-none focus:border-stone-900"
             />
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Total Room Capacity</label>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Total Room Capacity</label>
             <input
               type="number"
               id="form-totalseats"
               required
               value="25"
-              class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+              class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm outline-none focus:border-stone-900"
             />
           </div>
         </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Course Fee Billed (AED)</label>
+          <label class="block text-xs font-medium text-stone-700 mb-1">Course Fee Billed (AED)</label>
           <input
             type="number"
             id="form-billed"
             required
             value="100000"
-            class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm outline-none focus:border-red-500"
+            class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm outline-none focus:border-stone-900"
           />
         </div>
 
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-stone-200">
           <button
             type="button"
             onclick="closeModal()"
-            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-xs font-semibold transition"
+            class="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-md text-xs font-medium transition"
           >
             Cancel
           </button>
           <button
             type="submit"
-            class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition"
+            class="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-md text-xs font-medium shadow-sm transition"
           >
             Add Booking
           </button>
@@ -162,20 +175,20 @@
   </div>
 
   <!-- FOOTER -->
-  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500 mt-auto">
-    FSG Training Division — Operating Platform Pilot · Demonstration & Operations System
+  <footer class="border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-auto bg-white">
+    FSG Training Division — Operating Platform (Pilot) · Synced with kirthregis/Cross-Claude-Code
   </footer>
 
-  <!-- VANILLA JS APP LOGIC -->
+  <!-- APP LOGIC -->
   <script>
     // Constants
     const CREW_RATE = 2225;
     const FOOD_RATE = 90;
     const FIREGROUND_RATE = 1100;
 
-    // State
+    // Application State
     const state = {
-      activeTab: 'dashboard',
+      activeTab: 'reporting',
       courses: [
         {
           id: 'BK-2026-001',
@@ -260,13 +273,12 @@
 
     function setTab(tabName) {
       state.activeTab = tabName;
-      // Update button styling
       const buttons = document.querySelectorAll('#tab-nav button');
       buttons.forEach(btn => {
         if (btn.id === `tab-btn-${tabName}`) {
-          btn.className = "py-3 font-medium border-b-2 border-red-500 text-white transition flex items-center gap-2 whitespace-nowrap";
+          btn.className = "py-3 font-medium border-b-2 border-stone-900 text-stone-900 transition flex items-center gap-2 whitespace-nowrap";
         } else {
-          btn.className = "py-3 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2 whitespace-nowrap";
+          btn.className = "py-3 font-medium border-b-2 border-transparent text-stone-500 hover:text-stone-900 transition flex items-center gap-2 whitespace-nowrap";
         }
       });
       render();
@@ -342,462 +354,476 @@
       document.getElementById('sim-food-cost').innerText = `AED ${foodCost.toLocaleString()}`;
       document.getElementById('sim-ground-cost').innerText = `AED ${groundCost.toLocaleString()}`;
       document.getElementById('sim-net-kept').innerText = `AED ${netKept.toLocaleString()}`;
-      document.getElementById('sim-margin').innerText = `(${margin}% margin)`;
+      document.getElementById('sim-margin').innerText = `${margin}%`;
     }
 
-    function renderDashboard() {
-      let html = `
-        <div class="space-y-8">
-          <!-- 4 Big KPI Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Billed This Month (before VAT)</p>
-              <p class="text-3xl font-bold text-white mt-2">AED 0.00</p>
-              <p class="text-xs text-slate-400 mt-2">
-                Last month: <span class="text-slate-300 font-medium">AED 179,100.00</span>
+    /* =========================================================
+       TAB 1: REPORTING (EXACT CLAUDE ARTIFACT LOOK & LAYOUT)
+       ========================================================= */
+    function renderReporting() {
+      return `
+        <div class="space-y-12">
+          
+          <!-- Top Title Section -->
+          <div class="border-b border-stone-200 pb-6">
+            <div class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold uppercase tracking-wider bg-stone-200 text-stone-700 mb-3">
+              PILOT — DEMONSTRATION SYSTEM
+            </div>
+            <h2 class="text-3xl font-editorial font-bold text-stone-900 tracking-tight">
+              Reporting
+            </h2>
+          </div>
+
+          <!-- 4 Executive Metric Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="card-border p-5 rounded-lg shadow-2xs">
+              <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Billed this month (before VAT)</p>
+              <p class="text-3xl font-bold text-stone-900 mt-2">AED 0.00</p>
+              <p class="text-xs text-stone-500 mt-2">
+                last month <span class="text-stone-700 font-medium">AED 179,100.00</span>
               </p>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Waiting to be Paid</p>
-              <p class="text-3xl font-bold text-amber-400 mt-2">AED 81,270.00</p>
-              <p class="text-xs text-slate-400 mt-2">
+            <div class="card-border p-5 rounded-lg shadow-2xs">
+              <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Waiting to be paid</p>
+              <p class="text-3xl font-bold text-stone-900 mt-2">AED 81,270.00</p>
+              <p class="text-xs text-stone-500 mt-2">
                 1 invoice sent, not yet paid
               </p>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Certificates Issued</p>
-              <p class="text-3xl font-bold text-emerald-400 mt-2">6</p>
-              <p class="text-xs text-slate-400 mt-2">
-                Each with a unique register number
+            <div class="card-border p-5 rounded-lg shadow-2xs">
+              <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Certificates issued</p>
+              <p class="text-3xl font-bold text-stone-900 mt-2">6</p>
+              <p class="text-xs text-stone-500 mt-2">
+                each with a unique register number
               </p>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-              <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Live Enquiries</p>
-              <p class="text-3xl font-bold text-sky-400 mt-2">2</p>
-              <p class="text-xs text-slate-400 mt-2">
-                New or quoted, not yet decided
+            <div class="card-border p-5 rounded-lg shadow-2xs">
+              <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Live enquiries</p>
+              <p class="text-3xl font-bold text-stone-900 mt-2">2</p>
+              <p class="text-xs text-stone-500 mt-2">
+                new or quoted, not yet decided
               </p>
             </div>
           </div>
 
-          <!-- Money Billed Graph Section -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-              <h3 class="text-base font-semibold text-white">Money billed, this month against last</h3>
-              <p class="text-xs text-slate-400 mt-1 mb-6">Before-VAT value of invoices sent or paid, by invoice date.</p>
-              
-              <div class="space-y-4">
-                <div>
-                  <div class="flex justify-between text-sm font-medium mb-1">
-                    <span class="text-slate-300">Jul 2026</span>
-                    <span class="text-emerald-400">AED 179,100.00</span>
-                  </div>
-                  <div class="w-full bg-slate-800 h-6 rounded-lg overflow-hidden">
-                    <div class="bg-emerald-500 h-full rounded-lg" style="width: 100%"></div>
-                  </div>
-                </div>
+          <!-- SECTION: Money billed, this month against last -->
+          <div class="card-border p-8 rounded-lg shadow-2xs">
+            <h3 class="text-lg font-editorial font-bold text-stone-900">
+              Money billed, this month against last
+            </h3>
+            <p class="text-sm text-stone-500 mt-1 mb-6">
+              Before-VAT value of invoices sent or paid, by invoice date.
+            </p>
 
-                <div>
-                  <div class="flex justify-between text-sm font-medium mb-1">
-                    <span class="text-slate-300">Aug 2026</span>
-                    <span class="text-slate-500">AED 0.00</span>
-                  </div>
-                  <div class="w-full bg-slate-800 h-6 rounded-lg overflow-hidden">
-                    <div class="bg-slate-700 h-full" style="width: 0%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Bookings by Status -->
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
+            <div class="space-y-5 max-w-2xl">
               <div>
-                <h3 class="text-base font-semibold text-white">Bookings by Status</h3>
-                <p class="text-xs text-slate-400 mt-1">
-                  Provisional means pencilled in; confirmed means the client has committed; delivered means it ran.
-                </p>
-              </div>
-
-              <div class="grid grid-cols-3 gap-4 mt-6">
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
-                  <p class="text-xs text-slate-400 font-medium">PROVISIONAL</p>
-                  <p class="text-2xl font-bold text-amber-400 mt-1">1</p>
+                <div class="flex justify-between text-sm font-medium mb-1.5">
+                  <span class="text-stone-700">Jul 2026</span>
+                  <span class="text-stone-900 font-semibold">179,100</span>
                 </div>
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
-                  <p class="text-xs text-slate-400 font-medium">CONFIRMED</p>
-                  <p class="text-2xl font-bold text-sky-400 mt-1">1</p>
-                </div>
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
-                  <p class="text-xs text-slate-400 font-medium">DELIVERED</p>
-                  <p class="text-2xl font-bold text-emerald-400 mt-1">2</p>
+                <div class="w-full bg-stone-100 h-5 rounded overflow-hidden border border-stone-200">
+                  <div class="bg-emerald-600 h-full" style="width: 100%"></div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Seat Occupancy Preview -->
-          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
               <div>
-                <h3 class="text-base font-semibold text-white">Seats filled against the room we could sell</h3>
-                <p class="text-xs text-slate-400 mt-1">
-                  The big costs of a course do not move when a seat is added — so every empty seat is money the run simply does not collect. Green is 90% full or better.
-                </p>
+                <div class="flex justify-between text-sm font-medium mb-1.5">
+                  <span class="text-stone-700">Aug 2026</span>
+                  <span class="text-stone-500">0</span>
+                </div>
+                <div class="w-full bg-stone-100 h-5 rounded overflow-hidden border border-stone-200">
+                  <div class="bg-stone-300 h-full" style="width: 0%"></div>
+                </div>
               </div>
-              <button
-                onclick="setTab('bookings')"
-                class="text-xs text-red-400 hover:text-red-300 font-medium mt-2 sm:mt-0"
-              >
-                View All Bookings &rarr;
-              </button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-      `;
-
-      state.courses.forEach(course => {
-        const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
-        const isGreen = pct >= 90;
-        html += `
-          <div class="bg-slate-950 border border-slate-800/80 p-4 rounded-lg">
-            <div class="flex justify-between items-center text-sm mb-2">
-              <span class="font-semibold text-slate-200">${course.id} · ${course.title}</span>
-              <span class="text-xs font-semibold px-2 py-0.5 rounded ${
-                isGreen ? 'bg-emerald-900/50 text-emerald-300' : 'bg-slate-800 text-slate-300'
-              }">
-                ${course.seatsFilled} of ${course.totalSeats} (${pct}%)
-              </span>
-            </div>
-            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-              <div
-                class="h-full transition-all duration-500 ${isGreen ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-500'}"
-                style="width: ${pct}%"
-              ></div>
             </div>
           </div>
-        `;
-      });
 
-      html += `
+          <!-- SECTION: Bookings by status -->
+          <div class="card-border p-8 rounded-lg shadow-2xs">
+            <h3 class="text-lg font-editorial font-bold text-stone-900">
+              Bookings by status
+            </h3>
+            <p class="text-sm text-stone-500 mt-1 mb-6">
+              Provisional means pencilled in; confirmed means the client has committed; delivered means it ran.
+            </p>
+
+            <div class="grid grid-cols-3 gap-6 max-w-xl">
+              <div class="bg-stone-50 border border-stone-200 p-5 rounded-lg">
+                <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">provisional</p>
+                <p class="text-3xl font-bold text-stone-900 mt-1">1</p>
+              </div>
+              <div class="bg-stone-50 border border-stone-200 p-5 rounded-lg">
+                <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">confirmed</p>
+                <p class="text-3xl font-bold text-stone-900 mt-1">1</p>
+              </div>
+              <div class="bg-stone-50 border border-stone-200 p-5 rounded-lg">
+                <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">delivered</p>
+                <p class="text-3xl font-bold text-emerald-700 mt-1">2</p>
+              </div>
             </div>
           </div>
+
+          <!-- SECTION: Seats filled against the room we could sell -->
+          <div class="card-border p-8 rounded-lg shadow-2xs">
+            <h3 class="text-lg font-editorial font-bold text-stone-900">
+              Seats filled against the room we could sell
+            </h3>
+            <p class="text-sm text-stone-500 mt-1 mb-6">
+              The big costs of a course do not move when a seat is added — so every empty seat is money the run simply does not collect. Green is 90% full or better.
+            </p>
+
+            <div class="space-y-6">
+              ${state.courses.map(course => {
+                const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
+                const isGreen = pct >= 90;
+                return `
+                  <div>
+                    <div class="flex justify-between items-baseline text-sm mb-2">
+                      <span class="font-medium text-stone-900">
+                        <span class="font-semibold">${course.id}</span> · ${course.title}
+                      </span>
+                      <span class="font-mono text-sm ${isGreen ? 'text-emerald-700 font-bold' : 'text-stone-700'}">
+                        ${course.seatsFilled} of ${course.totalSeats} (${pct}%)
+                      </span>
+                    </div>
+                    <div class="w-full bg-stone-100 h-3 rounded-full overflow-hidden border border-stone-200">
+                      <div
+                        class="h-full transition-all duration-500 ${isGreen ? 'bg-emerald-600' : pct >= 75 ? 'bg-amber-500' : 'bg-stone-400'}"
+                        style="width: ${pct}%"
+                      ></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- SECTION: What each delivered course kept, roughly -->
+          <div class="card-border p-8 rounded-lg shadow-2xs">
+            <h3 class="text-lg font-editorial font-bold text-stone-900">
+              What each delivered course kept, roughly
+            </h3>
+            <p class="text-sm text-stone-500 mt-1 mb-6 leading-relaxed">
+              Money billed, less the crew at <span class="font-medium text-stone-800">AED 2,225.00 a day</span>, feeding people at <span class="font-medium text-stone-800">AED 90 a head a day</span>, and the training ground at <span class="font-medium text-stone-800">AED 1,100.00 a fireground day</span>. A rough working figure — the full cost sheets live in the costing register, not here.
+            </p>
+
+            <div class="divide-y divide-stone-200">
+              ${state.courses.filter(c => c.status === 'delivered').map(course => `
+                <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span class="font-medium text-stone-900">
+                    <span class="font-semibold">${course.id}</span> · ${course.title}
+                  </span>
+                  <span class="font-mono font-bold text-stone-900 text-base">
+                    AED ${course.netKept.toLocaleString()}.00 <span class="text-stone-500 font-normal">(${course.margin}%)</span>
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
         </div>
       `;
-      return html;
     }
 
+    /* =========================================================
+       TAB 2: BOOKINGS REGISTER & OCCUPANCY
+       ========================================================= */
     function renderBookings() {
-      let html = `
+      return `
         <div class="space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-5">
             <div>
-              <h2 class="text-lg font-semibold text-white">Course Schedule & Seat Occupancy</h2>
-              <p class="text-xs text-slate-400">Monitoring fill rate and operational status across all scheduled courses.</p>
+              <h2 class="text-2xl font-editorial font-bold text-stone-900">Course Schedule & Occupancy Register</h2>
+              <p class="text-sm text-stone-500 mt-1">Operational view of all provisional, confirmed, and delivered courses.</p>
             </div>
             <button
               onclick="openModal()"
-              class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold shadow transition self-start"
+              class="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-md text-xs font-medium shadow-sm transition"
             >
               + Add New Booking
             </button>
           </div>
 
-          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="card-border rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs uppercase tracking-wider">
-                    <th class="py-3 px-4">Course ID & Title</th>
-                    <th class="py-3 px-4">Status</th>
-                    <th class="py-3 px-4">Schedule & Location</th>
-                    <th class="py-3 px-4">Seats Occupancy</th>
-                    <th class="py-3 px-4 text-right">Billed (before VAT)</th>
+                  <tr class="border-b border-stone-200 bg-stone-50 text-stone-500 text-xs font-semibold uppercase tracking-wider">
+                    <th class="py-3.5 px-6">Course Ref & Title</th>
+                    <th class="py-3.5 px-6">Status</th>
+                    <th class="py-3.5 px-6">Schedule</th>
+                    <th class="py-3.5 px-6">Occupancy</th>
+                    <th class="py-3.5 px-6 text-right">Billed (before VAT)</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800 text-sm">
-      `;
-
-      state.courses.forEach(course => {
-        const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
-        const isGreen = pct >= 90;
-        const statusBadge = course.status === 'delivered' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
-                          course.status === 'confirmed' ? 'bg-sky-950 text-sky-400 border border-sky-800' :
-                          'bg-amber-950 text-amber-400 border border-amber-800';
-        html += `
-          <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-4 px-4 font-medium text-white">
-              <div class="text-sm font-semibold">${course.id}</div>
-              <div class="text-xs text-slate-400">${course.title}</div>
-            </td>
-            <td class="py-4 px-4">
-              <span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${statusBadge}">
-                ${course.status}
-              </span>
-            </td>
-            <td class="py-4 px-4 text-xs text-slate-300">
-              <div>${course.date}</div>
-              <div class="text-slate-500">${course.location}</div>
-            </td>
-            <td class="py-4 px-4 w-64">
-              <div class="flex justify-between text-xs font-medium mb-1">
-                <span>${course.seatsFilled} of ${course.totalSeats} seats</span>
-                <span class="${isGreen ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${pct}%</span>
-              </div>
-              <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                <div
-                  class="h-full ${isGreen ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-500'}"
-                  style="width: ${pct}%"
-                ></div>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-right font-semibold text-white">
-              AED ${course.billed.toLocaleString()}
-            </td>
-          </tr>
-        `;
-      });
-
-      html += `
+                <tbody class="divide-y divide-stone-200 text-sm">
+                  ${state.courses.map(course => {
+                    const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
+                    const isGreen = pct >= 90;
+                    const statusClass = course.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                                      course.status === 'confirmed' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                                      'bg-amber-50 text-amber-800 border border-amber-200';
+                    return `
+                      <tr class="hover:bg-stone-50/60 transition">
+                        <td class="py-4 px-6 font-medium text-stone-900">
+                          <div class="font-semibold">${course.id}</div>
+                          <div class="text-xs text-stone-500">${course.title}</div>
+                        </td>
+                        <td class="py-4 px-6">
+                          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium uppercase ${statusClass}">
+                            ${course.status}
+                          </span>
+                        </td>
+                        <td class="py-4 px-6 text-xs text-stone-600">
+                          <div>${course.date}</div>
+                          <div class="text-stone-400">${course.location}</div>
+                        </td>
+                        <td class="py-4 px-6 w-56">
+                          <div class="flex justify-between text-xs font-medium mb-1">
+                            <span>${course.seatsFilled} of ${course.totalSeats}</span>
+                            <span class="${isGreen ? 'text-emerald-700 font-bold' : 'text-stone-600'}">${pct}%</span>
+                          </div>
+                          <div class="w-full bg-stone-100 h-2 rounded-full overflow-hidden border border-stone-200">
+                            <div
+                              class="h-full ${isGreen ? 'bg-emerald-600' : pct >= 75 ? 'bg-amber-500' : 'bg-stone-400'}"
+                              style="width: ${pct}%"
+                            ></div>
+                          </div>
+                        </td>
+                        <td class="py-4 px-6 text-right font-mono font-semibold text-stone-900">
+                          AED ${course.billed.toLocaleString()}.00
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       `;
-      return html;
     }
 
+    /* =========================================================
+       TAB 3: COSTING REGISTER & CALCULATOR
+       ========================================================= */
     function renderCosting() {
-      let html = `
-        <div class="space-y-8">
-          <div>
-            <h2 class="text-lg font-semibold text-white">What each delivered course kept, roughly</h2>
-            <p class="text-xs text-slate-400 mt-1">
-              Money billed, less the crew at <span class="text-white font-medium">AED 2,225.00 a day</span>, feeding people at <span class="text-white font-medium">AED 90 a head a day</span>, and the training ground at <span class="text-white font-medium">AED 1,100.00 a fireground day</span>. A rough working figure — the full cost sheets live in the costing register.
+      return `
+        <div class="space-y-10">
+          <div class="border-b border-stone-200 pb-5">
+            <h2 class="text-2xl font-editorial font-bold text-stone-900">What each delivered course kept, roughly</h2>
+            <p class="text-sm text-stone-500 mt-1">
+              Money billed, less crew at <span class="text-stone-900 font-medium">AED 2,225.00/day</span>, feeding at <span class="text-stone-900 font-medium">AED 90/head/day</span>, and ground at <span class="text-stone-900 font-medium">AED 1,100.00/day</span>.
             </p>
           </div>
 
-          <!-- Course Margins Cards -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      `;
+            ${state.courses.map(course => `
+              <div class="card-border p-6 rounded-lg">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="text-xs font-semibold text-stone-500 uppercase">${course.id}</span>
+                    <h3 class="text-base font-bold text-stone-900 mt-0.5">${course.title}</h3>
+                    <p class="text-xs text-stone-500">${course.days} days · ${course.seatsFilled} students</p>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-xl font-bold font-mono text-emerald-700">
+                      AED ${course.netKept.toLocaleString()}.00
+                    </span>
+                    <p class="text-xs font-semibold text-stone-500 mt-0.5">${course.margin}% Net Margin</p>
+                  </div>
+                </div>
 
-      state.courses.forEach(course => {
-        html += `
-          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="text-xs font-semibold text-slate-400 uppercase">${course.id}</span>
-                <h3 class="text-base font-bold text-white mt-0.5">${course.title}</h3>
-                <p class="text-xs text-slate-400">${course.days} days · ${course.seatsFilled} students</p>
+                <div class="mt-5 border-t border-stone-200 pt-4 space-y-2 text-xs text-stone-600 font-mono">
+                  <div class="flex justify-between font-sans text-stone-700">
+                    <span>Total Billed (before VAT):</span>
+                    <span class="font-mono font-semibold">AED ${course.billed.toLocaleString()}.00</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Crew Cost (${course.crewDays}d @ AED 2,225):</span>
+                    <span>- AED ${(CREW_RATE * course.crewDays).toLocaleString()}.00</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Feeding (${course.seatsFilled} pax × ${course.days}d @ AED 90):</span>
+                    <span>- AED ${(FOOD_RATE * course.seatsFilled * course.days).toLocaleString()}.00</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Fireground (${course.groundDays}d @ AED 1,100):</span>
+                    <span>- AED ${(FIREGROUND_RATE * course.groundDays).toLocaleString()}.00</span>
+                  </div>
+                </div>
               </div>
-              <div class="text-right">
-                <span class="text-2xl font-extrabold text-emerald-400">
-                  AED ${course.netKept.toLocaleString()}
-                </span>
-                <p class="text-xs font-bold text-slate-300">${course.margin}% Net Margin</p>
-              </div>
-            </div>
-
-            <div class="mt-6 border-t border-slate-800/80 pt-4 space-y-2 text-xs text-slate-400">
-              <div class="flex justify-between">
-                <span>Total Billed (before VAT):</span>
-                <span class="text-slate-200 font-medium">AED ${course.billed.toLocaleString()}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Crew Cost (${course.crewDays} days @ AED 2,225):</span>
-                <span class="text-slate-200 font-medium">- AED ${(CREW_RATE * course.crewDays).toLocaleString()}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Feeding (${course.seatsFilled} pax × ${course.days} days @ AED 90):</span>
-                <span class="text-slate-200 font-medium">- AED ${(FOOD_RATE * course.seatsFilled * course.days).toLocaleString()}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Fireground (${course.groundDays} days @ AED 1,100):</span>
-                <span class="text-slate-200 font-medium">- AED ${(FIREGROUND_RATE * course.groundDays).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-
-      html += `
+            `).join('')}
           </div>
 
-          <!-- Interactive Cost & Margin Simulator -->
-          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mt-8">
-            <h3 class="text-base font-bold text-white">Course Margin Simulator</h3>
-            <p class="text-xs text-slate-400 mt-1">Adjust course pricing, seating, and days to calculate projected Net Kept margin.</p>
+          <!-- Interactive Simulator -->
+          <div class="card-border p-8 rounded-lg bg-stone-50/50">
+            <h3 class="text-lg font-editorial font-bold text-stone-900">Course Margin Simulator</h3>
+            <p class="text-xs text-stone-500 mt-1">Model different course fees and student counts to test FSG margin rules.</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Course Fee Billed (AED)</label>
+                <label class="block text-xs font-medium text-stone-700 mb-1">Course Fee Billed (AED)</label>
                 <input
                   type="number"
                   id="calc-fee"
                   value="${state.calc.fee}"
                   oninput="updateCalculator()"
-                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                  class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm focus:border-stone-900 outline-none"
                 />
               </div>
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Seats Filled</label>
+                <label class="block text-xs font-medium text-stone-700 mb-1">Seats Filled</label>
                 <input
                   type="number"
                   id="calc-seats"
                   value="${state.calc.seats}"
                   oninput="updateCalculator()"
-                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                  class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm focus:border-stone-900 outline-none"
                 />
               </div>
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Crew Days (@ AED 2,225)</label>
+                <label class="block text-xs font-medium text-stone-700 mb-1">Crew Days (@ AED 2,225)</label>
                 <input
                   type="number"
                   id="calc-days"
                   value="${state.calc.days}"
                   oninput="updateCalculator()"
-                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                  class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm focus:border-stone-900 outline-none"
                 />
               </div>
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Fireground Days (@ AED 1,100)</label>
+                <label class="block text-xs font-medium text-stone-700 mb-1">Fireground Days (@ AED 1,100)</label>
                 <input
                   type="number"
                   id="calc-ground"
                   value="${state.calc.groundDays}"
                   oninput="updateCalculator()"
-                  class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-white text-sm focus:border-red-500 outline-none"
+                  class="w-full bg-white border border-stone-300 rounded-md px-3 py-2 text-stone-900 text-sm focus:border-stone-900 outline-none"
                 />
               </div>
             </div>
 
-            <div class="mt-6 p-4 bg-slate-950 rounded-lg border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div class="flex gap-6 text-xs text-slate-400">
+            <div class="mt-6 p-5 bg-white rounded-lg border border-stone-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div class="flex gap-6 text-xs text-stone-600 font-mono">
                 <div>
-                  <span class="block text-slate-500">Crew Total</span>
-                  <span class="font-semibold text-slate-200" id="sim-crew-cost">AED 0</span>
+                  <span class="block text-stone-400 font-sans">Crew Total</span>
+                  <span class="font-semibold text-stone-900" id="sim-crew-cost">AED 0</span>
                 </div>
                 <div>
-                  <span class="block text-slate-500">Feeding Total</span>
-                  <span class="font-semibold text-slate-200" id="sim-food-cost">AED 0</span>
+                  <span class="block text-stone-400 font-sans">Feeding Total</span>
+                  <span class="font-semibold text-stone-900" id="sim-food-cost">AED 0</span>
                 </div>
                 <div>
-                  <span class="block text-slate-500">Ground Total</span>
-                  <span class="font-semibold text-slate-200" id="sim-ground-cost">AED 0</span>
+                  <span class="block text-stone-400 font-sans">Ground Total</span>
+                  <span class="font-semibold text-stone-900" id="sim-ground-cost">AED 0</span>
                 </div>
               </div>
 
               <div class="text-right">
-                <span class="text-xs text-slate-400 block">Projected Net Kept:</span>
-                <span class="text-2xl font-extrabold text-emerald-400" id="sim-net-kept">AED 0</span>
-                <span class="text-xs font-bold text-slate-300 ml-2" id="sim-margin">(0% margin)</span>
+                <span class="text-xs text-stone-500 block font-sans">Projected Net Kept:</span>
+                <span class="text-2xl font-bold font-mono text-emerald-700" id="sim-net-kept">AED 0</span>
+                <span class="text-sm font-semibold text-stone-600 ml-2" id="sim-margin">(0%)</span>
               </div>
             </div>
           </div>
         </div>
       `;
-      return html;
     }
 
+    /* =========================================================
+       TAB 4: CERTIFICATES REGISTER
+       ========================================================= */
     function renderCertificates() {
-      let html = `
+      return `
         <div class="space-y-6">
-          <div>
-            <h2 class="text-lg font-semibold text-white">Certificates Register</h2>
-            <p class="text-xs text-slate-400">Unique register numbers issued to graduates of FSG Training courses.</p>
+          <div class="border-b border-stone-200 pb-5">
+            <h2 class="text-2xl font-editorial font-bold text-stone-900">Certificates issued (6)</h2>
+            <p class="text-sm text-stone-500 mt-1">Each certificate is issued with a unique register number.</p>
           </div>
 
-          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="card-border rounded-lg overflow-hidden">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs uppercase tracking-wider">
-                  <th class="py-3 px-4">Register Number</th>
-                  <th class="py-3 px-4">Student Name</th>
-                  <th class="py-3 px-4">Course Ref</th>
-                  <th class="py-3 px-4">Issue Date</th>
-                  <th class="py-3 px-4 text-right">Status</th>
+                <tr class="border-b border-stone-200 bg-stone-50 text-stone-500 text-xs font-semibold uppercase tracking-wider">
+                  <th class="py-3.5 px-6">Register Number</th>
+                  <th class="py-3.5 px-6">Student Name</th>
+                  <th class="py-3.5 px-6">Course Ref</th>
+                  <th class="py-3.5 px-6">Issue Date</th>
+                  <th class="py-3.5 px-6 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-800 text-sm">
-      `;
-
-      state.certificates.forEach(cert => {
-        html += `
-          <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-4 px-4 font-mono font-medium text-emerald-400">${cert.id}</td>
-            <td class="py-4 px-4 font-semibold text-white">${cert.student}</td>
-            <td class="py-4 px-4 text-xs text-slate-300">${cert.course}</td>
-            <td class="py-4 px-4 text-xs text-slate-400">${cert.date}</td>
-            <td class="py-4 px-4 text-right">
-              <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
-                ${cert.status}
-              </span>
-            </td>
-          </tr>
-        `;
-      });
-
-      html += `
+              <tbody class="divide-y divide-stone-200 text-sm">
+                ${state.certificates.map(cert => `
+                  <tr class="hover:bg-stone-50/60 transition">
+                    <td class="py-4 px-6 font-mono font-medium text-emerald-800">${cert.id}</td>
+                    <td class="py-4 px-6 font-semibold text-stone-900">${cert.student}</td>
+                    <td class="py-4 px-6 text-xs text-stone-600">${cert.course}</td>
+                    <td class="py-4 px-6 text-xs text-stone-500">${cert.date}</td>
+                    <td class="py-4 px-6 text-right">
+                      <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        ${cert.status}
+                      </span>
+                    </td>
+                  </tr>
+                `).join('')}
               </tbody>
             </table>
           </div>
         </div>
       `;
-      return html;
     }
 
+    /* =========================================================
+       TAB 5: LIVE ENQUIRIES PIPELINE
+       ========================================================= */
     function renderEnquiries() {
-      let html = `
+      return `
         <div class="space-y-6">
-          <div>
-            <h2 class="text-lg font-semibold text-white">Live Enquiries & Pipeline</h2>
-            <p class="text-xs text-slate-400">New or quoted training requirements under client evaluation.</p>
+          <div class="border-b border-stone-200 pb-5">
+            <h2 class="text-2xl font-editorial font-bold text-stone-900">Live enquiries (2)</h2>
+            <p class="text-sm text-stone-500 mt-1">New or quoted training inquiries under active evaluation.</p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      `;
+            ${state.enquiries.map(enq => {
+              const badge = enq.status === 'Quoted' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-purple-50 text-purple-700 border border-purple-200';
+              return `
+                <div class="card-border p-6 rounded-lg flex flex-col justify-between">
+                  <div>
+                    <div class="flex justify-between items-start">
+                      <span class="text-xs font-mono font-semibold text-stone-500">${enq.id}</span>
+                      <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${badge}">
+                        ${enq.status}
+                      </span>
+                    </div>
+                    <h3 class="text-base font-bold text-stone-900 mt-2">${enq.client}</h3>
+                    <p class="text-xs text-stone-600 mt-1">Course Ref: <span class="text-stone-900 font-medium">${enq.course}</span></p>
+                    <p class="text-xs text-stone-500 mt-1">Estimated Pax: ${enq.seats} students</p>
+                  </div>
 
-      state.enquiries.forEach(enq => {
-        const badge = enq.status === 'Quoted' ? 'bg-sky-950 text-sky-400 border border-sky-800' : 'bg-purple-950 text-purple-400 border border-purple-800';
-        html += `
-          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-start">
-                <span class="text-xs font-mono font-semibold text-sky-400">${enq.id}</span>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${badge}">
-                  ${enq.status}
-                </span>
-              </div>
-              <h3 class="text-base font-bold text-white mt-2">${enq.client}</h3>
-              <p class="text-xs text-slate-300 mt-1">Course Ref: <span class="text-white font-medium">${enq.course}</span></p>
-              <p class="text-xs text-slate-400 mt-1">Estimated Pax: ${enq.seats} students</p>
-            </div>
-
-            <div class="mt-6 border-t border-slate-800/80 pt-4 flex justify-between items-center">
-              <div>
-                <span class="text-xs text-slate-400 block">Quoted Value:</span>
-                <span class="text-lg font-bold text-white">AED ${enq.value.toLocaleString()}</span>
-              </div>
-              <span class="text-xs text-slate-400">${enq.date}</span>
-            </div>
-          </div>
-        `;
-      });
-
-      html += `
+                  <div class="mt-6 border-t border-stone-200 pt-4 flex justify-between items-center">
+                    <div>
+                      <span class="text-xs text-stone-500 block">Quoted Value:</span>
+                      <span class="text-lg font-bold font-mono text-stone-900">AED ${enq.value.toLocaleString()}.00</span>
+                    </div>
+                    <span class="text-xs text-stone-400">${enq.date}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
       `;
-      return html;
     }
 
     function render() {
       const container = document.getElementById('main-content');
-      if (state.activeTab === 'dashboard') {
-        container.innerHTML = renderDashboard();
+      if (state.activeTab === 'reporting') {
+        container.innerHTML = renderReporting();
       } else if (state.activeTab === 'bookings') {
         container.innerHTML = renderBookings();
       } else if (state.activeTab === 'costing') {
@@ -810,11 +836,9 @@
       }
     }
 
-    // Initial render on load
     window.addEventListener('DOMContentLoaded', () => {
       render();
     });
-    // In case DOM is already loaded
     render();
   </script>
 </body>
