@@ -14,6 +14,7 @@ export default function Dashboard() {
     gigs: Row[];
   }>("/api/gigs", 15000);
 
+  const { data: digest } = useSWRLike<{ count: number }>("/api/digest", 60000);
   const [paste, setPaste] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -85,6 +86,17 @@ export default function Dashboard() {
           {msg && <span className="text-xs text-zinc-400">{msg}</span>}
         </div>
       </div>
+
+      {!!digest?.count && (
+        <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-xs text-zinc-400">
+          🌙 <strong className="text-zinc-200">{digest.count}</strong> gig{digest.count > 1 ? "s" : ""} held
+          from overnight — sent as one briefing at 09:00, or{" "}
+          <button
+            onClick={async () => { await fetch("/api/digest", { method: "POST" }); refresh(); }}
+            className="underline hover:text-white"
+          >send now</button>.
+        </div>
+      )}
 
       {loading && !data && <p className="text-sm text-zinc-500">Loading…</p>}
 

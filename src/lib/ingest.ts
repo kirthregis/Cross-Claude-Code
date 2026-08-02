@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { ALL_SOURCES } from "./sources";
 import { normalise } from "./extract";
 import { scoreGig } from "./score";
-import { alert } from "./notify";
+import { alert, sendMorningDigest, isDigestTime } from "./notify";
 import { upsertGig, alreadyAlerted, recordSweep } from "./db";
 import type { Gig, RawLead } from "./types";
 import { registerProfileLoader } from "./profile-store";
@@ -19,6 +19,8 @@ export interface SweepResult {
   found: number;
   newGigs: number;
   alerted: number;
+  /** Gigs released from the overnight queue in a morning digest. */
+  digested?: number;
   errors: string[];
   gigs: Gig[];
 }
@@ -69,6 +71,17 @@ export async function sweep(): Promise<SweepResult> {
 
   const out = await processLeads(leads);
   out.errors.push(...errors);
+
+  // Release anything held overnight, once quiet hours are over.
+  if (isDigestTime()) {
+    try {
+      const d = await sendMorningDigest();
+      if (d.sent) out.digested = d.count;
+    } catch (e) {
+      out.errors.push(`digest failed: ${e}`);
+    }
+  }
+
   recordSweep(out.found, out.newGigs, out.errors);
   return out;
 }

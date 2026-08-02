@@ -55,7 +55,7 @@ npm run dev                    # http://localhost:3000
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 81 tests
+npm test          # 96 tests
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 ```
@@ -126,6 +126,27 @@ She works both sides of the Gulf. Doha, Abu Dhabi and the wider UAE are **home m
 a Doha booking carries no travel premium, which would otherwise have priced her out of
 half her own territory. Riyadh, Kuwait, London etc. do carry it.
 
+## Rates are market-researched
+
+See **`RATE-RESEARCH.md`** for the full working. Dubai's DJ market runs in four
+tiers (entry 1.5–3k · mid 3–5.5k · premium 6–15k · celebrity/international 20k+).
+Emy sits at the top of *premium*, entering *celebrity* for brand work, on five
+levers: FIFA World Cup 2022 + Arab Cup 2025 official tournament DJ, Afro House
+genre scarcity in the GCC, bilingual EN/AR floors, full EVG representation, and
+named venue history.
+
+The ~AED 2,400 marketplace "average" is a saturated pool of part-time open-format
+DJs — it is not her comparable set, and the negotiation playbook has a specific
+counter for bookers who quote it.
+
+## 🔒 Sensitive data stays local
+
+Trade licence number and bank details are entered at `/profile`, stored only in
+your own SQLite file (`/data`, git-ignored), and rendered only onto the invoice.
+They are never transmitted anywhere or written to logs. **Don't send documents
+like the trade licence, Emirates ID or bank statements over chat or email —
+type the handful of fields straight into the app.**
+
 ## ⚠️ Before real use — fill in the profile
 
 Open **`/profile`** in the app. It lists exactly what's still missing and lets you edit
@@ -170,7 +191,7 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-81 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+96 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back

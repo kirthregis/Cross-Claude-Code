@@ -62,7 +62,7 @@ Company as the Client's single point of contact.
 Parties:
 
 **THE COMPANY** (contracting party, furnishing the services of the Artist)
-${activeProfile().management.legalName}, trading as ${activeProfile().management.company}
+${activeProfile().management.legalName}, trading as ${activeProfile().management.company}${activeProfile().management.tradeLicenceNo ? `\nTrade Licence No: ${activeProfile().management.tradeLicenceNo}` : "\nTrade Licence No: [ADD IN /profile]"}
 Attn: ${activeProfile().management.contactName}, ${activeProfile().management.contactRole}
 ${activeProfile().management.email} · ${activeProfile().management.phone}
 
@@ -252,6 +252,23 @@ ${g.contacts.length ? g.contacts.map((c) => `- ${[c.name, c.role, c.phone ?? c.e
 `;
 }
 
+/** Renders settlement details, or a clear prompt if they aren't set yet. */
+function bankBlock(): string {
+  const b = activeProfile().management.bank;
+  if (!b) return "**Bank details:** [ADD IN /profile — Account name, Bank, IBAN, SWIFT]";
+  return [
+    "**Bank details**",
+    "",
+    `| | |`,
+    `|---|---|`,
+    `| Account name | ${b.accountName} |`,
+    `| Bank | ${b.bankName} |`,
+    `| IBAN | ${b.iban} |`,
+    b.swift ? `| SWIFT/BIC | ${b.swift} |` : "",
+    b.notes ? `| Notes | ${b.notes} |` : "",
+  ].filter(Boolean).join("\n");
+}
+
 export function generateInvoice(g: Gig, t: DealTerms): string {
   const deposit = Math.round((t.agreedFeeAed * activeProfile().contractDefaults.depositPercent) / 100);
   const num = `INV-${new Date().getFullYear()}-${g.id.slice(0, 5).toUpperCase()}`;
@@ -271,7 +288,7 @@ Re: performance by ${activeProfile().name}
 | **Balance due** | **${money(t.agreedFeeAed - deposit)}** |
 
 **Payment terms:** ${activeProfile().contractDefaults.balanceDueDays === 0 ? "Due on the night of performance." : `Due within ${activeProfile().contractDefaults.balanceDueDays} days.`}
-**Bank details:** [ADD EVG BANK NAME / IBAN / ACCOUNT NAME]
+${bankBlock()}
 *Payment to ${activeProfile().management.company} only. Direct payment to the Artist does not discharge this invoice.*
 
 *Late payments accrue interest at 2% per month.*

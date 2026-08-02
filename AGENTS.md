@@ -1,7 +1,7 @@
 # Agent notes — GigRadar
 
 ## Commands
-- `npm run dev` · `npm run build` · `npm test` (vitest, 81 tests) · `npm run lint`
+- `npm run dev` · `npm run build` · `npm test` (vitest, 96 tests) · `npm run lint`
 - `npm run seed` — realistic Dubai sample leads into SQLite
 - `npm run sweep` — one ingest sweep from the CLI
 
@@ -39,9 +39,12 @@
   matches nothing; use `\bexclusiv\w*`.
 
 ## Placeholders that must be replaced before production
-- Artist's full legal name and EVG's registered entity + trade licence number
-  (both marked `PLACEHOLDER` in `src/lib/artist.ts`) — the contract is not
-  enforceable without the EVG entity.
+- Artist legal name is set: **Imen Mannai**. Still needed: EVG's registered
+  entity name, trade licence number and bank details — the contract is not
+  enforceable, and invoices are unpayable, without them.
+- Bank details and licence number are SENSITIVE: stored only in the local
+  SQLite DB (git-ignored), rendered only on the invoice. Never log them, never
+  send them to a third party, never commit them.
 - `baseRatesAed` are market estimates for her positioning, not her real fees.
   The /profile screen warns while they're still defaults.
 - EVG bank details in the invoice template.

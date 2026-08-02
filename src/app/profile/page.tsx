@@ -74,8 +74,10 @@ export default function ProfilePage() {
         </p>
         <Field label="Company (trading name)" value={p.management.company}
           onChange={(v) => set({ management: { ...p.management, company: v } })} />
-        <Field label="Registered legal entity + trade licence no." value={p.management.legalName}
+        <Field label="Registered legal entity (exactly as on the trade licence)" value={p.management.legalName}
           onChange={(v) => set({ management: { ...p.management, legalName: v } })} />
+        <Field label="Trade licence number" value={p.management.tradeLicenceNo ?? ""}
+          onChange={(v) => set({ management: { ...p.management, tradeLicenceNo: v } })} />
         <div className="grid grid-cols-2 gap-2">
           <Field label="Contact name" value={p.management.contactName}
             onChange={(v) => set({ management: { ...p.management, contactName: v } })} />
@@ -94,6 +96,28 @@ export default function ProfilePage() {
         <ListField label="Core genres (drives fit scoring)" value={p.genres} onChange={(v) => set({ genres: v })} />
         <ListField label="Will also play" value={p.secondaryGenres} onChange={(v) => set({ secondaryGenres: v })} />
         <ListField label="Won't play (auto-rejected)" value={p.wontPlay} onChange={(v) => set({ wontPlay: v })} />
+      </Section>
+
+      <Section title="Bank details — for invoices">
+        <div className="mb-3 rounded-lg border border-zinc-700 bg-zinc-950/60 p-3">
+          <p className="text-[11px] leading-relaxed text-zinc-400">
+            🔒 Stored only in your own local database and printed on invoices. Never sent
+            anywhere else, never logged. Enter them here rather than sharing them over
+            chat or email.
+          </p>
+        </div>
+        <Field label="Account name" value={p.management.bank?.accountName ?? ""}
+          onChange={(v) => set({ management: { ...p.management, bank: { ...(p.management.bank ?? { accountName: "", bankName: "", iban: "" }), accountName: v } } })} />
+        <Field label="Bank" value={p.management.bank?.bankName ?? ""}
+          onChange={(v) => set({ management: { ...p.management, bank: { ...(p.management.bank ?? { accountName: "", bankName: "", iban: "" }), bankName: v } } })} />
+        <Field label="IBAN" value={p.management.bank?.iban ?? ""}
+          onChange={(v) => set({ management: { ...p.management, bank: { ...(p.management.bank ?? { accountName: "", bankName: "", iban: "" }), iban: v } } })} />
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="SWIFT / BIC" value={p.management.bank?.swift ?? ""}
+            onChange={(v) => set({ management: { ...p.management, bank: { ...(p.management.bank ?? { accountName: "", bankName: "", iban: "" }), swift: v } } })} />
+          <Field label="Notes (branch, a/c no.)" value={p.management.bank?.notes ?? ""}
+            onChange={(v) => set({ management: { ...p.management, bank: { ...(p.management.bank ?? { accountName: "", bankName: "", iban: "" }), notes: v } } })} />
+        </div>
       </Section>
 
       <Section title="Rates — AED for a standard 2h peak set">

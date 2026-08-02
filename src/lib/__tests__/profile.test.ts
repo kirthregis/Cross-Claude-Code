@@ -29,14 +29,16 @@ describe("profile overrides", () => {
 
   it("reports the gaps that block production use", async () => {
     const { profileGaps } = await import("../profile-store");
-    const gaps = profileGaps();
-    expect(gaps.join(" ")).toMatch(/legal name/i);
+    const gaps = profileGaps().join(" ");
+    // Artist legal name is now known (Imen Mannai); EVG entity details are not.
+    expect(gaps).toMatch(/EVG registered legal entity/i);
+    expect(gaps).toMatch(/trade licence/i);
   });
 
   it("clears a gap once real data is entered", async () => {
     const { saveProfile, profileGaps } = await import("../profile-store");
     const before = profileGaps().length;
-    saveProfile({ legalName: "Emy Real Surname", phone: "+971501234567", email: "emy@real.ae", epkUrl: "https://x.com" });
+    saveProfile({ management: { legalName: "EVG FZ-LLC", tradeLicenceNo: "CN-1" } as never });
     expect(profileGaps().length).toBeLessThan(before);
   });
 });
