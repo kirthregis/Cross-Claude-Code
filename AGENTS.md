@@ -1,7 +1,7 @@
 # Agent notes — GigRadar
 
 ## Commands
-- `npm run dev` · `npm run build` · `npm test` (vitest, 62 tests) · `npm run lint`
+- `npm run dev` · `npm run build` · `npm test` (vitest, 81 tests) · `npm run lint`
 - `npm run seed` — realistic Dubai sample leads into SQLite
 - `npm run sweep` — one ingest sweep from the CLI
 
@@ -29,6 +29,20 @@
 - Never pitch below a budget the client already stated — use `pitchFee()`.
 - Scripts using top-level await must be `.mts`.
 
+## Domain rules that are easy to get wrong
+- Bookings are contracted through Emy Vision Group, never artist-direct. Pitches
+  are signed by EVG; contracts name EVG as the party furnishing the Artist;
+  invoices are payable to EVG. Don't "simplify" this back to first-person.
+- Home markets (UAE + Qatar) carry NO travel premium — see `detectTravel()`.
+  She is GCC-based, not Dubai-only.
+- Regex stems: never put a trailing `\b` after a partial stem. `\bexclusiv\b`
+  matches nothing; use `\bexclusiv\w*`.
+
 ## Placeholders that must be replaced before production
-Everything marked `PLACEHOLDER` in `src/lib/artist.ts` (legal name, real rates,
-contact details, bank details) and `RAMADAN_WINDOWS` in `src/lib/pricing.ts`.
+- Artist's full legal name and EVG's registered entity + trade licence number
+  (both marked `PLACEHOLDER` in `src/lib/artist.ts`) — the contract is not
+  enforceable without the EVG entity.
+- `baseRatesAed` are market estimates for her positioning, not her real fees.
+  The /profile screen warns while they're still defaults.
+- EVG bank details in the invoice template.
+- `RAMADAN_WINDOWS` in `src/lib/pricing.ts`.
