@@ -51,6 +51,8 @@ export default function ProfilePage() {
         </div>
       )}
 
+      <DocImport onApplied={(prof, g) => { setP(prof); setGaps(g); }} />
+
       <Section title="Identity">
         <Field label="Stage name" value={p.name} onChange={(v) => set({ name: v })} />
         <Field label="Full legal name (for contracts)" value={p.legalName} onChange={(v) => set({ legalName: v })} />
@@ -178,6 +180,106 @@ export default function ProfilePage() {
         </div>
       </div>
     </main>
+  );
+}
+
+/** Upload the EVG licence / bank documents and read the fields out of them. */
+function DocImport({ onApplied }: { onApplied: (p: ArtistProfile, gaps: string[]) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [found, setFound] = useState<Record<string, string> | null>(null);
+  const [missing, setMissing] = useState<string[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [files, setFiles] = useState<FileList | null>(null);
+
+  async function send(apply: boolean) {
+    if (!files?.length) return;
+    setBusy(true); setErrors([]);
+    const fd = new FormData();
+    Array.from(files).forEach((f) => fd.append("files", f));
+    fd.append("apply", String(apply));
+    try {
+      const res = await fetch("/api/profile/import", { method: "POST", body: fd });
+      const d = await res.json();
+      if (!res.ok) { setErrors([d.error, ...(d.errors ?? [])].filter(Boolean)); return; }
+      const raw = d.found as Record<string, string> & { missing?: string[] };
+      const rest: Record<string, string> = {};
+      for (const [k, v] of Object.entries(raw)) {
+        if (k !== "preview" && k !== "missing" && typeof v === "string") rest[k] = v;
+      }
+      setFound(rest); setMissing(raw.missing ?? []); setErrors(d.errors ?? []);
+      if (d.applied) {
+        const pr = await fetch("/api/profile").then((r) => r.json());
+        onApplied(pr.profile, pr.gaps);
+      }
+    } catch (e) {
+      setErrors([String(e)]);
+    } finally { setBusy(false); }
+  }
+
+  const LABELS: Record<string, string> = {
+    legalName: "Legal entity", tradeLicenceNo: "Trade licence no.",
+    accountName: "Account name", bankName: "Bank", iban: "IBAN", swift: "SWIFT",
+  };
+
+  return (
+    <Section title="Import from documents">
+      <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
+        Upload the EVG business licence and bank details (PDF, .md or .txt) and the
+        fields are read out automatically — no retyping, and nothing has to go through
+        chat or email. Files are parsed in memory, never saved to disk, and only the
+        extracted fields are stored locally.
+      </p>
+
+      <input
+        type="file" multiple accept=".pdf,.md,.txt,.csv"
+        onChange={(e) => { setFiles(e.target.files); setFound(null); }}
+        className="w-full text-xs file:mr-3 file:rounded file:border-0 file:bg-zinc-800 file:px-3 file:py-2 file:text-xs file:text-zinc-200"
+      />
+
+      <div className="mt-2 flex gap-2">
+        <button onClick={() => send(false)} disabled={busy || !files?.length}
+          className="rounded-lg border border-zinc-700 px-3 py-2 text-xs disabled:opacity-40">
+          {busy ? "Reading…" : "Read files"}
+        </button>
+        {found && (
+          <button onClick={() => send(true)} disabled={busy}
+            className="rounded-lg bg-red-600 px-4 py-2 text-xs font-medium disabled:opacity-40">
+            Save these values
+          </button>
+        )}
+      </div>
+
+      {found && (
+        <div className="mt-3 rounded-lg bg-zinc-950 p-3">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+            Check before saving
+          </p>
+          <table className="w-full text-xs">
+            <tbody>
+              {Object.entries(LABELS).map(([k, label]) =>
+                found[k] ? (
+                  <tr key={k} className="border-b border-zinc-800/60 last:border-0">
+                    <td className="py-1.5 text-zinc-500">{label}</td>
+                    <td className="py-1.5 text-right font-mono text-zinc-100">{found[k]}</td>
+                  </tr>
+                ) : null
+              )}
+            </tbody>
+          </table>
+          {missing.length > 0 && (
+            <p className="mt-2 text-[11px] text-amber-400">
+              Not found — type these in below: {missing.join(", ")}
+            </p>
+          )}
+        </div>
+      )}
+
+      {errors.length > 0 && (
+        <ul className="mt-2 space-y-1 text-[11px] text-rose-400">
+          {errors.map((e, i) => <li key={i}>· {e}</li>)}
+        </ul>
+      )}
+    </Section>
   );
 }
 

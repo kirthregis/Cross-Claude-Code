@@ -55,7 +55,7 @@ npm run dev                    # http://localhost:3000
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 96 tests
+npm test          # 115 tests
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 ```
@@ -139,13 +139,31 @@ The ~AED 2,400 marketplace "average" is a saturated pool of part-time open-forma
 DJs — it is not her comparable set, and the negotiation playbook has a specific
 counter for bookers who quote it.
 
+## 📄 Import from documents — no retyping
+
+Go to **`/profile` → Import from documents** and upload the EVG business licence
+and bank details (PDF, `.md`, `.txt`). The app reads them and fills in:
+
+- Registered legal entity name
+- Trade licence number
+- Account name, bank, IBAN, SWIFT
+
+It's deliberately two-step: **Read files** shows what it found so you can check
+it, then **Save these values** commits. Anything it can't find is listed
+explicitly so you can type just those fields.
+
+Scanned/photographed PDFs with no text layer will report that they need OCR
+rather than silently returning nothing.
+
 ## 🔒 Sensitive data stays local
 
-Trade licence number and bank details are entered at `/profile`, stored only in
-your own SQLite file (`/data`, git-ignored), and rendered only onto the invoice.
-They are never transmitted anywhere or written to logs. **Don't send documents
-like the trade licence, Emirates ID or bank statements over chat or email —
-type the handful of fields straight into the app.**
+Uploaded files are parsed **in memory and never written to disk** — only the
+extracted fields are stored, in your own SQLite file (`/data`, git-ignored) —
+and rendered only onto the contract and invoice. Nothing is transmitted
+anywhere or written to logs.
+
+**Don't send the trade licence, Emirates ID or bank statements through chat or
+email.** Upload them to the app instead, where they stay on your own machine.
 
 ## ⚠️ Before real use — fill in the profile
 
@@ -191,7 +209,7 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-96 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+115 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back
