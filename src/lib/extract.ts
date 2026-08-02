@@ -9,7 +9,7 @@
 
 import type { RawLead, VenueTier, Gig, Contact } from "./types";
 import { activeProfile } from "./active-profile";
-import { createHash } from "crypto";
+
 
 const GCC_AREAS = [
   // Qatar — she is equally active in Doha.
@@ -165,6 +165,26 @@ export function detectEventDate(text: string, postedAt: string): string | undefi
 }
 
 /**
+ * Two 32-bit FNV-1a passes with different offsets, concatenated to 64 bits.
+ *
+ * Deliberately not Node's crypto: fingerprinting must run unchanged in the
+ * browser build and in the Cloudflare Worker, and Web Crypto's digest() is
+ * async whereas every caller here is synchronous. Avoids BigInt so it works
+ * regardless of the compile target. This is a dedupe key, not a security
+ * primitive, so a fast non-cryptographic hash is the right tool.
+ */
+function hash64(input: string): string {
+  let a = 0x811c9dc5;
+  let b = 0x01000193;
+  for (let i = 0; i < input.length; i++) {
+    const c = input.charCodeAt(i);
+    a = Math.imul(a ^ c, 0x01000193) >>> 0;
+    b = Math.imul(b ^ c, 0x85ebca6b) >>> 0;
+  }
+  return a.toString(16).padStart(8, "0") + b.toString(16).padStart(8, "0");
+}
+
+/**
  * Stable fingerprint for dedupe. The same gig posted to Instagram, a WhatsApp
  * group and an agency mailout must collapse into ONE alert.
  */
@@ -174,7 +194,7 @@ export function fingerprint(g: { venueName?: string; eventDate?: string; title: 
   const tokens = norm(`${g.title} ${g.body}`).split(" ").filter((t) => t.length > 4);
   const sig = [...new Set(tokens)].sort().slice(0, 12).join("|");
   const key = `${norm(g.venueName ?? "")}::${g.eventDate ?? ""}::${sig}`;
-  return createHash("sha1").update(key).digest("hex").slice(0, 16);
+  return hash64(key);
 }
 
 export function detectVenueName(text: string): string | undefined {

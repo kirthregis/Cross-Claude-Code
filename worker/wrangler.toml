@@ -1,0 +1,24 @@
+name = "emy-gigradar"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# The radar sweeps every 5 minutes. Cloudflare's free plan allows this.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Stores discovered gigs, push subscriptions and dedupe fingerprints.
+# Create with:  npx wrangler kv namespace create GIGS
+[[kv_namespaces]]
+binding = "GIGS"
+id = "REPLACE_WITH_YOUR_KV_ID"
+
+[vars]
+# Public half of the VAPID pair. Generate both with: npm run vapid
+VAPID_PUBLIC = ""
+VAPID_SUBJECT = "mailto:admin@emyvisiongroup.com"
+
+# Secrets (never in this file):
+#   npx wrangler secret put VAPID_PRIVATE
+#   npx wrangler secret put INGEST_KEY
+#   npx wrangler secret put RESEND_API_KEY      # optional email alerts
