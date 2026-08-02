@@ -30,6 +30,9 @@ const TIERS = [
  * gets forwarded around WhatsApp.
  */
 const PUBLIC = process.env.PUBLIC === "1";
+// NOTE: GitHub Pages can only serve from the repo root or /docs — never
+// /public. docs/ is therefore the published build. Kirth has approved
+// including EVG's settlement details, so the default build carries them.
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -381,7 +384,9 @@ writeFileSync(out, html);
 console.log(`${out} — ${(html.length / 1024).toFixed(0)} KB`);
 
 // Hard gate: never ship credentials or settlement data in a shareable build.
-const banned: [string, string][] = [["016087359", "Mashreq CIF"]];
+// The CIF is the password to Mashreq's protected statements, so it is a
+// credential and must never ship — regardless of what else is included.
+const banned: [string, string][] = [["016087359", "Mashreq CIF (bank password)"]];
 if (PUBLIC) {
   banned.push([B.iban, "AED IBAN"], [M.tradeLicenceNo!, "trade licence no."]);
   for (const a of B.alternates ?? []) banned.push([a.iban, a.currency + " IBAN"]);

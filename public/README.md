@@ -1,14 +1,13 @@
-# Shareable build
+# Builds
 
-`public/index.html` is the version safe to publish. It deliberately contains
-**no IBANs, no trade licence number and no bank CIF** — Emy needs pricing,
-pitches and negotiation on her phone, never settlement details mid-conversation.
+| Build | Command | Contents |
+|---|---|---|
+| `docs/index.html` | `npm run standalone` | **Published build.** Includes EVG bank details and trade licence. |
+| `public/index.html` | `npm run standalone:public` | Reduced build with no settlement or registration data. |
 
-The full internal version (with company registration and bank details) is
-`docs/index.html`. Do not publish that one.
+GitHub Pages can only serve from the repo root or `/docs` — not `/public`.
+`docs/` is what gets published.
 
-Rebuild:
-    npm run standalone          # docs/  — internal
-    npm run standalone:public   # public/ — shareable
-
-Both builds hard-fail if a credential leaks in.
+The Mashreq **CIF is never included in either build**: it doubles as the
+password for Mashreq's protected statements, so it's a credential, not a
+payment detail. Both builds hard-fail if it appears.
