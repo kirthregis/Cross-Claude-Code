@@ -7,94 +7,161 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f9fafb;
-      color: #111827;
+      background-color: #f1f5f9;
+      color: #1e293b;
     }
   </style>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 flex flex-col font-sans">
+<body class="min-h-screen flex font-sans antialiased bg-slate-100">
 
-  <!-- TOP BANNER & NAVIGATION -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-sm text-base">
-          FSG
-        </div>
-        <div>
-          <h1 class="text-xl font-bold text-gray-900 tracking-tight">
-            FSG Training Division <span class="text-gray-500 font-normal">— Operating Platform (Pilot)</span>
-          </h1>
-          <p class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
-            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-            PILOT — DEMONSTRATION SYSTEM · Local AED Currency
-          </p>
-        </div>
+  <!-- LEFT SIDEBAR NAVIGATION (Matching exact #151e36 navy from screenshot) -->
+  <aside class="w-64 bg-[#151e36] text-white flex flex-col shrink-0 min-h-screen sticky top-0 z-40 select-none">
+    
+    <!-- Sidebar Header -->
+    <div class="p-6 border-b border-slate-800">
+      <h1 class="text-sm font-extrabold tracking-wide text-white uppercase">
+        FIRST SECURITY GROUP
+      </h1>
+      <p class="text-[11px] text-slate-400 leading-tight mt-1">
+        Advanced Firefighting & Emergency Response Training Division
+      </p>
+    </div>
+
+    <!-- Section 1: VIEW THE SYSTEM AS -->
+    <div class="px-4 py-5 border-b border-slate-800/80">
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">
+        VIEW THE SYSTEM AS
       </div>
-
-      <!-- Action Toolbar -->
-      <div class="flex items-center gap-3">
+      <div class="space-y-1" id="role-nav">
         <button
-          onclick="openModal()"
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1.5"
+          onclick="setView('client')"
+          id="role-btn-client"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[#d9531f] text-white shadow-sm transition"
         >
-          <span>+ New Course Booking</span>
+          <span>🌐</span>
+          <span>Client website</span>
+        </button>
+        <button
+          onclick="setView('delegate')"
+          id="role-btn-delegate"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/60 transition"
+        >
+          <span>📱</span>
+          <span>Delegate portal</span>
+        </button>
+        <button
+          onclick="setView('instructor')"
+          id="role-btn-instructor"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/60 transition"
+        >
+          <span>🎟️</span>
+          <span>Instructor tablet</span>
+        </button>
+        <button
+          onclick="setView('backoffice')"
+          id="role-btn-backoffice"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/60 transition"
+        >
+          <span>📁</span>
+          <span>Back office</span>
+        </button>
+        <button
+          onclick="setView('guide')"
+          id="role-btn-guide"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/60 transition"
+        >
+          <span>📖</span>
+          <span>Guide & tutorial</span>
         </button>
       </div>
     </div>
 
-    <!-- NAVIGATION TABS -->
-    <div class="max-w-6xl mx-auto px-6 flex gap-8 border-t border-gray-200 text-sm overflow-x-auto" id="tab-nav">
-      <button onclick="setTab('reporting')" id="tab-btn-reporting" class="py-3 font-semibold border-b-2 border-blue-600 text-blue-600 transition flex items-center gap-2 whitespace-nowrap">
-        Reporting
+    <!-- Section 2: Numbered Navigation -->
+    <div class="px-4 py-5 space-y-1 flex-1" id="section-nav">
+      <button
+        onclick="setSection('courses')"
+        id="sec-btn-courses"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-white bg-slate-800/60 transition text-left"
+      >
+        <span class="w-5 h-5 rounded bg-slate-700/80 text-white flex items-center justify-center text-[10px] font-bold">1</span>
+        <span>Courses & booking</span>
       </button>
-      <button onclick="setTab('bookings')" id="tab-btn-bookings" class="py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition flex items-center gap-2 whitespace-nowrap">
-        Bookings & Occupancy <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 font-normal">4</span>
+      <button
+        onclick="setSection('company')"
+        id="sec-btn-company"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/40 transition text-left"
+      >
+        <span class="w-5 h-5 rounded bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] font-bold">2</span>
+        <span>My company</span>
       </button>
-      <button onclick="setTab('costing')" id="tab-btn-costing" class="py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition flex items-center gap-2 whitespace-nowrap">
-        Costing & Profitability
-      </button>
-      <button onclick="setTab('certificates')" id="tab-btn-certificates" class="py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition flex items-center gap-2 whitespace-nowrap">
-        Certificates Register <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 font-normal">6</span>
-      </button>
-      <button onclick="setTab('enquiries')" id="tab-btn-enquiries" class="py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition flex items-center gap-2 whitespace-nowrap">
-        Live Enquiries <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 font-normal">2</span>
+      <button
+        onclick="setSection('verify')"
+        id="sec-btn-verify"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/40 transition text-left"
+      >
+        <span class="w-5 h-5 rounded bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] font-bold">3</span>
+        <span>Verify a certificate</span>
       </button>
     </div>
-  </header>
 
-  <!-- MAIN CONTENT AREA -->
-  <main class="max-w-6xl mx-auto px-6 py-8 flex-1 w-full" id="main-content">
-    <!-- Rendered via JavaScript -->
-  </main>
+    <!-- Sidebar Footer -->
+    <div class="p-4 border-t border-slate-800/80 text-[11px] text-slate-400">
+      <div>Reach us at +971 4 315 1555</div>
+      <div class="text-[10px] text-slate-500 mt-1">Pilot v1.0 · Demonstration System</div>
+    </div>
+  </aside>
 
-  <!-- ADD BOOKING MODAL -->
-  <div id="modal-backdrop" class="fixed inset-0 bg-gray-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 hidden">
-    <div class="bg-white border border-gray-200 rounded-xl w-full max-w-md p-6 shadow-xl">
-      <div class="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
-        <h3 class="text-base font-bold text-gray-900">Add New Course Booking</h3>
-        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold">&times;</button>
+  <!-- MAIN PAGE CONTAINER -->
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
+
+    <!-- TOP HEADER -->
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+      <div>
+        <h2 class="text-lg font-bold text-slate-800" id="header-title">
+          Courses & booking
+        </h2>
+      </div>
+      <div>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#d9531f] text-white shadow-xs tracking-wide uppercase">
+          PILOT — DEMONSTRATION SYSTEM
+        </span>
+      </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 p-8 max-w-7xl w-full mx-auto" id="main-content">
+      <!-- Rendered dynamically -->
+    </main>
+
+  </div>
+
+  <!-- MODAL FOR BACK OFFICE BOOKINGS -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-xl w-full max-w-md p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-3">
+        <h3 class="text-base font-bold text-slate-900">Add New Course Booking</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
       </div>
       <form id="booking-form" onsubmit="handleFormSubmit(event)" class="space-y-4 text-sm">
         <div>
-          <label class="block text-xs font-semibold text-gray-700 mb-1">Course Title</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Course Title</label>
           <input
             type="text"
             id="form-title"
             required
             placeholder="e.g. NFPA 1041 Fire Instructor I"
-            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm outline-none focus:border-blue-600"
           />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Status</label>
             <select
               id="form-status"
-              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm outline-none focus:border-blue-600"
             >
               <option value="provisional">Provisional</option>
               <option value="confirmed">Confirmed</option>
@@ -102,60 +169,59 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Duration (Days)</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Duration (Days)</label>
             <input
               type="number"
               id="form-days"
               required
               value="5"
-              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm outline-none focus:border-blue-600"
             />
           </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Seats Filled</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Seats Filled</label>
             <input
               type="number"
               id="form-seats"
               required
               value="15"
-              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm outline-none focus:border-blue-600"
             />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Total Room Capacity</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Total Room Capacity</label>
             <input
               type="number"
               id="form-totalseats"
               required
               value="25"
-              class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm outline-none focus:border-blue-600"
             />
           </div>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-700 mb-1">Course Fee Billed (AED)</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Course Fee Billed (AED)</label>
           <input
             type="number"
             id="form-billed"
             required
             value="100000"
-            class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm outline-none focus:border-blue-600"
           />
         </div>
-
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200">
           <button
             type="button"
             onclick="closeModal()"
-            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition"
+            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition"
           >
             Cancel
           </button>
           <button
             type="submit"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition"
           >
             Add Booking
           </button>
@@ -164,21 +230,19 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="border-t border-gray-200 py-6 text-center text-xs text-gray-500 mt-auto bg-white">
-    FSG Training Division — Operating Platform (Pilot) · Synced with kirthregis/Cross-Claude-Code
-  </footer>
-
-  <!-- APP LOGIC -->
+  <!-- JS APPLICATION LOGIC -->
   <script>
     // Constants
     const CREW_RATE = 2225;
     const FOOD_RATE = 90;
     const FIREGROUND_RATE = 1100;
 
-    // Application State
+    // State
     const state = {
-      activeTab: 'reporting',
+      view: 'client', // 'client' | 'delegate' | 'instructor' | 'backoffice' | 'guide'
+      section: 'courses', // 'courses' | 'company' | 'verify'
+      backOfficeTab: 'reporting', // 'reporting' | 'bookings' | 'costing' | 'certificates' | 'enquiries'
+      
       courses: [
         {
           id: 'BK-2026-001',
@@ -261,16 +325,61 @@
       }
     };
 
-    function setTab(tabName) {
-      state.activeTab = tabName;
-      const buttons = document.querySelectorAll('#tab-nav button');
-      buttons.forEach(btn => {
-        if (btn.id === `tab-btn-${tabName}`) {
-          btn.className = "py-3 font-semibold border-b-2 border-blue-600 text-blue-600 transition flex items-center gap-2 whitespace-nowrap";
+    function setView(viewName) {
+      state.view = viewName;
+      // Update sidebar role buttons
+      ['client', 'delegate', 'instructor', 'backoffice', 'guide'].forEach(r => {
+        const btn = document.getElementById(`role-btn-${r}`);
+        if (!btn) return;
+        if (r === viewName) {
+          btn.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[#d9531f] text-white shadow-sm transition";
         } else {
-          btn.className = "py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition flex items-center gap-2 whitespace-nowrap";
+          btn.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/60 transition";
         }
       });
+
+      // Update header title
+      const headerTitle = document.getElementById('header-title');
+      if (viewName === 'client') {
+        headerTitle.innerText = "Courses & booking";
+      } else if (viewName === 'backoffice') {
+        headerTitle.innerText = "Back office · Reporting & Operations";
+      } else if (viewName === 'delegate') {
+        headerTitle.innerText = "Delegate portal";
+      } else if (viewName === 'instructor') {
+        headerTitle.innerText = "Instructor tablet";
+      } else if (viewName === 'guide') {
+        headerTitle.innerText = "Guide & tutorial";
+      }
+
+      render();
+    }
+
+    function setSection(secName) {
+      state.section = secName;
+      // Update sidebar section buttons
+      ['courses', 'company', 'verify'].forEach(s => {
+        const btn = document.getElementById(`sec-btn-${s}`);
+        if (!btn) return;
+        if (s === secName) {
+          btn.className = "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-white bg-slate-800/60 transition text-left";
+        } else {
+          btn.className = "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/40 transition text-left";
+        }
+      });
+
+      if (secName === 'courses') {
+        setView('client');
+      } else {
+        const headerTitle = document.getElementById('header-title');
+        if (secName === 'company') headerTitle.innerText = "My company";
+        if (secName === 'verify') headerTitle.innerText = "Verify a certificate";
+        render();
+      }
+    }
+
+    function setBackOfficeTab(tabName) {
+      state.backOfficeTab = tabName;
       render();
     }
 
@@ -282,8 +391,8 @@
       document.getElementById('modal-backdrop').classList.add('hidden');
     }
 
-    function handleFormSubmit(event) {
-      event.preventDefault();
+    function handleFormSubmit(e) {
+      e.preventDefault();
       const title = document.getElementById('form-title').value;
       const status = document.getElementById('form-status').value;
       const days = Number(document.getElementById('form-days').value);
@@ -293,7 +402,6 @@
 
       const nextNum = state.courses.length + 1;
       const newId = `BK-2026-00${nextNum}`;
-
       const crewCost = CREW_RATE * days;
       const foodCost = FOOD_RATE * seatsFilled * days;
       const groundCost = FIREGROUND_RATE * days;
@@ -348,412 +456,530 @@
     }
 
     /* =========================================================
-       TAB 1: REPORTING (EXACT MODERN CLAUDE TAILWIND LOOK)
+       1. CLIENT WEBSITE VIEW (PIXEL-PERFECT FROM SCREENSHOT)
        ========================================================= */
-    function renderReporting() {
+    function renderClientWebsite() {
       return `
-        <div class="space-y-8">
+        <div class="space-y-6">
           
-          <!-- Title Banner from Original -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-5">
-            <div>
-              <span class="inline-block px-2.5 py-0.5 rounded text-xs font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 mb-2 border border-blue-200">
-                PILOT — DEMONSTRATION SYSTEM
-              </span>
-              <h2 class="text-2xl font-bold text-gray-900 tracking-tight">
-                Reporting
-              </h2>
-            </div>
-            <div class="text-xs text-gray-500 font-medium">
-              FSG Training Division — Operating Platform
-            </div>
-          </div>
-
-          <!-- 4 Main KPI Cards (Exact numbers & text) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-xs">
-              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Billed this month (before VAT)</p>
-              <p class="text-3xl font-bold text-gray-900 mt-2">AED 0.00</p>
-              <p class="text-xs text-gray-500 mt-2">
-                last month <span class="text-gray-700 font-semibold">AED 179,100.00</span>
-              </p>
-            </div>
-
-            <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-xs">
-              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Waiting to be paid</p>
-              <p class="text-3xl font-bold text-gray-900 mt-2">AED 81,270.00</p>
-              <p class="text-xs text-gray-500 mt-2">
-                1 invoice sent, not yet paid
-              </p>
-            </div>
-
-            <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-xs">
-              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Certificates issued</p>
-              <p class="text-3xl font-bold text-gray-900 mt-2">6</p>
-              <p class="text-xs text-gray-500 mt-2">
-                each with a unique register number
-              </p>
-            </div>
-
-            <div class="bg-white border border-gray-200 p-5 rounded-xl shadow-xs">
-              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Live enquiries</p>
-              <p class="text-3xl font-bold text-gray-900 mt-2">2</p>
-              <p class="text-xs text-gray-500 mt-2">
-                new or quoted, not yet decided
-              </p>
-            </div>
-          </div>
-
-          <!-- 2-Column Grid: Money Billed & Bookings by Status -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- Money billed, this month against last -->
-            <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-xs">
-              <h3 class="text-base font-bold text-gray-900">Money billed, this month against last</h3>
-              <p class="text-xs text-gray-500 mt-1 mb-6">Before-VAT value of invoices sent or paid, by invoice date.</p>
-              
-              <div class="space-y-4">
-                <div>
-                  <div class="flex justify-between text-sm font-semibold mb-1">
-                    <span class="text-gray-700">Jul 2026</span>
-                    <span class="text-gray-900">179,100</span>
-                  </div>
-                  <div class="w-full bg-gray-100 h-6 rounded-lg overflow-hidden border border-gray-200">
-                    <div class="bg-blue-600 h-full rounded-lg" style="width: 100%"></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="flex justify-between text-sm font-semibold mb-1">
-                    <span class="text-gray-700">Aug 2026</span>
-                    <span class="text-gray-500">0</span>
-                  </div>
-                  <div class="w-full bg-gray-100 h-6 rounded-lg overflow-hidden border border-gray-200">
-                    <div class="bg-gray-300 h-full" style="width: 0%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Bookings by status -->
-            <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-xs flex flex-col justify-between">
-              <div>
-                <h3 class="text-base font-bold text-gray-900">Bookings by status</h3>
-                <p class="text-xs text-gray-500 mt-1">
-                  Provisional means pencilled in; confirmed means the client has committed; delivered means it ran.
-                </p>
-              </div>
-
-              <div class="grid grid-cols-3 gap-4 mt-6">
-                <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-center">
-                  <p class="text-xs text-amber-800 font-semibold uppercase tracking-wider">provisional</p>
-                  <p class="text-2xl font-bold text-amber-900 mt-1">1</p>
-                </div>
-                <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
-                  <p class="text-xs text-blue-800 font-semibold uppercase tracking-wider">confirmed</p>
-                  <p class="text-2xl font-bold text-blue-900 mt-1">1</p>
-                </div>
-                <div class="bg-green-50 border border-green-200 p-4 rounded-xl text-center">
-                  <p class="text-xs text-green-800 font-semibold uppercase tracking-wider">delivered</p>
-                  <p class="text-2xl font-bold text-green-900 mt-1">2</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SECTION: Seats filled against the room we could sell -->
-          <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-xs">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-              <div>
-                <h3 class="text-base font-bold text-gray-900">Seats filled against the room we could sell</h3>
-                <p class="text-xs text-gray-500 mt-1">
-                  The big costs of a course do not move when a seat is added — so every empty seat is money the run simply does not collect. Green is 90% full or better.
-                </p>
-              </div>
-              <button
-                onclick="setTab('bookings')"
-                class="text-xs text-blue-600 hover:text-blue-700 font-semibold mt-2 sm:mt-0"
-              >
-                View Register &rarr;
+          <!-- DARK NAVY HERO BANNER (exact #0f224a) -->
+          <div class="bg-[#0f224a] text-white rounded-2xl p-8 shadow-md relative overflow-hidden">
+            <!-- Arabic Toggle Button -->
+            <div class="absolute top-6 right-6">
+              <button class="px-3.5 py-1 rounded-full border border-slate-400/50 text-xs font-semibold hover:bg-white/10 transition">
+                العربية
               </button>
             </div>
 
-            <div class="space-y-4 mt-6">
-              ${state.courses.map(course => {
-                const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
-                const isGreen = pct >= 90;
-                return `
-                  <div class="p-3.5 bg-gray-50 rounded-lg border border-gray-200">
-                    <div class="flex justify-between items-center text-sm mb-2">
-                      <span class="font-semibold text-gray-900">
-                        ${course.id} · ${course.title}
-                      </span>
-                      <span class="text-xs font-semibold px-2 py-0.5 rounded ${
-                        isGreen ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'
-                      }">
-                        ${course.seatsFilled} of ${course.totalSeats} (${pct}%)
-                      </span>
-                    </div>
-                    <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
-                      <div
-                        class="h-full transition-all duration-500 ${isGreen ? 'bg-green-500' : pct >= 70 ? 'bg-blue-600' : 'bg-gray-500'}"
-                        style="width: ${pct}%"
-                      ></div>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
+            <!-- Main Headline -->
+            <h2 class="text-3xl font-extrabold tracking-tight mb-4 max-w-2xl">
+              Real fire. Real training. Certified people.
+            </h2>
 
-          <!-- SECTION: What each delivered course kept, roughly -->
-          <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-xs">
-            <h3 class="text-base font-bold text-gray-900">What each delivered course kept, roughly</h3>
-            <p class="text-xs text-gray-500 mt-1 mb-6">
-              Money billed, less the crew at <span class="font-semibold text-gray-800">AED 2,225.00 a day</span>, feeding people at <span class="font-semibold text-gray-800">AED 90 a head a day</span>, and the training ground at <span class="font-semibold text-gray-800">AED 1,100.00 a fireground day</span>. A rough working figure — the full cost sheets live in the costing register, not here.
+            <!-- Paragraph text -->
+            <p class="text-sm text-slate-200 leading-relaxed max-w-3xl">
+              Welcome. We train industrial and workplace emergency responders to NFPA standards — live fire, rescue, hazardous materials and command — delivered wherever you need us: at our training grounds or yours, across the UAE and beyond. And we run the way the future runs: an AI-driven, fully paperless operation, from your first enquiry to the certificate in your inbox — one intelligent system, no forms, no chasing, no paper.
             </p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              ${state.courses.filter(c => c.status === 'delivered').map(course => `
-                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 flex justify-between items-center">
-                  <div>
-                    <div class="text-xs font-semibold text-gray-500">${course.id}</div>
-                    <div class="text-sm font-bold text-gray-900">${course.title}</div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-base font-bold text-green-700">AED ${course.netKept.toLocaleString()}.00</div>
-                    <div class="text-xs font-semibold text-gray-500">(${course.margin}% kept)</div>
-                  </div>
-                </div>
-              `).join('')}
+            <!-- Social pills and telephone row -->
+            <div class="mt-8 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-700/60">
+              <div class="flex flex-wrap items-center gap-2">
+                <button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d9531f] hover:bg-[#c24618] text-xs font-semibold text-white transition">
+                  <span>💬</span><span>WhatsApp</span>
+                </button>
+                <button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d9531f] hover:bg-[#c24618] text-xs font-semibold text-white transition">
+                  <span>▶️</span><span>YouTube</span>
+                </button>
+                <button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d9531f] hover:bg-[#c24618] text-xs font-semibold text-white transition">
+                  <span>🎵</span><span>TikTok</span>
+                </button>
+                <button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d9531f] hover:bg-[#c24618] text-xs font-semibold text-white transition">
+                  <span>in</span><span>LinkedIn</span>
+                </button>
+                <button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d9531f] hover:bg-[#c24618] text-xs font-semibold text-white transition">
+                  <span>f</span><span>Facebook</span>
+                </button>
+                <button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d9531f] hover:bg-[#c24618] text-xs font-semibold text-white transition">
+                  <span>📷</span><span>Instagram</span>
+                </button>
+              </div>
+
+              <div class="text-xs text-slate-300 font-semibold">
+                Reach us at +971 4 315 1555
+              </div>
             </div>
           </div>
 
-        </div>
-      `;
-    }
-
-    /* =========================================================
-       TAB 2: BOOKINGS REGISTER & OCCUPANCY
-       ========================================================= */
-    function renderBookings() {
-      return `
-        <div class="space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-4">
-            <div>
-              <h2 class="text-lg font-bold text-gray-900">Course Schedule & Occupancy Register</h2>
-              <p class="text-xs text-gray-500">Monitoring capacity and status across all scheduled courses.</p>
-            </div>
-            <button
-              onclick="openModal()"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition"
-            >
-              + Add New Booking
-            </button>
-          </div>
-
-          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="border-b border-gray-200 bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider">
-                    <th class="py-3.5 px-6">Course Ref & Title</th>
-                    <th class="py-3.5 px-6">Status</th>
-                    <th class="py-3.5 px-6">Schedule</th>
-                    <th class="py-3.5 px-6">Occupancy</th>
-                    <th class="py-3.5 px-6 text-right">Billed (before VAT)</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 text-sm">
-                  ${state.courses.map(course => {
-                    const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
-                    const isGreen = pct >= 90;
-                    const statusClass = course.status === 'delivered' ? 'bg-green-100 text-green-800 border border-green-200' :
-                                      course.status === 'confirmed' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                                      'bg-amber-100 text-amber-800 border border-amber-200';
-                    return `
-                      <tr class="hover:bg-gray-50 transition">
-                        <td class="py-4 px-6 font-medium text-gray-900">
-                          <div class="font-bold">${course.id}</div>
-                          <div class="text-xs text-gray-500">${course.title}</div>
-                        </td>
-                        <td class="py-4 px-6">
-                          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${statusClass}">
-                            ${course.status}
-                          </span>
-                        </td>
-                        <td class="py-4 px-6 text-xs text-gray-600">
-                          <div>${course.date}</div>
-                          <div class="text-gray-400">${course.location}</div>
-                        </td>
-                        <td class="py-4 px-6 w-56">
-                          <div class="flex justify-between text-xs font-medium mb-1">
-                            <span>${course.seatsFilled} of ${course.totalSeats}</span>
-                            <span class="${isGreen ? 'text-green-700 font-bold' : 'text-gray-600'}">${pct}%</span>
-                          </div>
-                          <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                            <div
-                              class="h-full ${isGreen ? 'bg-green-500' : pct >= 75 ? 'bg-blue-600' : 'bg-gray-500'}"
-                              style="width: ${pct}%"
-                            ></div>
-                          </div>
-                        </td>
-                        <td class="py-4 px-6 text-right font-bold text-gray-900">
-                          AED ${course.billed.toLocaleString()}.00
-                        </td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    /* =========================================================
-       TAB 3: COSTING REGISTER & CALCULATOR
-       ========================================================= */
-    function renderCosting() {
-      return `
-        <div class="space-y-8">
-          <div class="border-b border-gray-200 pb-4">
-            <h2 class="text-lg font-bold text-gray-900">What each delivered course kept, roughly</h2>
-            <p class="text-xs text-gray-500 mt-1">
-              Money billed, less crew at <span class="text-gray-900 font-semibold">AED 2,225.00/day</span>, feeding at <span class="text-gray-900 font-semibold">AED 90/head/day</span>, and ground at <span class="text-gray-900 font-semibold">AED 1,100.00/day</span>.
+          <!-- WHITE EXPLANATION CARD ("Every course, delivered the way it teaches best") -->
+          <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-xs">
+            <h3 class="text-base font-bold text-slate-900 mb-1">
+              Every course, delivered the way it teaches best
+            </h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Heavy practical courses run <span class="font-bold text-slate-800">in person or blended</span> — typically around 30% theory, taken online or self-paced at your people's own speed, and 70% on the fire ground, in person, where it counts. Awareness and command courses run in person, blended, or fully self-paced. The course pages below show each one's delivery.
             </p>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            ${state.courses.map(course => `
-              <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-xs">
-                <div class="flex justify-between items-start">
-                  <div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase">${course.id}</span>
-                    <h3 class="text-base font-bold text-gray-900 mt-0.5">${course.title}</h3>
-                    <p class="text-xs text-gray-500">${course.days} days · ${course.seatsFilled} students</p>
+          <!-- 4-COLUMN COURSE CARDS GRID -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- Card 1 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 leading-snug">
+                  NFPA 1081 Interior Structural Facility Fire Brigade Member
+                </h4>
+                <p class="text-[10px] font-bold text-[#d9531f] mt-2 uppercase tracking-wide leading-normal">
+                  BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 5 DAYS · 35 CPD HOURS
+                </p>
+                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                  Live fire inside a real structure. Team attack, search and casualty removal under real heat, on a real fireground.
+                </p>
+              </div>
+              
+              <div class="mt-6 pt-4 space-y-3">
+                <span class="inline-block px-2.5 py-1 rounded-md bg-[#e0f2f1] text-[#0f766e] text-xs font-bold">
+                  7 Sep 2026 — 19 seats left
+                </span>
+                <div class="pt-2 border-t border-slate-100">
+                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <span>🔒</span><span>Price shared with registered visitors</span>
                   </div>
-                  <div class="text-right">
-                    <span class="text-xl font-bold text-green-700">
-                      AED ${course.netKept.toLocaleString()}.00
-                    </span>
-                    <p class="text-xs font-semibold text-gray-500 mt-0.5">${course.margin}% Net Margin</p>
-                  </div>
+                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
+                    One minute to register — then every price opens, and it stays open.
+                  </p>
                 </div>
-
-                <div class="mt-5 border-t border-gray-200 pt-4 space-y-2 text-xs text-gray-600">
-                  <div class="flex justify-between text-gray-700">
-                    <span>Total Billed (before VAT):</span>
-                    <span class="font-semibold">AED ${course.billed.toLocaleString()}.00</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span>Crew Cost (${course.crewDays}d @ AED 2,225):</span>
-                    <span>- AED ${(CREW_RATE * course.crewDays).toLocaleString()}.00</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span>Feeding (${course.seatsFilled} pax × ${course.days}d @ AED 90):</span>
-                    <span>- AED ${(FOOD_RATE * course.seatsFilled * course.days).toLocaleString()}.00</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span>Fireground (${course.groundDays}d @ AED 1,100):</span>
-                    <span>- AED ${(FIREGROUND_RATE * course.groundDays).toLocaleString()}.00</span>
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-
-          <!-- Interactive Simulator -->
-          <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-xs">
-            <h3 class="text-base font-bold text-gray-900">Course Margin Simulator</h3>
-            <p class="text-xs text-gray-500 mt-1">Model different course fees and student counts to test FSG margin rules.</p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-              <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Course Fee Billed (AED)</label>
-                <input
-                  type="number"
-                  id="calc-fee"
-                  value="${state.calc.fee}"
-                  oninput="updateCalculator()"
-                  class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Seats Filled</label>
-                <input
-                  type="number"
-                  id="calc-seats"
-                  value="${state.calc.seats}"
-                  oninput="updateCalculator()"
-                  class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Crew Days (@ AED 2,225)</label>
-                <input
-                  type="number"
-                  id="calc-days"
-                  value="${state.calc.days}"
-                  oninput="updateCalculator()"
-                  class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Fireground Days (@ AED 1,100)</label>
-                <input
-                  type="number"
-                  id="calc-ground"
-                  value="${state.calc.groundDays}"
-                  oninput="updateCalculator()"
-                  class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none"
-                />
               </div>
             </div>
 
-            <div class="mt-6 p-5 bg-gray-50 rounded-xl border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div class="flex gap-6 text-xs text-gray-600">
-                <div>
-                  <span class="block text-gray-400">Crew Total</span>
-                  <span class="font-bold text-gray-900" id="sim-crew-cost">AED 0</span>
-                </div>
-                <div>
-                  <span class="block text-gray-400">Feeding Total</span>
-                  <span class="font-bold text-gray-900" id="sim-food-cost">AED 0</span>
-                </div>
-                <div>
-                  <span class="block text-gray-400">Ground Total</span>
-                  <span class="font-bold text-gray-900" id="sim-ground-cost">AED 0</span>
-                </div>
+            <!-- Card 2 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 leading-snug">
+                  NFPA 1081 Advanced Exterior Facility Fire Brigade Member
+                </h4>
+                <p class="text-[10px] font-bold text-[#d9531f] mt-2 uppercase tracking-wide leading-normal">
+                  BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 5 DAYS · 35 CPD HOURS
+                </p>
+                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                  Master streams, foam attack and defensive teamwork on live fuel fires.
+                </p>
               </div>
 
-              <div class="text-right">
-                <span class="text-xs text-gray-500 block">Projected Net Kept:</span>
-                <span class="text-2xl font-bold text-green-700" id="sim-net-kept">AED 0</span>
-                <span class="text-sm font-semibold text-gray-600 ml-2" id="sim-margin">(0% margin)</span>
+              <div class="mt-6 pt-4 space-y-3">
+                <span class="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
+                  Dates on request
+                </span>
+                <div class="pt-2 border-t border-slate-100">
+                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <span>🔒</span><span>Price shared with registered visitors</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
+                    One minute to register — then every price opens, and it stays open.
+                  </p>
+                </div>
               </div>
             </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 leading-snug">
+                  NFPA 1081 Incipient Facility Fire Brigade
+                </h4>
+                <p class="text-[10px] font-bold text-[#d9531f] mt-2 uppercase tracking-wide leading-normal">
+                  BLENDED — THEORY ONLINE OR SELF-PACED, PRACTICALS IN PERSON · 3 DAYS · 21 CPD HOURS
+                </p>
+                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                  Stop a fire in its first minutes — the right extinguisher, used correctly, and the judgement to withdraw.
+                </p>
+              </div>
+
+              <div class="mt-6 pt-4 space-y-3">
+                <span class="inline-block px-2.5 py-1 rounded-md bg-[#e0f2f1] text-[#0f766e] text-xs font-bold">
+                  12 Aug 2026 — 16 seats left
+                </span>
+                <div class="pt-2 border-t border-slate-100">
+                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <span>🔒</span><span>Price shared with registered visitors</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
+                    One minute to register — then every price opens, and it stays open.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 leading-snug">
+                  Advanced Flammable Liquids Response
+                </h4>
+                <p class="text-[10px] font-bold text-slate-700 mt-2 uppercase tracking-wide leading-normal">
+                  IN PERSON · 2 DAYS · 14 CPD HOURS
+                </p>
+                <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                  Foam application and coordinated attack on live flammable-liquid fires.
+                </p>
+              </div>
+
+              <div class="mt-6 pt-4 space-y-3">
+                <span class="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
+                  Dates on request
+                </span>
+                <div class="pt-2 border-t border-slate-100">
+                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <span>🔒</span><span>Price shared with registered visitors</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 mt-1 leading-normal">
+                    One minute to register — then every price opens, and it stays open.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
+
         </div>
       `;
     }
 
     /* =========================================================
-       TAB 4: CERTIFICATES REGISTER
+       2. BACK OFFICE VIEW (THE EXECUTIVE REPORTING DASHBOARD)
        ========================================================= */
-    function renderCertificates() {
-      return `
-        <div class="space-y-6">
-          <div class="border-b border-gray-200 pb-4">
-            <h2 class="text-lg font-bold text-gray-900">Certificates issued (6)</h2>
-            <p class="text-xs text-gray-500 mt-1">Each certificate is issued with a unique register number.</p>
-          </div>
+    function renderBackOffice() {
+      // Back office sub-navigation bar
+      const tabs = [
+        { id: 'reporting', label: 'Reporting' },
+        { id: 'bookings', label: 'Bookings & Occupancy Register', count: state.courses.length },
+        { id: 'costing', label: 'Costing & Profitability + Simulator' },
+        { id: 'certificates', label: 'Certificates Register', count: state.certificates.length },
+        { id: 'enquiries', label: 'Live Enquiries', count: state.enquiries.length },
+      ];
 
-          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+      let navHtml = `
+        <div class="bg-white border border-slate-200 rounded-xl p-3 mb-6 shadow-xs flex flex-wrap gap-2 items-center justify-between">
+          <div class="flex flex-wrap gap-2">
+            ${tabs.map(t => {
+              const isActive = state.backOfficeTab === t.id;
+              const btnStyle = isActive 
+                ? "bg-slate-900 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-xs" 
+                : "bg-slate-50 text-slate-600 hover:bg-slate-100 font-medium px-3 py-1.5 rounded-lg text-xs transition";
+              return `
+                <button onclick="setBackOfficeTab('${t.id}')" class="${btnStyle}">
+                  ${t.label} ${t.count !== undefined ? `<span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-slate-700 text-white' : 'bg-slate-200 text-slate-700'}">${t.count}</span>` : ''}
+                </button>
+              `;
+            }).join('')}
+          </div>
+          <button
+            onclick="openModal()"
+            class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition"
+          >
+            + New Course Booking
+          </button>
+        </div>
+      `;
+
+      let tabContent = '';
+      if (state.backOfficeTab === 'reporting') {
+        tabContent = `
+          <div class="space-y-6">
+            <!-- 4 Executive Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Billed this month (before VAT)</p>
+                <p class="text-3xl font-extrabold text-slate-900 mt-2">AED 0.00</p>
+                <p class="text-xs text-slate-500 mt-2">
+                  last month <span class="text-slate-700 font-bold">AED 179,100.00</span>
+                </p>
+              </div>
+
+              <div class="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Waiting to be paid</p>
+                <p class="text-3xl font-extrabold text-slate-900 mt-2">AED 81,270.00</p>
+                <p class="text-xs text-slate-500 mt-2">
+                  1 invoice sent, not yet paid
+                </p>
+              </div>
+
+              <div class="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Certificates issued</p>
+                <p class="text-3xl font-extrabold text-slate-900 mt-2">6</p>
+                <p class="text-xs text-slate-500 mt-2">
+                  each with a unique register number
+                </p>
+              </div>
+
+              <div class="bg-white border border-slate-200 p-5 rounded-xl shadow-xs">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Live enquiries</p>
+                <p class="text-3xl font-extrabold text-slate-900 mt-2">2</p>
+                <p class="text-xs text-slate-500 mt-2">
+                  new or quoted, not yet decided
+                </p>
+              </div>
+            </div>
+
+            <!-- Money billed chart & status cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
+                <h3 class="text-base font-bold text-slate-900">Money billed, this month against last</h3>
+                <p class="text-xs text-slate-500 mt-1 mb-6">Before-VAT value of invoices sent or paid, by invoice date.</p>
+                
+                <div class="space-y-4">
+                  <div>
+                    <div class="flex justify-between text-sm font-bold mb-1">
+                      <span class="text-slate-700">Jul 2026</span>
+                      <span class="text-slate-900">179,100</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-6 rounded-lg overflow-hidden border border-slate-200">
+                      <div class="bg-blue-600 h-full" style="width: 100%"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-sm font-bold mb-1">
+                      <span class="text-slate-700">Aug 2026</span>
+                      <span class="text-slate-500">0</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-6 rounded-lg overflow-hidden border border-slate-200">
+                      <div class="bg-slate-300 h-full" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bookings by status -->
+              <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs flex flex-col justify-between">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">Bookings by status</h3>
+                  <p class="text-xs text-slate-500 mt-1">
+                    Provisional means pencilled in; confirmed means the client has committed; delivered means it ran.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                  <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-center">
+                    <p class="text-xs text-amber-800 font-bold uppercase tracking-wider">provisional</p>
+                    <p class="text-2xl font-extrabold text-amber-900 mt-1">1</p>
+                  </div>
+                  <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
+                    <p class="text-xs text-blue-800 font-bold uppercase tracking-wider">confirmed</p>
+                    <p class="text-2xl font-extrabold text-blue-900 mt-1">1</p>
+                  </div>
+                  <div class="bg-green-50 border border-green-200 p-4 rounded-xl text-center">
+                    <p class="text-xs text-green-800 font-bold uppercase tracking-wider">delivered</p>
+                    <p class="text-2xl font-extrabold text-green-900 mt-1">2</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seat Occupancy -->
+            <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">Seats filled against the room we could sell</h3>
+                  <p class="text-xs text-slate-500 mt-1">
+                    The big costs of a course do not move when a seat is added — so every empty seat is money the run simply does not collect. Green is 90% full or better.
+                  </p>
+                </div>
+              </div>
+
+              <div class="space-y-4 mt-6">
+                ${state.courses.map(course => {
+                  const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
+                  const isGreen = pct >= 90;
+                  return `
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="font-bold text-slate-900">
+                          ${course.id} · ${course.title}
+                        </span>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded ${
+                          isGreen ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
+                        }">
+                          ${course.seatsFilled} of ${course.totalSeats} (${pct}%)
+                        </span>
+                      </div>
+                      <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div
+                          class="h-full transition-all duration-500 ${isGreen ? 'bg-green-600' : pct >= 70 ? 'bg-blue-600' : 'bg-slate-500'}"
+                          style="width: ${pct}%"
+                        ></div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.backOfficeTab === 'bookings') {
+        tabContent = `
+          <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-gray-200 bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider">
+                <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                  <th class="py-3.5 px-6">Course Ref & Title</th>
+                  <th class="py-3.5 px-6">Status</th>
+                  <th class="py-3.5 px-6">Schedule</th>
+                  <th class="py-3.5 px-6">Occupancy</th>
+                  <th class="py-3.5 px-6 text-right">Billed (before VAT)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-sm">
+                ${state.courses.map(course => {
+                  const pct = Math.round((course.seatsFilled / course.totalSeats) * 100);
+                  const isGreen = pct >= 90;
+                  const statusClass = course.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                    course.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-amber-100 text-amber-800';
+                  return `
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="py-4 px-6 font-medium text-slate-900">
+                        <div class="font-bold">${course.id}</div>
+                        <div class="text-xs text-slate-500">${course.title}</div>
+                      </td>
+                      <td class="py-4 px-6">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${statusClass}">
+                          ${course.status}
+                        </span>
+                      </td>
+                      <td class="py-4 px-6 text-xs text-slate-600">
+                        <div>${course.date}</div>
+                        <div class="text-slate-400">${course.location}</div>
+                      </td>
+                      <td class="py-4 px-6 w-56">
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                          <span>${course.seatsFilled} of ${course.totalSeats}</span>
+                          <span class="${isGreen ? 'text-green-700' : 'text-slate-600'}">${pct}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                          <div
+                            class="h-full ${isGreen ? 'bg-green-600' : pct >= 75 ? 'bg-blue-600' : 'bg-slate-500'}"
+                            style="width: ${pct}%"
+                          ></div>
+                        </div>
+                      </td>
+                      <td class="py-4 px-6 text-right font-bold text-slate-900">
+                        AED ${course.billed.toLocaleString()}.00
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else if (state.backOfficeTab === 'costing') {
+        tabContent = `
+          <div class="space-y-8">
+            <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
+              <h3 class="text-base font-bold text-slate-900">What each delivered course kept, roughly</h3>
+              <p class="text-xs text-slate-500 mt-1 mb-6">
+                Money billed, less crew at <span class="text-slate-900 font-bold">AED 2,225.00/day</span>, feeding at <span class="text-slate-900 font-bold">AED 90/head/day</span>, and ground at <span class="text-slate-900 font-bold">AED 1,100.00/day</span>.
+              </p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                ${state.courses.map(course => `
+                  <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl">
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <span class="text-xs font-bold text-slate-500 uppercase">${course.id}</span>
+                        <h4 class="text-base font-bold text-slate-900 mt-0.5">${course.title}</h4>
+                        <p class="text-xs text-slate-500">${course.days} days · ${course.seatsFilled} students</p>
+                      </div>
+                      <div class="text-right">
+                        <span class="text-xl font-extrabold text-green-700">
+                          AED ${course.netKept.toLocaleString()}.00
+                        </span>
+                        <p class="text-xs font-bold text-slate-500 mt-0.5">${course.margin}% Net Margin</p>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Course Margin Simulator -->
+            <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
+              <h3 class="text-base font-bold text-slate-900">Course Margin Simulator</h3>
+              <p class="text-xs text-slate-500 mt-1">Model different course fees and student counts to test FSG margin rules.</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Course Fee Billed (AED)</label>
+                  <input
+                    type="number"
+                    id="calc-fee"
+                    value="${state.calc.fee}"
+                    oninput="updateCalculator()"
+                    class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:border-blue-600 outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Seats Filled</label>
+                  <input
+                    type="number"
+                    id="calc-seats"
+                    value="${state.calc.seats}"
+                    oninput="updateCalculator()"
+                    class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:border-blue-600 outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Crew Days (@ AED 2,225)</label>
+                  <input
+                    type="number"
+                    id="calc-days"
+                    value="${state.calc.days}"
+                    oninput="updateCalculator()"
+                    class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:border-blue-600 outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Fireground Days (@ AED 1,100)</label>
+                  <input
+                    type="number"
+                    id="calc-ground"
+                    value="${state.calc.groundDays}"
+                    oninput="updateCalculator()"
+                    class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:border-blue-600 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div class="mt-6 p-5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex gap-6 text-xs text-slate-600">
+                  <div>
+                    <span class="block text-slate-400">Crew Total</span>
+                    <span class="font-bold text-slate-900" id="sim-crew-cost">AED 0</span>
+                  </div>
+                  <div>
+                    <span class="block text-slate-400">Feeding Total</span>
+                    <span class="font-bold text-slate-900" id="sim-food-cost">AED 0</span>
+                  </div>
+                  <div>
+                    <span class="block text-slate-400">Ground Total</span>
+                    <span class="font-bold text-slate-900" id="sim-ground-cost">AED 0</span>
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <span class="text-xs text-slate-500 block">Projected Net Kept:</span>
+                  <span class="text-2xl font-extrabold text-green-700" id="sim-net-kept">AED 0</span>
+                  <span class="text-sm font-bold text-slate-600 ml-2" id="sim-margin">(0% margin)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (state.backOfficeTab === 'certificates') {
+        tabContent = `
+          <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
                   <th class="py-3.5 px-6">Register Number</th>
                   <th class="py-3.5 px-6">Student Name</th>
                   <th class="py-3.5 px-6">Course Ref</th>
@@ -761,15 +987,15 @@
                   <th class="py-3.5 px-6 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200 text-sm">
+              <tbody class="divide-y divide-slate-200 text-sm">
                 ${state.certificates.map(cert => `
-                  <tr class="hover:bg-gray-50 transition">
-                    <td class="py-4 px-6 font-mono font-medium text-green-700">${cert.id}</td>
-                    <td class="py-4 px-6 font-semibold text-gray-900">${cert.student}</td>
-                    <td class="py-4 px-6 text-xs text-gray-600">${cert.course}</td>
-                    <td class="py-4 px-6 text-xs text-gray-500">${cert.date}</td>
+                  <tr class="hover:bg-slate-50 transition">
+                    <td class="py-4 px-6 font-mono font-bold text-green-700">${cert.id}</td>
+                    <td class="py-4 px-6 font-bold text-slate-900">${cert.student}</td>
+                    <td class="py-4 px-6 text-xs text-slate-600">${cert.course}</td>
+                    <td class="py-4 px-6 text-xs text-slate-500">${cert.date}</td>
                     <td class="py-4 px-6 text-right">
-                      <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                      <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">
                         ${cert.status}
                       </span>
                     </td>
@@ -778,48 +1004,103 @@
               </tbody>
             </table>
           </div>
+        `;
+      } else if (state.backOfficeTab === 'enquiries') {
+        tabContent = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${state.enquiries.map(enq => `
+              <div class="bg-white border border-slate-200 p-6 rounded-xl shadow-xs">
+                <div class="flex justify-between items-start">
+                  <span class="text-xs font-mono font-bold text-slate-500">${enq.id}</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                    ${enq.status}
+                  </span>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 mt-2">${enq.client}</h3>
+                <p class="text-xs text-slate-600 mt-1">Course Ref: <span class="text-slate-900 font-bold">${enq.course}</span></p>
+                <p class="text-xs text-slate-500 mt-1">Estimated Pax: ${enq.seats} students</p>
+                <div class="mt-6 border-t border-slate-200 pt-4 flex justify-between items-center">
+                  <div>
+                    <span class="text-xs text-slate-500 block">Quoted Value:</span>
+                    <span class="text-lg font-extrabold text-slate-900">AED ${enq.value.toLocaleString()}.00</span>
+                  </div>
+                  <span class="text-xs text-slate-400">${enq.date}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      return navHtml + tabContent;
+    }
+
+    /* =========================================================
+       3. OTHER VIEWS (DELEGATE, INSTRUCTOR, COMPANY, VERIFY)
+       ========================================================= */
+    function renderDelegatePortal() {
+      return `
+        <div class="bg-white border border-slate-200 rounded-xl p-8 text-center max-w-xl mx-auto shadow-xs">
+          <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto text-xl mb-4">
+            📱
+          </div>
+          <h3 class="text-lg font-bold text-slate-900">Delegate Portal (Pilot)</h3>
+          <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+            Welcome to the delegate area. Here students can access self-paced theory modules, download pre-course joining instructions, view their 35 CPD hour progress, and download their official digital certificates upon completion.
+          </p>
+          <div class="mt-6 pt-6 border-t border-slate-200 flex justify-center gap-4">
+            <button onclick="setView('client')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
+              &larr; Back to Client Website
+            </button>
+          </div>
         </div>
       `;
     }
 
-    /* =========================================================
-       TAB 5: LIVE ENQUIRIES PIPELINE
-       ========================================================= */
-    function renderEnquiries() {
+    function renderInstructorTablet() {
       return `
-        <div class="space-y-6">
-          <div class="border-b border-gray-200 pb-4">
-            <h2 class="text-lg font-bold text-gray-900">Live enquiries (2)</h2>
-            <p class="text-xs text-gray-500 mt-1">New or quoted training inquiries under active evaluation.</p>
+        <div class="bg-white border border-slate-200 rounded-xl p-8 text-center max-w-xl mx-auto shadow-xs">
+          <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl mb-4">
+            🎟️
           </div>
+          <h3 class="text-lg font-bold text-slate-900">Instructor Tablet Interface (Pilot)</h3>
+          <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+            Paperless fireground attendance and practical sign-off. Instructors use this view on the training ground to record live evolutions, safety checklists, and NFPA 1081 skill evaluations in real time.
+          </p>
+          <div class="mt-6 pt-6 border-t border-slate-200 flex justify-center gap-4">
+            <button onclick="setView('client')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
+              &larr; Back to Client Website
+            </button>
+          </div>
+        </div>
+      `;
+    }
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            ${state.enquiries.map(enq => {
-              const badge = enq.status === 'Quoted' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-purple-100 text-purple-800 border border-purple-200';
-              return `
-                <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-xs flex flex-col justify-between">
-                  <div>
-                    <div class="flex justify-between items-start">
-                      <span class="text-xs font-mono font-semibold text-gray-500">${enq.id}</span>
-                      <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${badge}">
-                        ${enq.status}
-                      </span>
-                    </div>
-                    <h3 class="text-base font-bold text-gray-900 mt-2">${enq.client}</h3>
-                    <p class="text-xs text-gray-600 mt-1">Course Ref: <span class="text-gray-900 font-medium">${enq.course}</span></p>
-                    <p class="text-xs text-gray-500 mt-1">Estimated Pax: ${enq.seats} students</p>
-                  </div>
-
-                  <div class="mt-6 border-t border-gray-200 pt-4 flex justify-between items-center">
-                    <div>
-                      <span class="text-xs text-gray-500 block">Quoted Value:</span>
-                      <span class="text-lg font-bold text-gray-900">AED ${enq.value.toLocaleString()}.00</span>
-                    </div>
-                    <span class="text-xs text-gray-400">${enq.date}</span>
-                  </div>
-                </div>
-              `;
-            }).join('')}
+    function renderVerifyCertificate() {
+      return `
+        <div class="bg-white border border-slate-200 rounded-xl p-8 max-w-xl mx-auto shadow-xs">
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Verify a Certificate</h3>
+          <p class="text-xs text-slate-600 leading-relaxed mb-6">
+            Enter an official FSG register number (e.g., <span class="font-mono font-bold text-slate-800">FSG-CERT-2026-0101</span>) to confirm authentic NFPA qualification and issuance status.
+          </p>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="verify-input"
+              value="FSG-CERT-2026-0101"
+              placeholder="Enter register number..."
+              class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm font-mono outline-none focus:border-blue-600"
+            />
+            <button
+              onclick="alert('Certificate Verified: Ahmed Al-Mansoori — BK-2026-001 HazMat Incident Command — Valid')"
+              class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition"
+            >
+              Verify Now
+            </button>
+          </div>
+          <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div class="text-xs font-bold text-green-800 mb-1">✓ Verified Example Found in Register</div>
+            <div class="text-xs text-green-700 font-mono">FSG-CERT-2026-0101 · Ahmed Al-Mansoori · Issued 15 Jul 2026</div>
           </div>
         </div>
       `;
@@ -827,17 +1108,19 @@
 
     function render() {
       const container = document.getElementById('main-content');
-      if (state.activeTab === 'reporting') {
-        container.innerHTML = renderReporting();
-      } else if (state.activeTab === 'bookings') {
-        container.innerHTML = renderBookings();
-      } else if (state.activeTab === 'costing') {
-        container.innerHTML = renderCosting();
-        updateCalculator();
-      } else if (state.activeTab === 'certificates') {
-        container.innerHTML = renderCertificates();
-      } else if (state.activeTab === 'enquiries') {
-        container.innerHTML = renderEnquiries();
+      if (state.section === 'verify') {
+        container.innerHTML = renderVerifyCertificate();
+      } else if (state.view === 'client') {
+        container.innerHTML = renderClientWebsite();
+      } else if (state.view === 'backoffice') {
+        container.innerHTML = renderBackOffice();
+        if (state.backOfficeTab === 'costing') updateCalculator();
+      } else if (state.view === 'delegate') {
+        container.innerHTML = renderDelegatePortal();
+      } else if (state.view === 'instructor') {
+        container.innerHTML = renderInstructorTablet();
+      } else {
+        container.innerHTML = renderClientWebsite();
       }
     }
 
