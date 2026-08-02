@@ -62,7 +62,7 @@ Company as the Client's single point of contact.
 Parties:
 
 **THE COMPANY** (contracting party, furnishing the services of the Artist)
-${activeProfile().management.legalName}, trading as ${activeProfile().management.company}${activeProfile().management.tradeLicenceNo ? `\nTrade Licence No: ${activeProfile().management.tradeLicenceNo}` : "\nTrade Licence No: [ADD IN /profile]"}
+${activeProfile().management.legalName}, trading as ${activeProfile().management.company}${activeProfile().management.tradeLicenceNo ? `\nTrade Licence No: ${activeProfile().management.tradeLicenceNo}` : "\nTrade Licence No: ______________________  ← from the EVG business licence"}
 Attn: ${activeProfile().management.contactName}, ${activeProfile().management.contactRole}
 ${activeProfile().management.email} · ${activeProfile().management.phone}
 
@@ -255,7 +255,7 @@ ${g.contacts.length ? g.contacts.map((c) => `- ${[c.name, c.role, c.phone ?? c.e
 /** Renders settlement details, or a clear prompt if they aren't set yet. */
 function bankBlock(): string {
   const b = activeProfile().management.bank;
-  if (!b) return "**Bank details:** [ADD IN /profile — Account name, Bank, IBAN, SWIFT]";
+  if (!b) return "**Bank details** — fill in from the EVG bank statement:\n\n| | |\n|---|---|\n| Account name | ______________________ |\n| Bank | ______________________ |\n| IBAN | ______________________ |\n| SWIFT/BIC | ______________________ |";
   return [
     "**Bank details**",
     "",

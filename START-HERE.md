@@ -1,8 +1,36 @@
-# Start here — how to actually open the app
+# Start here
 
-**You haven't been able to see any of this yet.** The app has only been running
-on my machine. `/profile` is a *page inside the app*, like a page on a website —
-it isn't a folder on your computer. This guide gets it running in front of you.
+## 🟢 Easiest: you don't need the app at all
+
+Open the **[`pack/`](pack/)** folder in this repo. Everything is already
+generated as documents you can read and copy:
+
+- **1-RATE-CARD** — what to charge, per venue type, with every adjustment
+- **2-PITCH-SCRIPTS** — WhatsApp / Instagram / email pitches, ready to send
+- **3-NEGOTIATION** — every objection and the reply
+- **4-CONTRACT** · **5-INVOICE** · **6-RUNSHEET** · **7-PRESS PACK**
+
+Nothing to install. Start there.
+
+---
+
+## 🚀 Want it live on her phone? One click, no terminal
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkirthregis%2FCross-Claude-Code%2Ftree%2Farena%2F019fc128-cross-claude-code)
+
+1. Click the button, sign in with GitHub, click **Deploy**. Wait ~2 minutes.
+2. You get a URL like `https://gigradar-xyz.vercel.app`.
+3. Open it on her phone → **Share → Add to Home Screen**.
+
+Pages: `/` is the gig list · `/profile` is rates + EVG details + PDF upload ·
+`/sources` is alert setup.
+
+To switch on WhatsApp/email alerts, add the environment variables (below) under
+**Settings → Environment Variables** in Vercel, then **Redeploy**.
+
+> Note: Vercel resets its filesystem on each deploy, so saved data won't
+> persist there. For permanent storage add Vercel Postgres — only
+> `src/lib/db.ts` needs changing. Running locally persists fine.
 
 ---
 

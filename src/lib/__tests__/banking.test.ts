@@ -17,9 +17,13 @@ describe("EVG entity + settlement details", () => {
     process.env.DB_PATH = join(mkdtempSync(join(tmpdir(), "gr-")), "t.db");
   });
 
-  it("prompts on the invoice when bank details are missing", async () => {
+  it("shows fillable blanks on the invoice when bank details are missing", async () => {
     const { generateDealPack } = await import("../contract");
-    expect(generateDealPack(gig()).invoice).toMatch(/\[ADD IN \/profile/);
+    const inv = generateDealPack(gig()).invoice;
+    // Must be usable as a printed template, not reference an app screen.
+    expect(inv).toMatch(/fill in from the EVG bank statement/i);
+    expect(inv).toMatch(/\| IBAN \| _+ \|/);
+    expect(inv).not.toMatch(/\/profile/);
   });
 
   it("flags licence number and bank as gaps", async () => {
