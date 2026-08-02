@@ -6,7 +6,7 @@
  * `breakdown` so Emy can see WHY, and argue the number in a negotiation.
  */
 
-import { DJ_EMY } from "./artist";
+import { activeProfile } from "./active-profile";
 import type { PriceInputs, PriceQuote } from "./types";
 import { daysUntil } from "./dates";
 
@@ -53,7 +53,7 @@ export function isRamadan(date: Date): boolean {
 }
 
 export function quote(input: PriceInputs): PriceQuote {
-  const base = DJ_EMY.baseRatesAed[input.venueTier] ?? DJ_EMY.baseRatesAed.unknown;
+  const base = activeProfile().baseRatesAed[input.venueTier] ?? activeProfile().baseRatesAed.unknown;
   const breakdown: PriceQuote["breakdown"] = [
     { label: `Base rate — ${input.venueTier.replace(/_/g, " ")}`, effect: "base", value: base },
   ];
@@ -133,7 +133,7 @@ export function quote(input: PriceInputs): PriceQuote {
 
   const target = AED(base * mult);
   const ask = AED(target * 1.25);
-  let walkAway = AED(Math.max(target * 0.72, DJ_EMY.hardFloorAed));
+  let walkAway = AED(Math.max(target * 0.72, activeProfile().hardFloorAed));
 
   // --- React to a stated budget
   let confidence: PriceQuote["confidence"] = input.eventDate ? "medium" : "low";
@@ -150,7 +150,7 @@ export function quote(input: PriceInputs): PriceQuote {
     }
   }
 
-  if (walkAway < DJ_EMY.hardFloorAed) walkAway = DJ_EMY.hardFloorAed;
+  if (walkAway < activeProfile().hardFloorAed) walkAway = activeProfile().hardFloorAed;
 
   rationale.push(`Open at AED ${ask.toLocaleString()}, expect to land near AED ${target.toLocaleString()}, never sign below AED ${walkAway.toLocaleString()}.`);
 

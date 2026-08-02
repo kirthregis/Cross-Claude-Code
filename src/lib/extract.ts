@@ -8,7 +8,7 @@
  */
 
 import type { RawLead, VenueTier, Gig, Contact } from "./types";
-import { DJ_EMY } from "./artist";
+import { activeProfile } from "./active-profile";
 import { createHash } from "crypto";
 
 const DUBAI_AREAS = [
@@ -90,7 +90,7 @@ export function detectSlot(text: string): NonNullable<Gig["slot"]> {
 }
 
 export function detectGenres(text: string): string[] {
-  const all = [...DJ_EMY.genres, ...DJ_EMY.secondaryGenres, ...DJ_EMY.wontPlay,
+  const all = [...activeProfile().genres, ...activeProfile().secondaryGenres, ...activeProfile().wontPlay,
     "Techno", "Hip Hop", "Amapiano", "Disco", "Latin", "Arabic", "Bollywood", "EDM", "Lounge", "Chillout"];
   const found = new Set<string>();
   for (const g of all) if (new RegExp(`\\b${g.replace(/&/g, "&?")}\\b`, "i").test(text)) found.add(g);

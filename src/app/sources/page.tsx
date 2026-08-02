@@ -7,7 +7,7 @@ export default function SourcesPage() {
   const { data } = useFetch<{ sources: { id: string; label: string; setup: string; configured: boolean }[] }>("/api/sources");
   return (
     <main className="mx-auto max-w-2xl px-4 pb-24 pt-6">
-      <Link href="/" className="text-xs text-indigo-400">← Dashboard</Link>
+      <Link href="/" className="text-xs text-red-500">← Dashboard</Link>
       <h1 className="mb-1 mt-3 text-xl font-bold">Sources</h1>
       <p className="mb-5 text-xs text-zinc-500">
         Each feed switches on with environment variables. Anything not configured is simply skipped — the rest keep running.

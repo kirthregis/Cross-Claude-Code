@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getGig } from "@/lib/db";
+import { registerProfileLoader } from "@/lib/profile-store";
 import { generateDealPack } from "@/lib/contract";
+
+registerProfileLoader();
 
 export const dynamic = "force-dynamic";
 

@@ -52,7 +52,7 @@ export default function Dashboard() {
       <header className="mb-5 flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Gig<span className="text-indigo-400">Radar</span>
+            Gig<span className="text-red-500">Radar</span>
           </h1>
           <p className="text-xs text-zinc-500">DJ Emy · Dubai</p>
         </div>
@@ -75,7 +75,7 @@ export default function Dashboard() {
         <div className="mt-2 flex items-center gap-2">
           <button
             onClick={addLead} disabled={busy || !paste.trim()}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium disabled:opacity-40"
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium disabled:opacity-40"
           >
             Add lead
           </button>
@@ -102,6 +102,8 @@ export default function Dashboard() {
       <Section title="Everything else" gigs={rest} accent="text-zinc-400" />
 
       <footer className="mt-10 border-t border-zinc-900 pt-4 text-center text-[11px] text-zinc-600">
+        <a href="/profile" className="underline hover:text-zinc-400">Artist profile &amp; rates</a>
+        <span className="mx-2 text-zinc-700">·</span>
         <a href="/sources" className="underline hover:text-zinc-400">Source status &amp; setup</a>
       </footer>
     </main>
