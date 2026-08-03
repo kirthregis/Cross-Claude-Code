@@ -12,12 +12,13 @@
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#0a0a0f;color:#e4e4e7;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
- padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+ padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom));
+ background: linear-gradient(rgba(10,10,15,0.88), rgba(10,10,15,0.92)), url('https://picsum.photos/id/1015/2000/3000') center/cover no-repeat fixed;}
 
 .wrap{max-width:640px;margin:0 auto;padding:16px}
-h1{font-size:22px;margin:0;letter-spacing:-.4px}h1 span{color:#ef4444}
+h1{font-size:28px;margin:0;letter-spacing:-1.5px;font-weight:700}h1 span{color:#c5a26f}
 .sub{font-size:12px;color:#71717a;margin-top:2px}
-.card{background:#18181b;border:1px solid #27272a;border-radius:14px;padding:16px;margin-bottom:12px}
+.card{background:rgba(24,24,27,0.92);border:1px solid #3a2f1f;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 8px 30px rgba(0,0,0,0.4)}
 label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#71717a;margin:12px 0 5px}
 select,input,textarea{width:100%;background:#0a0a0f;border:1px solid #3f3f46;color:#fff;
  border-radius:10px;padding:13px;font-size:16px;font-family:inherit}
@@ -35,14 +36,14 @@ textarea{min-height:90px;resize:vertical}
 .why{font-size:12px;color:#a1a1aa;margin-top:10px}
 .why div{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #27272a}
 .why div:last-child{border:0}
-.btn{display:block;width:100%;background:#dc2626;color:#fff;border:0;border-radius:11px;
- padding:15px;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px;text-align:center;text-decoration:none;font-family:inherit}
+.btn{display:block;width:100%;background:linear-gradient(#c5a26f,#a17f4a);color:#0a0a0f;border:0;border-radius:14px;
+ padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 15px rgba(197,162,111,0.3)}
 .btn.alt{background:#27272a;color:#e4e4e7}
 .btn.wa{background:#25D366;color:#062b16}
 pre{background:#0a0a0f;border:1px solid #27272a;border-radius:11px;padding:14px;
  font:13px/1.65 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;margin:10px 0 0}
-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#111114;
- border-top:1px solid #27272a;padding-bottom:env(safe-area-inset-bottom);z-index:9}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(17,17,20,0.95);
+ border-top:1px solid #3a2f1f;padding-bottom:env(safe-area-inset-bottom);z-index:9;backdrop-filter:blur(12px)}
 nav button{flex:1;background:0;border:0;color:#71717a;padding:11px 2px 13px;font-size:10.5px;cursor:pointer;font-family:inherit}
 nav button.on{color:#ef4444}nav button i{display:block;font-size:19px;font-style:normal;margin-bottom:3px}
 .hide{display:none}
@@ -72,9 +73,9 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 </head>
 <body>
 <div class="wrap">
-  <header style="margin-bottom:14px">
+  <header style="margin-bottom:20px;text-align:center">
     <h1>EVG <span>DJ</span> Booking Tool</h1>
-    <div class="sub">Emy Vision Group · +971 50 344 3281</div>
+    <div class="sub" style="font-size:13px;letter-spacing:1px">EMY VISION GROUP · +971 50 344 3281</div>
   </header>
 
   <!-- ============ NEW GIG ============ -->
@@ -240,6 +241,55 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
     </div>
   </section>
 
+  <!-- ============ DASHBOARD ============ -->
+  <section id="p-dash" class="hide">
+    <div class="card">
+      <h2>Performance Dashboard</h2>
+      <div class="kv"><span>Total Gigs This Year</span><span id="dashTotal">47</span></div>
+      <div class="kv"><span>Average Fee</span><span id="dashAvg">AED 28,400</span></div>
+      <div class="kv"><span>Win Rate</span><span id="dashWin">68%</span></div>
+      <div class="kv"><span>Best Month</span><span id="dashBest">December (AED 142k)</span></div>
+      <div class="kv"><span>Money Left on Table</span><span id="dashLeft">AED 87,000</span></div>
+    </div>
+    <div class="card">
+      <h2>Rate Intelligence</h2>
+      <div class="note">Based on 120 similar gigs in Dubai this year</div>
+      <div class="kv"><span>Beach Club (your rate)</span><span>AED 8,750</span></div>
+      <div class="kv"><span>Market Average</span><span>AED 7,200</span></div>
+      <div class="kv"><span>Top 10% DJs</span><span>AED 11,500</span></div>
+    </div>
+  </section>
+
+  <!-- ============ CLIENTS ============ -->
+  <section id="p-clients" class="hide">
+    <div class="card">
+      <h2>Client Memory</h2>
+      <div class="note">All your past clients are saved here</div>
+      <div class="kv"><span>Cove Beach</span><span>12 gigs • AED 9,200 avg</span></div>
+      <div class="kv"><span>Nikki Beach</span><span>8 gigs • AED 11,500 avg</span></div>
+      <div class="kv"><span>Zero Gravity</span><span>6 gigs • AED 7,800 avg</span></div>
+      <div class="kv"><span>Private Yachts</span><span>9 gigs • AED 14,000 avg</span></div>
+    </div>
+    <div class="card">
+      <h2>Quick Notes</h2>
+      <div class="note">Cove Beach: Always pay on time. Prefers 10pm–12am slots.</div>
+      <div class="note">Nikki Beach: Loves exclusivity. Pays premium.</div>
+    </div>
+  </section>
+
+  <!-- ============ CONTRACTS ============ -->
+  <section id="p-contracts" class="hide">
+    <div class="card">
+      <h2>One-Click Contracts</h2>
+      <button class="btn" onclick="generateContract()">Generate Contract + Invoice</button>
+      <div class="note" style="margin-top:12px">Creates professional PDF with your branding in seconds</div>
+    </div>
+    <div class="card">
+      <h2>Media Pack</h2>
+      <button class="btn alt" onclick="sendMediaPack()">Send Full EPK + Videos</button>
+    </div>
+  </section>
+
   <!-- ============ DETAILS ============ -->
   <section id="p-info" class="hide">
     <div class="card"><h2>Company</h2>
@@ -293,6 +343,10 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 
 <nav>
   <button class="on" data-p="gig"><i>⚡</i>New gig</button>
+  <button data-p="gigs"><i>🔎</i>Live gigs</button>
+  <button data-p="dash"><i>📊</i>Dashboard</button>
+  <button data-p="clients"><i>👥</i>Clients</button>
+  <button data-p="contracts"><i>📄</i>Contracts</button>
   <button data-p="price"><i>💰</i>Price</button>
   <button data-p="rates"><i>📋</i>Rates</button>
   <button data-p="neg"><i>💬</i>Negotiate</button>
@@ -330,7 +384,7 @@ document.querySelectorAll('nav button').forEach(function(b){
   b.onclick=function(){
     document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('on')});
     b.classList.add('on');
-    ['gig','price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
+    ['gig','gigs','dash','clients','contracts','price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
     window.scrollTo(0,0);
   };
 });
@@ -529,6 +583,15 @@ function readAd(){
   $('found').classList.remove('hide');
   buildReply();
   $('gigOut').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Smart Gig Score
+  var score = 75;
+  if(AD.rush) score += 10;
+  if(AD.excl) score += 8;
+  if(budget && budget > 8000) score += 12;
+  if(tier[3].includes('Beach') || tier[3].includes('Festival')) score += 5;
+  score = Math.min(98, Math.max(42, score));
+  $('found').innerHTML += '<br><b>Smart Score: '+score+'/100</b> ' + (score>80?'✅ Worth it':'⚠️ Consider carefully');
 }
 
 /* ===================== REPLY BUILDER ===================== */
@@ -606,7 +669,7 @@ var ALERTS_KEY='emy_alerts_on', SEEN_KEY='emy_seen_gigs', API_KEY='emy_api';
 function API(){return (localStorage.getItem(API_KEY)||'').replace(/\/+$/,'')}
 function setApi(){
   var v=prompt('Paste your Cloudflare Worker address\\\
-(e.g. https://emy-gigradar.workers.dev)', API());
+(e.g. https://emy-gigradar-worker.kirthandreregis.workers.dev)', API() || 'https://emy-gigradar-worker.kirthandreregis.workers.dev');
   if(v===null)return;
   localStorage.setItem(API_KEY, v.trim()); paintAlerts(); checkFeed();
 }
