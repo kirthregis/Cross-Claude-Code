@@ -19,7 +19,8 @@ import { sendPush, type PushSubscription } from "./push";
 import { DEFAULT_FEEDS, NOT_COVERED, type FeedSource } from "./feeds";
 
 export interface Env {
-  GIGS: KVNamespace;
+  /** Optional: /test works without it, everything else needs it. */
+  GIGS?: KVNamespace;
   VAPID_PUBLIC: string;
   VAPID_PRIVATE: string;
   VAPID_SUBJECT: string;
@@ -45,10 +46,12 @@ const json = (data: unknown, status = 200) =>
  * ------------------------------------------------------------------ */
 
 async function subscriptions(env: Env): Promise<Record<string, PushSubscription>> {
+  if (!env.GIGS) return {};
   return (await env.GIGS.get("subs", "json")) ?? {};
 }
 
 async function saveSubs(env: Env, subs: Record<string, PushSubscription>) {
+  if (!env.GIGS) return;
   await env.GIGS.put("subs", JSON.stringify(subs));
 }
 
@@ -67,6 +70,7 @@ interface FeedGig {
 }
 
 async function feed(env: Env): Promise<FeedGig[]> {
+  if (!env.GIGS) return [];
   return (await env.GIGS.get("feed", "json")) ?? [];
 }
 
@@ -77,7 +81,7 @@ async function feed(env: Env): Promise<FeedGig[]> {
 async function ingest(env: Env, leads: RawLead[]): Promise<{ added: number; pushed: number }> {
   const existing = await feed(env);
   const seen = new Set(
-    (await env.GIGS.get<string[]>("fingerprints", "json")) ?? []
+    (env.GIGS ? await env.GIGS.get<string[]>("fingerprints", "json") : null) ?? []
   );
 
   const fresh: { gig: Gig; feed: FeedGig }[] = [];
@@ -140,8 +144,10 @@ async function ingest(env: Env, leads: RawLead[]): Promise<{ added: number; push
     .sort((a, b) => b.score - a.score || b.at.localeCompare(a.at))
     .slice(0, 100);
 
-  await env.GIGS.put("feed", JSON.stringify(merged));
-  await env.GIGS.put("fingerprints", JSON.stringify([...seen].slice(-2000)));
+  if (env.GIGS) {
+    await env.GIGS.put("feed", JSON.stringify(merged));
+    await env.GIGS.put("fingerprints", JSON.stringify([...seen].slice(-2000)));
+  }
 
   // Quiet hours: only urgent gigs may wake her (02:00–09:00 Dubai, UTC+4).
   const dubaiHour = (new Date().getUTCHours() + 4) % 24;
@@ -290,6 +296,36 @@ async function pollFeeds(env: Env): Promise<{ leads: RawLead[]; reports: SourceR
  * HTTP
  * ------------------------------------------------------------------ */
 
+/** Self-contained page that runs /test and shows the result. */
+const REPORT_PAGE = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>GigRadar — does it find gigs?</title>
+<style>body{margin:0;background:#0a0a0f;color:#e4e4e7;font:15px/1.5 -apple-system,system-ui,sans-serif;padding:20px}
+.w{max-width:720px;margin:0 auto}h1{font-size:20px}h1 span{color:#ef4444}
+button{background:#dc2626;color:#fff;border:0;border-radius:10px;padding:14px 22px;font-size:15px;font-weight:600}
+.big{font-size:34px;font-weight:700;color:#34d399;margin:14px 0 2px}
+.card{background:#18181b;border:1px solid #27272a;border-radius:12px;padding:14px;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:6px;border-bottom:1px solid #27272a;text-align:left}
+.g{color:#34d399}.r{color:#f87171}.m{color:#71717a}small{color:#71717a}</style></head><body><div class="w">
+<h1>Gig<span>Radar</span> — live test</h1>
+<p><small>Runs a real sweep of every source. Stores nothing, alerts nobody.</small></p>
+<button onclick="go()">Run the test</button>
+<div id="o"></div>
+<script>
+async function go(){
+  var o=document.getElementById('o'); o.innerHTML='<p class="m">Checking every source…</p>';
+  try{
+    var d=await (await fetch('/test')).json();
+    var rows=(d.sources||[]).map(function(s){return '<tr><td>'+s.id+'</td><td class="'+(s.ok?'g':'r')+'">'+(s.ok?'ok':'fail')+'</td><td>'+s.items+'</td><td>'+s.kept+'</td><td class="m">'+(s.error||'')+'</td></tr>'}).join('');
+    var top=(d.top||[]).map(function(t){return '<tr><td>'+t.score+'</td><td>'+t.tier+'</td><td>'+t.title+'</td></tr>'}).join('');
+    o.innerHTML='<div class="card"><div class="big">'+d.leadsFound+'</div><small>DJ listings found right now</small>'+
+      '<div class="big">'+d.wouldAlert+'</div><small>worth alerting her about</small></div>'+
+      '<div class="card"><b>Every source</b><table><tr><th>source</th><th></th><th>items</th><th>kept</th><th></th></tr>'+rows+'</table></div>'+
+      (top?'<div class="card"><b>Top gigs found</b><table><tr><th>score</th><th>tier</th><th>listing</th></tr>'+top+'</table></div>':'')+
+      '<div class="card"><b>Not covered — honestly</b><ul>'+(d.notCovered||[]).map(function(n){return '<li>'+n+'</li>'}).join('')+'</ul></div>';
+  }catch(e){ o.innerHTML='<p class="r">Failed: '+e+'</p>' }
+}
+</script></div></body></html>`;
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
@@ -376,6 +412,10 @@ export default {
         top: scored.slice(0, 25),
         notCovered: NOT_COVERED,
       });
+    }
+
+    if (path === "/" && (req.headers.get("accept") ?? "").includes("text/html")) {
+      return new Response(REPORT_PAGE, { headers: { "Content-Type": "text/html; charset=utf-8" } });
     }
 
     return json({
