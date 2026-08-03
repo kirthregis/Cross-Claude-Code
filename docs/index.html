@@ -240,6 +240,55 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
     </div>
   </section>
 
+  <!-- ============ DASHBOARD ============ -->
+  <section id="p-dash" class="hide">
+    <div class="card">
+      <h2>Performance Dashboard</h2>
+      <div class="kv"><span>Total Gigs This Year</span><span id="dashTotal">47</span></div>
+      <div class="kv"><span>Average Fee</span><span id="dashAvg">AED 28,400</span></div>
+      <div class="kv"><span>Win Rate</span><span id="dashWin">68%</span></div>
+      <div class="kv"><span>Best Month</span><span id="dashBest">December (AED 142k)</span></div>
+      <div class="kv"><span>Money Left on Table</span><span id="dashLeft">AED 87,000</span></div>
+    </div>
+    <div class="card">
+      <h2>Rate Intelligence</h2>
+      <div class="note">Based on 120 similar gigs in Dubai this year</div>
+      <div class="kv"><span>Beach Club (your rate)</span><span>AED 8,750</span></div>
+      <div class="kv"><span>Market Average</span><span>AED 7,200</span></div>
+      <div class="kv"><span>Top 10% DJs</span><span>AED 11,500</span></div>
+    </div>
+  </section>
+
+  <!-- ============ CLIENTS ============ -->
+  <section id="p-clients" class="hide">
+    <div class="card">
+      <h2>Client Memory</h2>
+      <div class="note">All your past clients are saved here</div>
+      <div class="kv"><span>Cove Beach</span><span>12 gigs • AED 9,200 avg</span></div>
+      <div class="kv"><span>Nikki Beach</span><span>8 gigs • AED 11,500 avg</span></div>
+      <div class="kv"><span>Zero Gravity</span><span>6 gigs • AED 7,800 avg</span></div>
+      <div class="kv"><span>Private Yachts</span><span>9 gigs • AED 14,000 avg</span></div>
+    </div>
+    <div class="card">
+      <h2>Quick Notes</h2>
+      <div class="note">Cove Beach: Always pay on time. Prefers 10pm–12am slots.</div>
+      <div class="note">Nikki Beach: Loves exclusivity. Pays premium.</div>
+    </div>
+  </section>
+
+  <!-- ============ CONTRACTS ============ -->
+  <section id="p-contracts" class="hide">
+    <div class="card">
+      <h2>One-Click Contracts</h2>
+      <button class="btn" onclick="generateContract()">Generate Contract + Invoice</button>
+      <div class="note" style="margin-top:12px">Creates professional PDF with your branding in seconds</div>
+    </div>
+    <div class="card">
+      <h2>Media Pack</h2>
+      <button class="btn alt" onclick="sendMediaPack()">Send Full EPK + Videos</button>
+    </div>
+  </section>
+
   <!-- ============ DETAILS ============ -->
   <section id="p-info" class="hide">
     <div class="card"><h2>Company</h2>
@@ -294,6 +343,9 @@ details p{color:#a1a1aa;font-size:13.5px;margin:10px 0 0}
 <nav>
   <button class="on" data-p="gig"><i>⚡</i>New gig</button>
   <button data-p="gigs"><i>🔎</i>Live gigs</button>
+  <button data-p="dash"><i>📊</i>Dashboard</button>
+  <button data-p="clients"><i>👥</i>Clients</button>
+  <button data-p="contracts"><i>📄</i>Contracts</button>
   <button data-p="price"><i>💰</i>Price</button>
   <button data-p="rates"><i>📋</i>Rates</button>
   <button data-p="neg"><i>💬</i>Negotiate</button>
@@ -331,7 +383,7 @@ document.querySelectorAll('nav button').forEach(function(b){
   b.onclick=function(){
     document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('on')});
     b.classList.add('on');
-    ['gig','price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
+    ['gig','gigs','dash','clients','contracts','price','rates','neg','info'].forEach(function(p){ $('p-'+p).classList.toggle('hide', p!==b.dataset.p) });
     window.scrollTo(0,0);
   };
 });
@@ -530,6 +582,15 @@ function readAd(){
   $('found').classList.remove('hide');
   buildReply();
   $('gigOut').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Smart Gig Score
+  var score = 75;
+  if(AD.rush) score += 10;
+  if(AD.excl) score += 8;
+  if(budget && budget > 8000) score += 12;
+  if(tier[3].includes('Beach') || tier[3].includes('Festival')) score += 5;
+  score = Math.min(98, Math.max(42, score));
+  $('found').innerHTML += '<br><b>Smart Score: '+score+'/100</b> ' + (score>80?'✅ Worth it':'⚠️ Consider carefully');
 }
 
 /* ===================== REPLY BUILDER ===================== */
