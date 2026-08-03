@@ -1,0 +1,30 @@
+name = "emy-gigradar"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ---------------------------------------------------------------------------
+# STEP 1 — just deploy. Nothing below needs editing to run the /test proof.
+#   npx wrangler deploy
+# Then open the URL it prints and press "Run the test".
+# ---------------------------------------------------------------------------
+
+# STEP 2 — turn on alerts and storage. Uncomment after running:
+#   npx wrangler kv namespace create GIGS
+# and paste the id it prints below.
+#
+# [[kv_namespaces]]
+# binding = "GIGS"
+# id = "PASTE_THE_ID_HERE"
+#
+# [triggers]
+# crons = ["*/5 * * * *"]
+
+[vars]
+VAPID_SUBJECT = "mailto:admin@emyvisiongroup.com"
+# Public half of the push key pair, from: npx web-push generate-vapid-keys
+VAPID_PUBLIC = ""
+
+# Secrets — never written in this file:
+#   npx wrangler secret put VAPID_PRIVATE
+#   npx wrangler secret put INGEST_KEY
