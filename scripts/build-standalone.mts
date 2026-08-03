@@ -759,7 +759,7 @@ function copyMsg(b){copyTxt($('gMsg').textContent,b,'Copied \\u2713')}
 var ALERTS_KEY='emy_alerts_on', SEEN_KEY='emy_seen_gigs', API_KEY='emy_api';
 function API(){return (localStorage.getItem(API_KEY)||'').replace(/\\/+$/,'')}
 function setApi(){
-  var v=prompt('Paste your Cloudflare Worker address\\\\\\\n(e.g. https://emy-gigradar.workers.dev)', API());
+  var v=prompt('Paste your Cloudflare Worker address\\\\\\\n(e.g. https://emy-gigradar-worker.kirthandreregis.workers.dev)', API() || 'https://emy-gigradar-worker.kirthandreregis.workers.dev');
   if(v===null)return;
   localStorage.setItem(API_KEY, v.trim()); paintAlerts(); checkFeed();
 }
