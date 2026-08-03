@@ -1,0 +1,12 @@
+# Root config so Cloudflare's dashboard can deploy this with no setup.
+# Deploy from the website: Workers -> Create -> Connect to Git.
+name = "emy-gigradar"
+main = "worker/src/index.ts"
+compatibility_date = "2025-07-18"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+VAPID_SUBJECT = "mailto:admin@emyvisiongroup.com"
+VAPID_PUBLIC = ""
+
+# Storage and the 5-minute sweep switch on later; the proof page needs neither.
