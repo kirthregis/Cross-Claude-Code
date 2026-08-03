@@ -1,6 +1,6 @@
 # GigRadar — DJ Emy
 
-> ### 📄 Want the documents without running anything?
+> ### 📄  Want the documents without running anything?
 > Open the **[`pack/`](pack/)** folder. Rate card, pitch scripts, negotiation
 > playbook, contract, invoice, runsheet and press pack — all generated, all
 > usable right now. Nothing to install.
