@@ -16,6 +16,7 @@ import { scoreGig } from "../../src/lib/score";
 import { quote } from "../../src/lib/pricing";
 import type { Gig, RawLead } from "../../src/lib/types";
 import { sendPush, type PushSubscription } from "./push";
+import { DEFAULT_FEEDS, NOT_COVERED, type FeedSource } from "./feeds";
 
 export interface Env {
   GIGS: KVNamespace;
@@ -129,6 +130,9 @@ async function ingest(env: Env, leads: RawLead[]): Promise<{ added: number; push
     });
   }
 
+  // Only write when something actually changed. The cron fires 288x/day and
+  // the KV free tier allows 1,000 writes/day — writing on every empty sweep
+  // would burn 58% of the daily budget for nothing.
   if (!fresh.length) return { added: 0, pushed: 0 };
 
   // Newest and best first; keep the feed bounded.
@@ -183,44 +187,103 @@ async function ingest(env: Env, leads: RawLead[]): Promise<{ added: number; push
  * Sources polled on the cron
  * ------------------------------------------------------------------ */
 
-async function pollFeeds(env: Env): Promise<RawLead[]> {
-  const urls = [
+/** Strip tags and decode the handful of entities that matter. */
+function textOf(x: string): string {
+  return x
+    .replace(/<!\[CDATA\[|\]\]>/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#8217;|&rsquo;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+interface SourceReport { id: string; ok: boolean; items: number; kept: number; error?: string }
+
+async function fetchSource(src: FeedSource): Promise<{ leads: RawLead[]; report: SourceReport }> {
+  const report: SourceReport = { id: src.id, ok: false, items: 0, kept: 0 };
+  const leads: RawLead[] = [];
+  try {
+    const res = await fetch(src.url, {
+      headers: {
+        // Identify honestly; many boards block blank agents.
+        "User-Agent": "Mozilla/5.0 (compatible; GigRadar/1.0; +https://emyvisiongroup.com)",
+        Accept: "application/rss+xml, application/xml, text/html;q=0.9, application/json;q=0.8",
+      },
+      signal: AbortSignal.timeout(12_000),
+      cf: { cacheTtl: 240, cacheEverything: true },
+    });
+    if (!res.ok) { report.error = `HTTP ${res.status}`; return { leads, report }; }
+    const body = await res.text();
+    const host = new URL(src.url).hostname;
+
+    const push = (title: string, desc: string, link?: string, when?: string) => {
+      report.items++;
+      const blob = `${title} ${desc}`;
+      if (src.match && !src.match.test(blob)) return;
+      if (src.reject && src.reject.test(blob)) return;
+      report.kept++;
+      leads.push({
+        sourceKind: "gig_board",
+        sourceName: src.label,
+        sourceUrl: link,
+        title: title.slice(0, 200),
+        body: desc.slice(0, 2000),
+        postedAt: when ? new Date(when).toISOString() : new Date().toISOString(),
+      });
+    };
+
+    if (src.kind === "json" || body.trimStart().startsWith("[") || body.trimStart().startsWith("{")) {
+      const rows = JSON.parse(body);
+      for (const r of (Array.isArray(rows) ? rows : rows.jobs ?? rows.results ?? [])) {
+        push(r.title ?? r.name ?? "Listing", r.description ?? r.snippet ?? "", r.url ?? r.link, r.updated ?? r.date);
+      }
+    } else if (body.includes("<item") || body.includes("<entry")) {
+      for (const item of body.split(/<item[\s>]|<entry[\s>]/).slice(1)) {
+        const pick = (t: string) => {
+          const m = item.match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`, "i"));
+          return m ? textOf(m[1]) : "";
+        };
+        push(pick("title"), pick("description") || pick("summary") || pick("content"),
+             pick("link") || item.match(/<link[^>]*href="([^"]+)"/i)?.[1], pick("pubDate") || pick("updated"));
+      }
+    } else {
+      // HTML fallback: pull anchor text that mentions a DJ role, plus nearby copy.
+      const seen = new Set<string>();
+      const re = /<a[^>]+href="([^"]+)"[^>]*>([\s\S]{0,180}?)<\/a>/gi;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(body))) {
+        const label = textOf(m[2]);
+        if (label.length < 12 || seen.has(label)) continue;
+        if (!/\b(dj|deejay|disc jockey|resident|entertain)/i.test(label)) continue;
+        seen.add(label);
+        const ctx = textOf(body.slice(m.index, m.index + 900));
+        const href = m[1].startsWith("http") ? m[1] : new URL(m[1], src.url).toString();
+        push(label, ctx, href);
+        if (seen.size >= 40) break;
+      }
+    }
+    report.ok = true;
+  } catch (e) {
+    report.error = e instanceof Error ? e.message : String(e);
+  }
+  return { leads, report };
+}
+
+async function pollFeeds(env: Env): Promise<{ leads: RawLead[]; reports: SourceReport[] }> {
+  const extra: FeedSource[] = [
     ...(env.CALENDAR_FEEDS?.split(",") ?? []),
     ...(env.BOARD_FEEDS?.split(",") ?? []),
-  ].map((u) => u.trim()).filter(Boolean);
-
-  const out: RawLead[] = [];
-  await Promise.all(urls.map(async (url) => {
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-      if (!res.ok) return;
-      const text = await res.text();
-      const host = new URL(url).hostname;
-
-      if (text.trimStart().startsWith("<")) {
-        for (const item of text.split(/<item>|<entry>/).slice(1)) {
-          const pick = (tag: string) =>
-            item.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))?.[1]
-              ?.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
-          out.push({
-            sourceKind: "event_calendar", sourceName: host,
-            sourceUrl: pick("link"), title: pick("title") ?? "Listing",
-            body: pick("description") ?? "", postedAt: new Date().toISOString(),
-          });
-        }
-      } else {
-        for (const r of JSON.parse(text) as Record<string, string>[]) {
-          out.push({
-            sourceKind: "gig_board", sourceName: host, sourceUrl: r.url,
-            title: r.title ?? "Listing", body: r.description ?? "",
-            postedAt: r.postedAt ?? new Date().toISOString(),
-          });
-        }
-      }
-    } catch { /* skip a bad feed */ }
+  ].map((u) => u.trim()).filter(Boolean).map((url, i) => ({
+    id: `custom-${i}`, label: new URL(url).hostname, url, kind: "rss" as const,
   }));
 
-  return out;
+  const all = [...DEFAULT_FEEDS, ...extra];
+  const results = await Promise.all(all.map(fetchSource));
+  return {
+    leads: results.flatMap((r) => r.leads),
+    reports: results.map((r) => r.report),
+  };
 }
 
 /* ------------------------------------------------------------------ *
@@ -283,21 +346,48 @@ export default {
     }
 
     // Manual sweep trigger, useful for testing.
+    // Run a sweep now and report exactly what each source returned. This is
+    // the "does it actually find gigs?" endpoint — no claims, just counts.
     if (path === "/sweep") {
-      const leads = await pollFeeds(env);
-      return json(await ingest(env, leads));
+      const { leads, reports } = await pollFeeds(env);
+      const result = await ingest(env, leads);
+      return json({
+        ...result,
+        leadsFound: leads.length,
+        sources: reports,
+        notCovered: NOT_COVERED,
+      });
+    }
+
+    // Dry run: what would we find, without storing or alerting?
+    if (path === "/test") {
+      const { leads, reports } = await pollFeeds(env);
+      const scored = leads.map((l) => {
+        try {
+          const g = normalise(l);
+          const s = scoreGig(g);
+          return { title: l.title.slice(0, 90), source: l.sourceName, score: s.score, tier: s.tier };
+        } catch { return null; }
+      }).filter(Boolean).sort((a, b) => (b!.score - a!.score));
+      return json({
+        leadsFound: leads.length,
+        wouldAlert: scored.filter((s) => s!.tier !== "suppress").length,
+        sources: reports,
+        top: scored.slice(0, 25),
+        notCovered: NOT_COVERED,
+      });
     }
 
     return json({
       service: "GigRadar",
-      endpoints: ["/feed.json", "/vapid", "/subscribe", "/ingest/whatsapp", "/ingest/email", "/ingest/manual", "/sweep"],
+      endpoints: ["/feed.json", "/vapid", "/subscribe", "/ingest/whatsapp", "/ingest/email", "/ingest/manual", "/sweep", "/test"],
     });
   },
 
   // The radar.
   async scheduled(_evt: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil((async () => {
-      const leads = await pollFeeds(env);
+      const { leads } = await pollFeeds(env);
       if (leads.length) await ingest(env, leads);
     })());
   },
