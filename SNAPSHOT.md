@@ -22,6 +22,7 @@ Or just download the matching zip and unzip it anywhere.
 |---|---|---|
 | `studio-v1-reset` | 2026-08-05 | EMY Studio core: mastering (offline DSP, LUFS), artwork (Gemini + fal.ai + templates), release pack, checks, voice assistant (male voice), suggestion loop → dev inbox (`npm run inbox`) + admin back end, distribute page, PWA, dev setup (`npm run devcheck`). All 161 tests pass. |
 | `studio-v2-library` | 2026-08-05 | Adds: Music Library tab (import files/folders, on-device player, free legal sources + Archive.org netlabel search), Audio output routing to a DJ controller sound card (Settings), one-tap social share buttons (Release tab), GigRadar linked in the nav + home, port 3001 fixed. All 161 tests pass. |
+| `studio-v3-identity` | 2026-08-05 | Adds: floating voice assistant on EVERY page (global mic button, navigates her anywhere); home feature cards live (open the right project tab); clearer Gemini/fal.ai engine choice in Artwork (fal.ai via key = no website login); EPK tab (bio, highlights, press quotes, socials, rider, management, portrait upload, print/PDF + copy); identity-aware covers (Desert Gold template, heritage woven into the AI prompt); identity strip on studio home. 161 tests pass. |
 
 ## What was deliberately NOT built (read before adding)
 

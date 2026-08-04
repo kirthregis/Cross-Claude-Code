@@ -24,6 +24,14 @@ export const GUIDE_STEPS: GuideStep[] = [
   },
   {
     n: 1,
+    title: "Keep your EPK fresh",
+    short: "Bio, highlights, press quotes, links — edit & export",
+    detail: "The EPK tab holds her professional profile (Tunisian-born, Qatar-raised, EVG) — edit the bio, highlights, press quotes, socials and tech rider, upload the portrait, then Print → Save as PDF or copy the full text for any venue or label.",
+    icon: "📇",
+    command: "“Open my EPK”",
+  },
+  {
+    n: 3,
     title: "Create a project",
     short: "Give the mix a name",
     detail: "Tap + New project, name it (e.g. “Afro House Mix 2026”), pick Mix or Track. Or just say “create a new mix project” to the assistant.",
@@ -31,7 +39,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     command: "“Create a new mix project”",
   },
   {
-    n: 2,
+    n: 4,
     title: "Import & master",
     short: "Drop in your mix, press Master",
     detail: "In the Master tab, drag your finished mix (MP3/WAV/M4A…). Pick a target — YouTube/Spotify is -14 LUFS — hit Master. It renders on this device and pings you when done. Export the 48 kHz WAV when it finishes.",
@@ -40,7 +48,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     command: "“Master my mix”",
   },
   {
-    n: 3,
+    n: 5,
     title: "Make the cover",
     short: "AI design or a template",
     detail: "In the Artwork tab, press Generate for an AI cover from your track's vibe (Gemini or fal.ai), or pick an offline template. Either way it comes out exactly 3000×3000 — what YouTube and stores want.",
@@ -49,7 +57,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     command: "“Make the cover art”",
   },
   {
-    n: 4,
+    n: 6,
     title: "Build the release pack",
     short: "Title, description, tags — written for you",
     detail: "One tap in the Release tab writes the YouTube title (e.g. “Afro House Mix 2026 | DJ EMY”), the description with your Instagram/TikTok, and the tags — all within platform limits. Copy it or download the notes file.",
@@ -58,7 +66,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     command: "“Build the release pack”",
   },
   {
-    n: 5,
+    n: 7,
     title: "Check it's ready",
     short: "The same review a label runs",
     detail: "The Check tab tests loudness, format, artwork and text against YouTube/Instagram/label rules and tells you exactly what to fix if anything's red.",
@@ -67,7 +75,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     command: "“Is it ready?”",
   },
   {
-    n: 6,
+    n: 8,
     title: "Get it out there",
     short: "Free distribution + where DJs post",
     detail: "Open the Distribute page for the free places to push it: Spotify/Apple via RouteNote or FreshTunes, mixes on SoundCloud/Mixcloud/1001Tracklists, labels via LabelRadar.",

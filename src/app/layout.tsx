@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PwaRegister } from "@/components/PwaRegister";
+import { GlobalAssistant } from "@/components/studio/GlobalAssistant";
 
 export const metadata: Metadata = {
   title: "EMY Studio — DJ Emy",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-[#0a0a0f] text-zinc-100 antialiased">
         {children}
         <PwaRegister />
+        <GlobalAssistant />
       </body>
     </html>
   );

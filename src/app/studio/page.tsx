@@ -10,6 +10,7 @@ import { FeedbackBox } from "@/components/studio/FeedbackBox";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
 import type { ProjectKind } from "@/lib/studio/types";
 import { createProject, deleteProject, loadSettings, saveSettings, useProjects } from "@/lib/studio/store";
+import { loadEpk } from "@/lib/studio/epk-store";
 
 export default function StudioHome() {
   const router = useRouter();
@@ -40,6 +41,29 @@ export default function StudioHome() {
         </div>
         <Button onClick={() => setShowForm((v) => !v)}>{showForm ? "Cancel" : "+ New project"}</Button>
       </div>
+
+      {/* identity strip */}
+      <Link
+        href="/studio/epk"
+        className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 transition hover:border-fuchsia-500/50"
+      >
+        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-zinc-700 bg-zinc-900">
+          {(() => {
+            const epk = loadEpk();
+            return epk.photoDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={epk.photoDataUrl} alt={epk.stageName} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-lg">🎤</div>
+            );
+          })()}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold text-zinc-100">{loadEpk().stageName} — {loadEpk().origin}</div>
+          <div className="truncate text-xs text-zinc-500">{loadEpk().tagline}</div>
+        </div>
+        <span className="shrink-0 text-xs font-semibold text-fuchsia-400">EPK →</span>
+      </Link>
 
       <StudioGuide onCreateProject={(n, k) => makeProject(n, k)} /> 
 
@@ -116,15 +140,28 @@ export default function StudioHome() {
 
       <div className="grid gap-3 sm:grid-cols-3">
         {[
-          { icon: "🎚", title: "Master in-browser", text: "EQ, compression, limiting and loudness to -14 LUFS — on the device, no internet needed." },
-          { icon: "🎨", title: "Cover art in seconds", text: "AI-designed covers (Gemini or fal.ai) or offline templates, exported at 3000×3000." },
-          { icon: "📦", title: "Release-ready", text: "Title, description, tags, checks — formatted so YouTube and labels accept it first time." },
+          { icon: "🎚", title: "Master in-browser", text: "EQ, compression, limiting and loudness to -14 LUFS — on the device, no internet needed.", tab: "master" as const },
+          { icon: "🎨", title: "Cover art in seconds", text: "AI-designed covers (Gemini or fal.ai) or offline templates, exported at 3000×3000.", tab: "artwork" as const },
+          { icon: "📦", title: "Release-ready", text: "Title, description, tags, checks — formatted so YouTube and labels accept it first time.", tab: "release" as const },
         ].map((f) => (
-          <div key={f.title} className="rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4">
+          <button
+            key={f.title}
+            onClick={() => {
+              if (projects.length === 0) {
+                setShowForm(true);
+                return;
+              }
+              router.push(`/studio/p/${projects[0].meta.id}?tab=${f.tab}`);
+            }}
+            className="group rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4 text-left transition hover:border-fuchsia-500/60 hover:bg-zinc-900"
+          >
             <div className="text-2xl">{f.icon}</div>
-            <div className="mt-2 text-sm font-semibold text-zinc-200">{f.title}</div>
+            <div className="mt-2 text-sm font-semibold text-zinc-200 group-hover:text-fuchsia-300">{f.title}</div>
             <div className="mt-1 text-xs leading-relaxed text-zinc-500">{f.text}</div>
-          </div>
+            <div className="mt-2 text-[11px] font-semibold text-fuchsia-400 opacity-0 transition group-hover:opacity-100">
+              {projects.length === 0 ? "Create a project to start →" : "Open in your latest project →"}
+            </div>
+          </button>
         ))}
       </div>
 

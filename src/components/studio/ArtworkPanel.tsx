@@ -212,28 +212,40 @@ export function ArtworkPanel({ project, onChanged }: { project: Project; onChang
         <div className="space-y-4">
           {/* AI */}
           <Card className="p-4 sm:p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <SectionLabel>AI cover design</SectionLabel>
-              <div className="flex rounded-lg border border-zinc-700 p-0.5">
-                {(["gemini", "fal"] as const).map((p) => (
+            <SectionLabel>AI cover design — choose the engine</SectionLabel>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {(["gemini", "fal"] as const).map((p) => {
+                const ready = p === "gemini" ? hasGemini || !!serverAi?.serverGemini : hasFal || !!serverAi?.serverFal;
+                return (
                   <button
                     key={p}
                     onClick={() => setProvider(p)}
-                    className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
-                      provider === p ? "bg-fuchsia-500/20 text-fuchsia-300" : "text-zinc-500 hover:text-zinc-300"
+                    className={`rounded-xl border p-3 text-left transition ${
+                      provider === p ? "border-fuchsia-500 bg-fuchsia-500/10" : "border-zinc-700 bg-zinc-950/50 hover:border-zinc-500"
                     }`}
                   >
-                    {p === "gemini" ? "Gemini (free)" : "fal.ai"}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-zinc-100">{p === "gemini" ? "Gemini" : "fal.ai"}</span>
+                      <span className={`h-2.5 w-2.5 rounded-full ${ready ? "bg-emerald-400" : "bg-zinc-600"}`} title={ready ? "Connected" : "Not connected yet"} />
+                    </div>
+                    <div className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+                      {p === "gemini"
+                        ? "Free tier · great all-round covers"
+                        : "Flux / Recraft / Ideogram · best typography & design"}
+                    </div>
+                    <div className={`mt-1.5 text-[10px] font-semibold ${ready ? "text-emerald-300" : "text-amber-300"}`}>
+                      {ready ? "✓ Ready to generate" : p === "fal" ? "Key needed (Settings)" : "Key needed (Settings)"}
+                    </div>
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
             <p className="mt-2 text-xs text-zinc-500">
               Describe the vibe and I&apos;ll design a print-quality cover. The prompt is pre-filled from your project — tweak it and press Generate.
             </p>
             {provider === "fal" && (
-              <div className="mt-2 text-[11px] text-zinc-500">
-                Engine: <span className="font-semibold text-zinc-300">{falModelLabel}</span> · pay-per-image from your fal.ai credits · switch models in Settings.
+              <div className="mt-2 rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px] leading-relaxed text-zinc-500">
+                fal.ai runs <span className="text-zinc-300">directly through her API key</span> (set once in Settings) — the cover generates without ever opening or logging into the fal.ai website. Engine: <span className="font-semibold text-zinc-300">{falModelLabel}</span> · pay-per-image · switch models in Settings.
               </div>
             )}
             <textarea

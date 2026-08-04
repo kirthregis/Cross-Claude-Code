@@ -34,6 +34,24 @@ stored on the device, her Gemini key stays on the device.
 
 ---
 
+## Talk to the studio from anywhere + her identity
+
+- **Global voice assistant**: a floating 🎙 button sits on EVERY page (gigs,
+  studio, library, EPK, settings). She taps it anywhere, says what she needs
+  ("open the library", "master my mix", "open my EPK") and it navigates her —
+  no need to be on the home screen.
+- **Home cards are live**: Master / Cover art / Release-ready open the right
+  tab of her most recent project (or prompt to create one).
+- **Cover engine choice**: the Artwork tab shows Gemini vs fal.ai as two clear
+  options with connection status. fal.ai runs through her API key — the cover
+  generates without ever logging into the fal.ai website.
+- **EPK tab** (`/studio/epk`): her real identity (Tunisian-born, Qatar-raised;
+  EVG) with editable bio, highlights, press quotes, socials, tech rider,
+  management, portrait upload, and Print → PDF / Copy full EPK export.
+- **Identity in artwork**: a "Desert Gold" template (crescent over dunes) and
+  the AI cover prompt weaves in her heritage (Tunisia → Qatar, desert gold,
+  geometric North African patterns).
+
 ## Music library, DJ-controller audio & one-tap sharing
 
 - **Library tab** (`/studio/library`): import her tracks (files or whole

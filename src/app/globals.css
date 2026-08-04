@@ -28,3 +28,10 @@ body {
 .prose-doc hr { border-color: #27272a; margin: 1rem 0; }
 .prose-doc strong { color: #fff; }
 .prose-doc code { background: #18181b; padding: .1rem .3rem; border-radius: .2rem; }
+
+/* EPK prints clean: light background, dark text, hide the buttons. */
+@media print {
+  #epk-print { background: #fff !important; color: #111 !important; }
+  #epk-print * { color: #111 !important; border-color: #ccc !important; background: transparent !important; box-shadow: none !important; }
+  #epk-print .print\:hidden, #epk-print button, #epk-print input, #epk-print textarea, #epk-print select { display: none !important; }
+}
