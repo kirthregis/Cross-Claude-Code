@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   detectBudgetAed, detectSetLength, detectSlot, detectVenueTier,
-  detectArea, detectContacts, detectEventDate, fingerprint, normalise,
+  detectArea, detectContacts, detectEventDate, detectVenueName, fingerprint, normalise,
 } from "../extract";
 
 describe("budget extraction", () => {
@@ -92,5 +92,25 @@ describe("full normalise", () => {
     expect(g.slot).toBe("peak");
     expect(g.genresWanted).toContain("Afro House");
     expect(g.contacts.some((c) => c.whatsapp)).toBe(true);
+  });
+});
+
+describe("extraction robustness fixes", () => {
+  it("detects short minute sets (45 min, 10 min)", () => {
+    expect(detectSetLength("45 min opener")).toBe(45);
+    expect(detectSetLength("10 minute set")).toBe(undefined); // too short to be a DJ set
+  });
+  it("parses dashed/spaced UAE phone variants to E.164", () => {
+    const c = detectContacts("WhatsApp 050 123 4567 or +971-50-987-6543");
+    const nums = c.map((x) => x.phone).filter(Boolean);
+    expect(nums).toContain("+971501234567");
+    expect(nums).toContain("+971509876543");
+  });
+  it("captures @handle venue with no space", () => {
+    expect(detectVenueName("playing @CoveBeach this Friday")).toBe("CoveBeach");
+  });
+  it("detects added Dubai areas", () => {
+    expect(detectArea("event at Motor City")).toBe("Motor City");
+    expect(detectArea("festival in Dubai Silicon Oasis")).toBe("Dubai Silicon Oasis");
   });
 });

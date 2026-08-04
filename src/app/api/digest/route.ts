@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { sendMorningDigest } from "@/lib/notify";
 import { pendingDeferred } from "@/lib/db";
 import { registerProfileLoader } from "@/lib/profile-store";
+import { registerSettingsLoader } from "@/lib/settings-store";
 
 registerProfileLoader();
+registerSettingsLoader();
 
 export const dynamic = "force-dynamic";
 
