@@ -229,12 +229,17 @@ Also review:
 | `src/lib/studio/release.ts` | Title/description/tags/file names + compliance checks |
 | `src/lib/studio/assistant.ts` | Offline voice-command brain (works with zero keys) |
 | `src/lib/studio/gemini.ts` | Free-tier Gemini REST client (chat + image) |
+| `src/lib/studio/fal.ts` | fal.ai image client (Flux/Recraft/Ideogram) |
+| `src/lib/studio/server-ai.ts` | Resolves server vs device AI keys (handoff mode) |
 | `src/lib/studio/artwork.ts` | Canvas templates + AI cover pipeline (3000×3000) |
 | `src/lib/studio/store.ts` | localStorage + IndexedDB persistence |
-| `src/app/api/studio/*` | Email ping routes (Resend, server-side only) |
+| `src/app/api/studio/*` | Server proxies: AI keys + email ping, env-driven, never in the bundle |
+| `src/app/studio/distribute` | Free distribution/hosting/label-submission links (2026) |
 
-The studio is a PWA (`public/sw.js`, `public/manifest.json`, icons) — installs
-to the home screen, works offline after first visit.
+Developer handoff: set `GEMINI_API_KEY` / `FAL_KEY` / `RESEND_API_KEY` in
+env (see `.env.example`) once — the app is fully functional for the artist
+with no setup. The studio is a PWA (`public/sw.js`, `public/manifest.json`,
+icons) — installs to the home screen, works offline after first visit.
 
 ## Architecture
 

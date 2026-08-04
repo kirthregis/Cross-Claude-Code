@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { AssistantDecision, ChatTurn, Project, ProjectKind } from "@/lib/studio/types";
 import { routeCommand, replyForIntent } from "@/lib/studio/assistant";
 import { isGeminiConfigured, geminiChat } from "@/lib/studio/gemini";
+import { getServerAiStatus, serverTextChat } from "@/lib/studio/server-ai";
 import { speak, speechSupported, startListening } from "@/lib/studio/speech";
 import { loadSettings, upsertProject } from "@/lib/studio/store";
 import { Button, Card } from "./ui";
@@ -111,26 +112,30 @@ export function AssistantPanel({
 
       pushUser(text, intent);
       const hasGemini = isGeminiConfigured(settings);
+      const serverAi = await getServerAiStatus();
+      const canUseAi = hasGemini || serverAi.serverGemini;
       const decision = replyForIntent(intent, {
         project,
         projectCount: 0,
-        hasGemini,
+        hasGemini: canUseAi,
       });
 
-      if (decision.intent === "fallback" && hasGemini) {
+      if (decision.intent === "fallback" && canUseAi) {
         try {
           const history = [...messages, { role: "user" as const, text, at: Date.now() }]
             .slice(-8)
             .map((t) => ({ role: t.role === "assistant" ? ("model" as const) : ("user" as const), parts: [{ text: t.text }] }));
-          const res = await geminiChat({
-            key: settings.geminiKey,
-            model: settings.geminiTextModel,
-            system: systemPrompt(project),
-            messages: history,
-          });
-          pushAssistant(res.text, "gemini");
+          const resText = serverAi.serverGemini
+            ? await serverTextChat(systemPrompt(project), history)
+            : (await geminiChat({
+                key: settings.geminiKey,
+                model: settings.geminiTextModel,
+                system: systemPrompt(project),
+                messages: history,
+              })).text;
+          pushAssistant(resText, "gemini");
         } catch (e) {
-          pushAssistant(`Gemini hit a snag: ${e instanceof Error ? e.message : "unknown error"}. Check the key in Settings — or try a command like "master my mix".`, "fallback");
+          pushAssistant(`The AI hit a snag: ${e instanceof Error ? e.message : "unknown error"}. Try a command like "master my mix" instead.`, "fallback");
         }
       } else {
         pushAssistant(decision.reply, decision.intent);

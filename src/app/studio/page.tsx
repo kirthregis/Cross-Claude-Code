@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AssistantPanel } from "@/components/studio/AssistantPanel";
@@ -112,7 +113,7 @@ export default function StudioHome() {
       <div className="grid gap-3 sm:grid-cols-3">
         {[
           { icon: "🎚", title: "Master in-browser", text: "EQ, compression, limiting and loudness to -14 LUFS — on the device, no internet needed." },
-          { icon: "🎨", title: "Cover art in seconds", text: "Gemini-designed covers or offline templates, exported at 3000×3000." },
+          { icon: "🎨", title: "Cover art in seconds", text: "AI-designed covers (Gemini or fal.ai) or offline templates, exported at 3000×3000." },
           { icon: "📦", title: "Release-ready", text: "Title, description, tags, checks — formatted so YouTube and labels accept it first time." },
         ].map((f) => (
           <div key={f.title} className="rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4">
@@ -122,6 +123,20 @@ export default function StudioHome() {
           </div>
         ))}
       </div>
+
+      <Link
+        href="/studio/distribute"
+        className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900/70 to-zinc-900/30 px-4 py-3.5 transition hover:border-fuchsia-500/50"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">📤</span>
+          <div>
+            <div className="text-sm font-bold text-zinc-100">Get it out there — free</div>
+            <div className="text-xs text-zinc-500">Top free sites to push mixes & tracks: Spotify/Apple distribution, SoundCloud/Mixcloud, 1001Tracklists, label submissions.</div>
+          </div>
+        </div>
+        <span className="shrink-0 text-fuchsia-400">Open →</span>
+      </Link>
 
       <div className="flex items-start justify-between rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3">
         <div className="text-xs text-zinc-500">

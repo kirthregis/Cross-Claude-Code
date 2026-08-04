@@ -17,8 +17,19 @@
 - The assistant must work **without any API key**: `routeCommand()` +
   `replyForIntent()` are the offline brain; Gemini only extends it. Never
   require Gemini for a core flow.
-- User settings (Gemini key, handles) are device-local; never log or send
-  them anywhere. The email ping goes through `src/app/api/studio/notify`
+- **Developer handoff model:** the developer sets `GEMINI_API_KEY` / `FAL_KEY`
+  / `RESEND_API_KEY` as server env vars (see `.env.example`); the app then
+  works with zero user setup. Keys NEVER ship to the browser: chat goes via
+  `POST /api/studio/ai/text`, image gen via `POST /api/studio/ai/image`
+  (server proxies). Device-local keys in Settings are only the fallback when
+  no server key exists — resolve capability through
+  `getServerAiStatus()` (`src/lib/studio/server-ai.ts`), never by guessing.
+- Two image engines, selected by `settings.imageProvider`: `gemini`
+  (free tier) and `fal` (fal.ai queue API — submit → poll status → fetch).
+  `src/lib/studio/fal.ts` is the client-side fallback; the server route
+  mirrors it for the env-key path.
+- User settings (Gemini key, fal key, handles) are device-local; never log or
+  send them anywhere. The email ping goes through `src/app/api/studio/notify`
   with the Resend key server-side only.
 - 24-bit WAV writes bytes individually (setInt32 at 3-byte offsets overflows
   the last sample — regression covered by tests).

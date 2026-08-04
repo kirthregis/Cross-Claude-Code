@@ -11,9 +11,11 @@ import {
   squareCropToJpeg,
 } from "@/lib/studio/artwork";
 import { geminiImage, isGeminiConfigured } from "@/lib/studio/gemini";
+import { falImage, isFalConfigured, FAL_MODELS } from "@/lib/studio/fal";
+import { getServerAiStatus, serverImage } from "@/lib/studio/server-ai";
 import { formatBytes } from "@/lib/studio/dsp";
 import { notify, speak } from "@/lib/studio/speech";
-import { loadArtwork, loadSettings, saveArtwork, upsertProject } from "@/lib/studio/store";
+import { loadArtwork, loadSettings, saveArtwork, saveSettings, upsertProject } from "@/lib/studio/store";
 import { Button, Card, SectionLabel } from "./ui";
 
 interface Draft {
@@ -37,6 +39,29 @@ export function ArtworkPanel({ project, onChanged }: { project: Project; onChang
   const previewsStarted = useRef(false);
 
   const hasGemini = isGeminiConfigured(settings);
+  const hasFal = isFalConfigured(settings);
+  const [serverAi, setServerAi] = useState<{ serverGemini: boolean; serverFal: boolean } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void getServerAiStatus().then((s) => {
+      if (alive) setServerAi(s);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const provider: "gemini" | "fal" = settings.imageProvider;
+  const providerReady =
+    provider === "gemini" ? hasGemini || !!serverAi?.serverGemini : hasFal || !!serverAi?.serverFal;
+  const falModelLabel = FAL_MODELS.find((m) => m.id === settings.falModel)?.label ?? settings.falModel;
+
+  const setProvider = useCallback(
+    (p: "gemini" | "fal") => {
+      saveSettings({ ...settings, imageProvider: p });
+      setError(null);
+    },
+    [settings],
+  );
 
   // restore persisted artwork (IndexedDB)
   useEffect(() => {
@@ -99,16 +124,25 @@ export function ArtworkPanel({ project, onChanged }: { project: Project; onChang
     setError(null);
     setGenerating("ai");
     try {
-      const img = await geminiImage({ key: settings.geminiKey, model: settings.geminiImageModel, prompt });
+      const provider = settings.imageProvider;
+      const server = await getServerAiStatus();
+      const useServer = provider === "fal" ? server.serverFal : server.serverGemini;
+      const img = useServer
+        ? await serverImage(prompt, provider, provider === "fal" ? settings.falModel : undefined)
+        : provider === "fal"
+          ? await falImage({ key: settings.falKey, model: settings.falModel, prompt })
+          : await geminiImage({ key: settings.geminiKey, model: settings.geminiImageModel, prompt });
       const el = await loadImageFromDataUrl(img.dataUrl);
       const cropped = await squareCropToJpeg(el, 3000, 0.92);
       finish({ ...cropped, source: "ai", prompt }, false);
     } catch (e) {
-      setError(`AI generation failed: ${e instanceof Error ? e.message : "unknown error"}`);
+      setError(
+        `AI generation failed (${settings.imageProvider === "fal" ? "fal.ai" : "Gemini"}): ${e instanceof Error ? e.message : "unknown error"}`,
+      );
     } finally {
       setGenerating(null);
     }
-  }, [settings.geminiKey, settings.geminiImageModel, prompt, finish]);
+  }, [settings, prompt, finish]);
 
   const generateTemplate = useCallback(
     async (templateId: string) => {
@@ -178,15 +212,30 @@ export function ArtworkPanel({ project, onChanged }: { project: Project; onChang
         <div className="space-y-4">
           {/* AI */}
           <Card className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionLabel>AI cover design</SectionLabel>
-              {hasGemini ? (
-                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Gemini connected</span>
-              ) : (
-                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">Add a free Gemini key in Settings to unlock</span>
-              )}
+              <div className="flex rounded-lg border border-zinc-700 p-0.5">
+                {(["gemini", "fal"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setProvider(p)}
+                    className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                      provider === p ? "bg-fuchsia-500/20 text-fuchsia-300" : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    {p === "gemini" ? "Gemini (free)" : "fal.ai"}
+                  </button>
+                ))}
+              </div>
             </div>
-            <p className="mt-2 text-xs text-zinc-500">Describe the vibe and I&apos;ll design a print-quality cover. The prompt is pre-filled from your project — tweak it and press Generate.</p>
+            <p className="mt-2 text-xs text-zinc-500">
+              Describe the vibe and I&apos;ll design a print-quality cover. The prompt is pre-filled from your project — tweak it and press Generate.
+            </p>
+            {provider === "fal" && (
+              <div className="mt-2 text-[11px] text-zinc-500">
+                Engine: <span className="font-semibold text-zinc-300">{falModelLabel}</span> · pay-per-image from your fal.ai credits · switch models in Settings.
+              </div>
+            )}
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -194,12 +243,17 @@ export function ArtworkPanel({ project, onChanged }: { project: Project; onChang
               className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-xs leading-relaxed text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Button onClick={() => void generateAI()} disabled={generating !== null || !hasGemini}>
+              <Button onClick={() => void generateAI()} disabled={generating !== null || !providerReady}>
                 {generating === "ai" ? "Designing…" : "✨ Generate cover"}
               </Button>
               <button onClick={() => setPrompt(buildArtPrompt(project.meta, settings))} className="text-xs text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline">
                 reset prompt
               </button>
+              {!providerReady && (
+                <span className="text-[11px] text-amber-300">
+                  {provider === "gemini" ? "Add a free Gemini key in Settings" : "Add your fal.ai key in Settings (free credits on signup)"}
+                </span>
+              )}
             </div>
           </Card>
 
