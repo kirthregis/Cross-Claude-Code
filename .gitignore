@@ -48,3 +48,6 @@ next-env.d.ts
 # worker
 worker/node_modules
 worker/.wrangler
+
+# .env.example is committed for documentation (real envs stay ignored)
+!.env.example

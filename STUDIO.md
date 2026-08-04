@@ -34,26 +34,39 @@ stored on the device, her Gemini key stays on the device.
 
 ---
 
-## First-time setup (5 minutes, one time)
+## Two ways to set it up
 
-1. **Add a free Gemini key** (optional but recommended)
-   - Go to <https://aistudio.google.com/apikey> with her Google account.
-   - Create an API key (free tier, no card).
-   - Paste it in **Studio → Settings → AI — Gemini** and hit **Test connection**.
-   - This unlocks: AI cover design, open-ended assistant answers, AI writing.
-   - Without a key everything else still works (voice commands, mastering,
-     templates, release pack, checks).
+### A) Developer mode — hand her a finished app (recommended)
 
-2. **Fill in her handles** in Settings (Instagram, TikTok, YouTube, artist name)
-   — used in every release title/description/file name. Pre-filled with her
-   real ones, so this is just a check.
+You configure everything **once on the server** (env vars), and the app is
+fully functional the moment she opens it — she never pastes a key or sees a
+setting she doesn't need. See `.env.example`:
 
-3. **Install as an app** on the phone: open the app in Chrome → menu →
-   **Add to Home Screen**. On the laptop: the install button in Settings.
+| Env var | What it powers |
+|---|---|
+| `GEMINI_API_KEY` | Open-ended assistant chat + AI cover art (free tier) |
+| `FAL_KEY` | AI cover art via fal.ai (Flux / Recraft / Ideogram — pay-per-image) |
+| `RESEND_API_KEY` + `STUDIO_NOTIFY_TO` | Email ping when a master/export is ready |
 
-4. **Email ping (optional):** when a master finishes, the studio can email her.
-   Needs two environment variables (see "Email pings" below). Without it, the
-   in-app ping and phone notification still fire.
+Keys live **server-side only** (proxy routes in `src/app/api/studio/ai/*`) —
+they never ship in the browser bundle. Set them in Vercel → Settings →
+Environment Variables (or `.env.local` on her laptop) and redeploy.
+
+Then optionally **pre-fill her handles** once on her device (Settings →
+Artist profile) — or they already default to her real ones.
+
+### B) Personal mode — she pastes her own key
+
+If she runs it on her own laptop without a server config, she can paste a
+free Gemini key (and/or fal.ai key) in **Studio → Settings**. Keys are stored
+only on that device. Everything else works identically.
+
+### Either way, once:
+
+- **Install as an app** on the phone: open the app in Chrome → menu →
+  **Add to Home Screen**. On the laptop: the install button in Settings.
+- Email ping (if wanted) needs the two `RESEND_*` vars — without it, the
+  in-app ping and phone notification still fire.
 
 ---
 
@@ -104,13 +117,25 @@ email — so she can walk away and come back when it's done.
 
 ## Artwork — what "the designer" does
 
-- **AI cover** (needs Gemini key): the prompt is pre-filled from the project's
-  name/genre/mood — tweak it, press Generate, preview, save. Output is
-  re-framed to exactly **3000×3000**.
+- **AI cover**: the prompt is pre-filled from the project's name/genre/mood —
+  tweak it, press Generate, preview, save. Output is re-framed to exactly
+  **3000×3000**. Two engines, switchable in the Artwork tab (and Settings):
+  - **Gemini** — free tier (developer key or device key).
+  - **fal.ai** — top open image models (Flux Dev, Flux Pro, Recraft V3 for
+    text-heavy design, Ideogram V2) via a fal.ai key (pay-per-image, free
+    credits on signup). Best quality for typography-heavy covers.
 - **Offline templates** (no internet needed): Afro Heat, Midnight Gold, Neon
   Bloom, Deep Teal, Vinyl Classic — rendered at full 3000×3000 with her title
   and name set in, downloadable as JPEG or PNG.
 - Everything saves to the project and appears in the release check.
+
+## Get it out there — free
+
+**`/studio/distribute`** in the app links the top free places to push music
+(checked 2026): RouteNote / FreshTunes / ONErpm / UnitedMasters / SoundOn to
+land on Spotify & Apple; SoundCloud / Mixcloud / HearThis / **1001Tracklists**
+to host and discover mixes; **LabelRadar** to submit tracks to Afro House &
+House labels for free; plus the social push. Full guide in **`DISTRIBUTION.md`**.
 
 ---
 
@@ -201,12 +226,15 @@ ready"** in Settings. The key never touches the browser.
 
 ```bash
 npm install
-npm run dev      # open http://localhost:3000/studio
-npm test         # 154 tests, incl. the studio suite
+cp .env.example .env.local    # developer: set GEMINI_API_KEY / FAL_KEY / RESEND_*
+npm run dev                   # open http://localhost:3000/studio
+npm test                      # 154 tests, incl. the studio suite
 npm run build
 ```
 
-Deploy free on Vercel (the app is a Next.js PWA; see the main README).
+Deploy free on Vercel (the app is a Next.js PWA; see the main README) — put
+the same env vars in Vercel → Settings → Environment Variables and redeploy.
+That's the whole handoff: configure once, she opens the URL, it's done.
 
 ---
 

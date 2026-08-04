@@ -176,6 +176,10 @@ export interface StudioSettings {
   geminiKey: string;
   geminiTextModel: string;
   geminiImageModel: string;
+  /** Which engine powers AI cover art: "gemini" (free) or "fal" (fal.ai). */
+  imageProvider: "gemini" | "fal";
+  falKey: string;
+  falModel: string;
   defaultTargetLufs: number;
   emailPing: boolean;
   soundOn: boolean;
@@ -192,6 +196,9 @@ export const DEFAULT_SETTINGS: StudioSettings = {
   geminiKey: "",
   geminiTextModel: "gemini-2.5-flash",
   geminiImageModel: "gemini-2.5-flash-image",
+  imageProvider: "gemini",
+  falKey: "",
+  falModel: "fal-ai/flux/dev",
   defaultTargetLufs: -14,
   emailPing: false,
   soundOn: true,

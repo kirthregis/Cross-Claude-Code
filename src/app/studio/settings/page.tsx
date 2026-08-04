@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Card, SectionLabel, Toggle } from "@/components/studio/ui";
 import { geminiChat } from "@/lib/studio/gemini";
 import { isGeminiConfigured } from "@/lib/studio/gemini";
+import { FAL_MODELS, isFalConfigured } from "@/lib/studio/fal";
 import type { ProjectKind, StudioSettings } from "@/lib/studio/types";
 import { DEFAULT_SETTINGS } from "@/lib/studio/types";
 import { loadSettings, saveSettings } from "@/lib/studio/store";
@@ -16,6 +17,18 @@ export default function StudioSettingsPage() {
   const [emailStatus, setEmailStatus] = useState<{ configured: boolean; to: string } | null>(null);
   const [installEvt, setInstallEvt] = useState<{ prompt: () => Promise<void>; userChoice: Promise<unknown> } | null>(null);
   const [showKey, setShowKey] = useState(false);
+  const [showFalKey, setShowFalKey] = useState(false);
+  const [serverAi, setServerAi] = useState<{ serverGemini: boolean; serverFal: boolean } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/studio/status")
+      .then((r) => r.json())
+      .then((j) => {
+        setEmailStatus({ configured: !!j.emailConfigured, to: j.emailTo || "" });
+        setServerAi({ serverGemini: !!j.serverGemini, serverFal: !!j.serverFal });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch("/api/studio/status")
@@ -113,19 +126,22 @@ export default function StudioSettingsPage() {
 
       <Card className="p-4 sm:p-5">
         <div className="flex items-center justify-between">
-          <SectionLabel>AI — Gemini (free tier)</SectionLabel>
-          {isGeminiConfigured(settings) ? (
-            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Connected</span>
+          <SectionLabel>AI — chat (Gemini)</SectionLabel>
+          {serverAi?.serverGemini ? (
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Configured by the developer ✓</span>
+          ) : isGeminiConfigured(settings) ? (
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Connected (this device)</span>
           ) : (
             <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-300">Not configured</span>
           )}
         </div>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-          Get a free key at{" "}
+          The developer sets <span className="font-mono text-zinc-300">GEMINI_API_KEY</span> in the app&apos;s environment once — then open questions and copywriting just work everywhere with nothing to enter.
+          For a personal local setup, paste a free key here instead (get one at{" "}
           <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="text-fuchsia-400 hover:underline">
             aistudio.google.com/apikey
-          </a>{" "}
-          (Google account, free tier, no card). Your key is stored only on this device and used only by you. Without a key, the assistant, templates and mastering still work fully.
+          </a>
+          ). Either way the key never leaves your machine.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="block">
@@ -157,6 +173,76 @@ export default function StudioSettingsPage() {
               {testResult.ok ? `✓ Gemini says: ${testResult.text}` : `✗ ${testResult.text}`}
             </span>
           )}
+        </div>
+      </Card>
+
+      <Card className="p-4 sm:p-5">
+        <SectionLabel>Image generation — choose the engine</SectionLabel>
+        <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+          Cover art can be made by <span className="text-zinc-300">Gemini</span> (free tier) or{" "}
+          <span className="text-zinc-300">fal.ai</span> (top open models like Flux, Recraft and Ideogram — pay-per-image, free credits on signup at{" "}
+          <a href="https://fal.ai" target="_blank" rel="noreferrer" className="text-fuchsia-400 hover:underline">
+            fal.ai
+          </a>
+          ). Both keys stay on this device only.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {serverAi?.serverFal && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 sm:col-span-2">
+              ✓ fal.ai is pre-configured on the server (<span className="font-mono">FAL_KEY</span> set) — AI covers work with nothing to enter here.
+            </div>
+          )}
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Default image engine</span>
+            <select
+              value={settings.imageProvider}
+              onChange={(e) => update({ imageProvider: e.target.value as "gemini" | "fal" })}
+              className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+            >
+              <option value="gemini">Gemini — free tier</option>
+              <option value="fal">fal.ai — Flux / Recraft / Ideogram</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">fal.ai model</span>
+            <select
+              value={settings.falModel}
+              onChange={(e) => update({ falModel: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+            >
+              {FAL_MODELS.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+              fal.ai API key
+              {isFalConfigured(settings) && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-normal text-emerald-300">Saved</span>}
+            </span>
+            <div className="mt-1 flex gap-2">
+              <input
+                type={showFalKey ? "text" : "password"}
+                value={settings.falKey}
+                onChange={(e) => update({ falKey: e.target.value })}
+                placeholder="Your fal.ai key (starts with a UUID)"
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none"
+              />
+              <Button variant="ghost" className="!px-3" onClick={() => setShowFalKey((v) => !v)}>
+                {showFalKey ? "Hide" : "Show"}
+              </Button>
+            </div>
+            <span className="mt-1 block text-[11px] text-zinc-600">
+              Find it at fal.ai → Settings → Keys. Or the developer sets <span className="font-mono">FAL_KEY</span> in the app environment and it works everywhere with nothing to enter.
+            </span>
+          </label>
+          <div className="flex items-end pb-1">
+            <span className="text-[11px] text-zinc-500">
+              You can also switch engine per-project in the Artwork tab — the choice here is just the default.
+            </span>
+          </div>
         </div>
       </Card>
 
