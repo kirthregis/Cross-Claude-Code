@@ -17,6 +17,7 @@
  */
 
 import type { RawLead } from "../types";
+import { activeSettings } from "../engine-settings";
 import { parseRss } from "../rss";
 import type { Source } from "./index";
 
@@ -52,22 +53,28 @@ export const webSearchSource: Source = {
     "entertainment/booking opportunities. Customise with WEB_SEARCH_QUERIES " +
     "(pipe-separated) and WEB_SEARCH_EXTRA_FEEDS (RSS/JSON). Disable with " +
     "WEB_SEARCH_ON=false.",
-  configured: () => env("WEB_SEARCH_ON") !== "false",
+  configured: () => activeSettings().hunting.webScanOn && env("WEB_SEARCH_ON") !== "false",
   async fetch() {
-    const queries = (env("WEB_SEARCH_QUERIES") ?? DEFAULT_WEB_QUERIES.join("|"))
-      .split(/[|,]/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const s = activeSettings().hunting;
+    // User queries (set in /customize) win; fall back to env, then built-ins.
+    const querySource = s.queries.length
+      ? s.queries
+      : (env("WEB_SEARCH_QUERIES") ?? DEFAULT_WEB_QUERIES.join("|")).split(/[|,]/).map((x) => x.trim()).filter(Boolean);
 
-    const extraFeeds = (env("WEB_SEARCH_EXTRA_FEEDS") ?? "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const queries = querySource.length ? querySource : DEFAULT_WEB_QUERIES;
+
+    const extraFeeds = s.extraFeeds.length
+      ? s.extraFeeds
+      : (env("WEB_SEARCH_EXTRA_FEEDS") ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+
+    const blocklist = s.blocklist.map((x) => x.toLowerCase().trim()).filter(Boolean);
 
     const leads: RawLead[] = [];
     const seen = new Set<string>();
 
     const push = (title: string, link: string | undefined, body: string, published: string) => {
+      const hay = `${title} ${body}`.toLowerCase();
+      if (blocklist.some((b) => hay.includes(b))) return;
       // Dedupe on a short title hash — Google News returns the same story across queries.
       const key = title.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 56);
       if (seen.has(key)) return;

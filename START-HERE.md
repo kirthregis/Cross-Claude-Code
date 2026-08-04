@@ -64,6 +64,7 @@ That's the dashboard. The pages are:
 |---|---|
 | <http://localhost:3000> | All gigs, ranked. Paste a new one into the box at the top. |
 | <http://localhost:3000/profile> | **← this is "/profile"** — rates, EVG details, upload the PDFs |
+| <http://localhost:3000/customize> | **Studio** — what it hunts, quiet hours, alert loudness, pitch sign-off, photos/videos as artwork |
 | <http://localhost:3000/sources> | Which feeds are switched on |
 
 **To upload the licence and bank statement:** go to `/profile`, top section

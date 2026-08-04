@@ -4,6 +4,7 @@
  */
 
 import { activeProfile } from "./active-profile";
+import { activeSettings } from "./engine-settings";
 import type { Gig, Contact } from "./types";
 import { quote } from "./pricing";
 
@@ -81,7 +82,7 @@ export function pitch(g: Gig, channel: Channel, contact?: Contact): { subject?: 
         ``,
         `We can hold the date for you today — shall I send the booking confirmation over?`,
         ``,
-        `${m.contactName} · ${m.company}`,
+        customSignoff(p, channel),
         `${m.phone}`,
       ].join("\n"),
     };
@@ -115,12 +116,23 @@ export function pitch(g: Gig, channel: Channel, contact?: Contact): { subject?: 
       `We can hold the date for 48 hours pending confirmation. Happy to jump on a call if easier.`,
       ``,
       `Kind regards,`,
-      `${m.contactName}`,
-      `${m.contactRole}, ${m.company}`,
+      customSignoff(p, channel),
       `${m.phone} · ${m.email}`,
       `${m.website ?? ""}`,
     ].filter((l) => l !== undefined).join("\n"),
   };
+}
+
+/**
+ * Signoff line on pitches. Defaults to "NAME · COMPANY"; Emy can override the
+ * whole line from /customize → Branding (e.g. "Kirth, EVG · bookings@…").
+ */
+function customSignoff(p: ReturnType<typeof activeProfile>, channel: Channel): string {
+  const custom = activeSettings().branding.pitchSignoff.trim();
+  if (custom) return custom;
+  return channel === "email"
+    ? `${p.management.contactName}\n${p.management.contactRole}, ${p.management.company}`
+    : `${p.management.contactName} · ${p.management.company}`;
 }
 
 export interface Counter { objection: string; response: string; }

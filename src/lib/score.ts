@@ -6,6 +6,7 @@
  */
 
 import { activeProfile } from "./active-profile";
+import { activeSettings } from "./engine-settings";
 import type { Gig } from "./types";
 import { quote } from "./pricing";
 import { daysUntil } from "./dates";
@@ -89,10 +90,11 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   let tier: AlertTier;
-  if (score >= 75 && (urgent || g.venueTier === "brand_activation" || g.venueTier === "festival")) tier = "urgent";
-  else if (score >= 70) tier = "high";
-  else if (score >= 50) tier = "normal";
-  else if (score >= 32) tier = "digest";
+  const a = activeSettings().alerts;
+  if (score >= a.urgentFrom) tier = "urgent";
+  else if (score >= a.highFrom) tier = "high";
+  else if (score >= a.normalFrom) tier = "normal";
+  else if (score >= a.digestFrom) tier = "digest";
   else tier = "suppress";
 
   const money = g.budgetStatedAed
