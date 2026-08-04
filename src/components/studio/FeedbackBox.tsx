@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { startListening, speechSupported } from "@/lib/studio/speech";
 import { Button, Card, SectionLabel } from "./ui";
 
@@ -42,7 +42,14 @@ export function FeedbackBox() {
   const [items, setItems] = useState<FeedbackItem[] | null>(null);
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const voiceOk = speechSupported();
+  const [voiceOk, setVoiceOk] = useState(false);
+  const voiceRef = useRef(false);
+
+  useEffect(() => {
+    // Detect speech support after mount (avoids hydration mismatch).
+    voiceRef.current = speechSupported();
+    setVoiceOk(voiceRef.current);
+  }, []);
 
   const load = useCallback(() => {
     const clientId = getClientId();
