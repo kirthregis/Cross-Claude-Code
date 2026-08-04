@@ -17,5 +17,6 @@ export function GET() {
     emailTo: masked,
     serverGemini: Boolean(process.env.GEMINI_API_KEY),
     serverFal: Boolean(process.env.FAL_KEY),
+    adminConfigured: Boolean(process.env.STUDIO_ADMIN_TOKEN),
   });
 }

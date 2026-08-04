@@ -7,6 +7,8 @@ export function StudioNav() {
   const path = usePathname();
   const tabs = [
     { href: "/studio", label: "Studio" },
+    { href: "/studio/guide", label: "How to" },
+    { href: "/studio/distribute", label: "Distribute" },
     { href: "/studio/settings", label: "Settings" },
   ];
   return (
@@ -20,7 +22,7 @@ export function StudioNav() {
         </Link>
         <nav className="flex items-center gap-1">
           {tabs.map((t) => {
-            const active = t.href === "/studio" ? path === "/studio" || path.startsWith("/studio/p") : path.startsWith(t.href);
+            const active = t.href === "/studio" ? path === "/studio" || path.startsWith("/studio/p") : path === t.href || path.startsWith(t.href + "/");
             return (
               <Link
                 key={t.href}

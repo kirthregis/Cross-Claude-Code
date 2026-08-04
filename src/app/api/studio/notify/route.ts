@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendEmail } from "@/lib/studio/server-email";
 
 /**
  * EMY Studio — email ping.
@@ -7,30 +8,16 @@ import { NextResponse } from "next/server";
  */
 
 export async function POST(req: Request) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const to = process.env.STUDIO_NOTIFY_TO;
-  if (!apiKey || !to) {
-    return NextResponse.json({ configured: false, sent: false }, { status: 200 });
-  }
-  let body: { subject?: string; text?: string };
+  let body: { subject?: string; text?: string; to?: string };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ configured: true, sent: false, error: "bad body" }, { status: 400 });
+    return NextResponse.json({ configured: false, sent: false, error: "bad body" }, { status: 400 });
   }
-  const from = process.env.RESEND_FROM || "EMY Studio <studio@resend.dev>";
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from,
-      to: to.split(",").map((s) => s.trim()).filter(Boolean),
-      subject: body.subject || "EMY Studio",
-      text: body.text || "",
-    }),
+  const result = await sendEmail({
+    to: body.to || process.env.STUDIO_NOTIFY_TO || "",
+    subject: body.subject || "EMY Studio",
+    text: body.text || "",
   });
-  if (!res.ok) {
-    return NextResponse.json({ configured: true, sent: false, error: await res.text() }, { status: 200 });
-  }
-  return NextResponse.json({ configured: true, sent: true });
+  return NextResponse.json(result);
 }

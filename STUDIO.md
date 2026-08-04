@@ -70,6 +70,41 @@ only on that device. Everything else works identically.
 
 ---
 
+## How to use it — the 6 steps (also shown in the app)
+
+The home screen opens with a **"How to use EMY Studio"** card, and the full
+walkthrough lives at **`/studio/guide`** (nav → How to):
+
+1. **Create a project** — name it, pick Mix or Track (or say it to the assistant).
+2. **Import & master** — drop the finished mix into the Master tab, pick a target
+   (-14 LUFS for YouTube/Spotify), hit Master. It pings when done; export the 48 kHz WAV.
+3. **Make the cover** — AI (Gemini or fal.ai) or offline templates, always 3000×3000.
+4. **Build the release pack** — one tap writes title/description/tags within platform limits.
+5. **Check it's ready** — PASS/WARN/FAIL report like a label would run.
+6. **Get it out there** — the Distribute page lists every free site to push it.
+
+Each step shows the voice command that jumps straight to it, and the assistant
+sits on the home screen to set each one up.
+
+## Suggest an improvement — she speaks, the app plans, you build
+
+There's a **"Make EMY Studio better"** box at the bottom of the studio home:
+
+- She types or **speaks** a suggestion (voice button included).
+- The app logs it, categorises it (feature / bug / design / content), drafts an
+  implementation plan — AI-written if `GEMINI_API_KEY` is set, smart fallback
+  otherwise — and replies with a confirmation that includes the plan.
+- She sees her suggestions with a status: **Received → Planned → Done**.
+- **You see everything**: every suggestion lands in the SQLite database and is
+  visible at **`/studio/admin`** (locked by `STUDIO_ADMIN_TOKEN` — set it in env
+  or the page stays locked). From there you mark items planned/done/dismissed,
+  and her device shows the new status. Optionally you also get an **email per
+  suggestion** with the AI plan (set `DEV_FEEDBACK_TO`).
+
+> Honest note: "the app improves itself" = the app captures, analyses and plans
+> every request and routes it to you; you ship the change, and she watches it
+> flip to Done. That's the loop — nothing writes code by itself.
+
 ## Talking to the studio (voice or text)
 
 On any page, the **Assistant** panel is her engineer + designer + release
@@ -228,7 +263,7 @@ ready"** in Settings. The key never touches the browser.
 npm install
 cp .env.example .env.local    # developer: set GEMINI_API_KEY / FAL_KEY / RESEND_*
 npm run dev                   # open http://localhost:3000/studio
-npm test                      # 154 tests, incl. the studio suite
+npm test                      # 161 tests, incl. the studio suite
 npm run build
 ```
 

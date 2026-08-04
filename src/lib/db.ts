@@ -69,6 +69,22 @@ export function db(): Database.Database {
       new_gigs INTEGER DEFAULT 0,
       errors TEXT
     );
+
+    -- EMY Studio: suggestions from the artist → improvement queue for the dev.
+    CREATE TABLE IF NOT EXISTS studio_feedback (
+      id TEXT PRIMARY KEY,
+      client_id TEXT,
+      text TEXT NOT NULL,
+      device TEXT,
+      category TEXT,
+      priority TEXT,
+      plan TEXT,
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TEXT NOT NULL,
+      updated_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_feedback_client ON studio_feedback(client_id);
+    CREATE INDEX IF NOT EXISTS idx_feedback_status ON studio_feedback(status);
   `);
   return _db;
 }
@@ -167,4 +183,89 @@ export function stats() {
     | { finished_at: string; found: number; new_gigs: number }
     | undefined;
   return { total, byStage, lastSweep };
+}
+
+// ─── EMY Studio feedback ────────────────────────────────────────────────
+
+export interface StudioFeedbackRow {
+  id: string;
+  clientId: string | null;
+  text: string;
+  device: string | null;
+  category: string | null;
+  priority: string | null;
+  plan: string | null; // JSON string
+  status: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export type FeedbackStatus = "new" | "planned" | "done" | "dismissed";
+
+interface FeedbackRawRow {
+  id: string;
+  client_id: string | null;
+  text: string;
+  device: string | null;
+  category: string | null;
+  priority: string | null;
+  plan: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+function rowToFeedback(r: FeedbackRawRow): StudioFeedbackRow {
+  return {
+    id: r.id, clientId: r.client_id, text: r.text, device: r.device,
+    category: r.category, priority: r.priority, plan: r.plan,
+    status: r.status, createdAt: r.created_at, updatedAt: r.updated_at,
+  };
+}
+
+export function addStudioFeedback(f: {
+  id: string; clientId?: string | null; text: string; device?: string | null;
+  category?: string | null; priority?: string | null; plan?: string | null;
+}): StudioFeedbackRow {
+  const now = new Date().toISOString();
+  db().prepare(
+    `INSERT INTO studio_feedback (id, client_id, text, device, category, priority, plan, status, created_at)
+     VALUES (?,?,?,?,?,?,?,'new',?)`,
+  ).run(f.id, f.clientId ?? null, f.text, f.device ?? null, f.category ?? null, f.priority ?? null, f.plan ?? null, now);
+  return rowToFeedback(db().prepare("SELECT * FROM studio_feedback WHERE id = ?").get(f.id) as FeedbackRawRow);
+}
+
+export function getStudioFeedback(id: string): StudioFeedbackRow | null {
+  const r = db().prepare("SELECT * FROM studio_feedback WHERE id = ?").get(id) as FeedbackRawRow | undefined;
+  return r ? rowToFeedback(r) : null;
+}
+
+/** The artist's own suggestions (her device only). */
+export function listStudioFeedback(clientId?: string | null): StudioFeedbackRow[] {
+  const rows = clientId
+    ? db().prepare("SELECT * FROM studio_feedback WHERE client_id = ? ORDER BY created_at DESC").all(clientId)
+    : db().prepare("SELECT * FROM studio_feedback ORDER BY created_at DESC").all();
+  return (rows as FeedbackRawRow[]).map(rowToFeedback);
+}
+
+/** Everything, for the developer's back end. */
+export function allStudioFeedback(): StudioFeedbackRow[] {
+  return listStudioFeedback(null);
+}
+
+export function setStudioFeedbackStatus(id: string, status: FeedbackStatus): StudioFeedbackRow | null {
+  const r = db().prepare(
+    "UPDATE studio_feedback SET status = ?, updated_at = ? WHERE id = ?",
+  ).run(status, new Date().toISOString(), id);
+  if (r.changes === 0) return null;
+  return getStudioFeedback(id);
+}
+
+export function studioFeedbackStats() {
+  const d = db();
+  const rows = d.prepare("SELECT status, COUNT(*) c FROM studio_feedback GROUP BY status").all() as { status: string; c: number }[];
+  const byStatus: Record<string, number> = { new: 0, planned: 0, done: 0, dismissed: 0 };
+  for (const r of rows) byStatus[r.status] = r.c;
+  const byCategory = d.prepare("SELECT category, COUNT(*) c FROM studio_feedback WHERE category IS NOT NULL GROUP BY category").all() as { category: string; c: number }[];
+  return { total: rows.reduce((a, r) => a + r.c, 0), byStatus, byCategory };
 }

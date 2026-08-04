@@ -18,14 +18,14 @@ export default function StudioSettingsPage() {
   const [installEvt, setInstallEvt] = useState<{ prompt: () => Promise<void>; userChoice: Promise<unknown> } | null>(null);
   const [showKey, setShowKey] = useState(false);
   const [showFalKey, setShowFalKey] = useState(false);
-  const [serverAi, setServerAi] = useState<{ serverGemini: boolean; serverFal: boolean } | null>(null);
+  const [serverAi, setServerAi] = useState<{ serverGemini: boolean; serverFal: boolean; adminConfigured: boolean } | null>(null);
 
   useEffect(() => {
     fetch("/api/studio/status")
       .then((r) => r.json())
       .then((j) => {
         setEmailStatus({ configured: !!j.emailConfigured, to: j.emailTo || "" });
-        setServerAi({ serverGemini: !!j.serverGemini, serverFal: !!j.serverFal });
+        setServerAi({ serverGemini: !!j.serverGemini, serverFal: !!j.serverFal, adminConfigured: !!j.adminConfigured });
       })
       .catch(() => {});
   }, []);
@@ -272,6 +272,27 @@ export default function StudioSettingsPage() {
           </div>
         </div>
       </Card>
+
+      {serverAi?.adminConfigured ? (
+        <Card className="p-4 sm:p-5">
+          <SectionLabel>Developer</SectionLabel>
+          <p className="mt-1 text-xs text-zinc-500">View artist improvement suggestions and the AI implementation plans — everything she sends lands here.</p>
+          <div className="mt-3">
+            <a href="/studio/admin" className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-fuchsia-500/60 hover:text-fuchsia-300">
+              🔧 Open the suggestion back end
+            </a>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-4 sm:p-5">
+          <SectionLabel>Developer</SectionLabel>
+          <p className="mt-1 text-xs text-zinc-500">
+            Suggestions from the app are stored server-side. To view them, set{" "}
+            <span className="font-mono text-zinc-300">STUDIO_ADMIN_TOKEN</span> in the app environment, then open{" "}
+            <span className="font-mono text-zinc-300">/studio/admin</span> with that token.
+          </p>
+        </Card>
+      )}
 
       <Card className="border-red-900/40 p-4 sm:p-5">
         <SectionLabel>Danger zone</SectionLabel>
