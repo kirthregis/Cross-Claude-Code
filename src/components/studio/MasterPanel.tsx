@@ -191,7 +191,7 @@ export function MasterPanel({ project, onChanged }: { project: Project; onChange
         return;
       }
       if (player.isPlaying()) player.stop();
-      await player.play(playProgress > 0 && playMode === mode ? playProgress : 0, mode === "processed");
+      await player.play(playProgress > 0 && playMode === mode ? playProgress : 0, mode === "processed", settings.audioOutputDevice);
       setPlayMode(mode);
       player.onProgress = (t) => setPlayProgress(t);
       player.onEnd = () => {
@@ -208,7 +208,7 @@ export function MasterPanel({ project, onChanged }: { project: Project; onChange
       const t = frac * audio.info.durationSec;
       setPlayProgress(t);
       if (playMode && player.isPlaying()) {
-        void player.play(t, playMode === "processed");
+        void player.play(t, playMode === "processed", settings.audioOutputDevice);
       }
     },
     [audio, playMode, player],

@@ -208,9 +208,32 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
             ▶ Open YouTube Studio
           </a>
         </div>
-        <p className="mt-3 text-[11px] leading-relaxed text-zinc-500">
-          Handoff flow: export the master WAV (Master tab) → download the cover (Artwork tab) → open YouTube Studio → paste title + description + tags → upload the WAV and cover. Everything is already in the right format, so upload just works.
-        </p>
+        <div className="mt-5 border-t border-zinc-800/70 pt-4">
+          <SectionLabel>Share it — one tap opens the platform</SectionLabel>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[
+              { name: "YouTube", url: "https://studio.youtube.com", icon: "▶️", note: "Upload with the pack above" },
+              { name: "Instagram", url: "https://instagram.com", icon: "📸", note: "Reels: cover + mastered audio" },
+              { name: "TikTok", url: "https://tiktok.com", icon: "🎵", note: "Promo clip + link to the mix" },
+              { name: "Snapchat", url: "https://snapchat.com", icon: "👻", note: "Quick story tease" },
+              { name: "Threads", url: "https://threads.net", icon: "🧵", note: "Announce + link" },
+            ].map((s) => (
+              <a
+                key={s.name}
+                href={s.url}
+                target="_blank"
+                rel="noreferrer"
+                title={s.note}
+                className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-semibold text-zinc-200 transition hover:border-fuchsia-500/60 hover:text-fuchsia-300"
+              >
+                <span>{s.icon}</span> {s.name}
+              </a>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">
+            Handoff flow: export the master WAV (Master tab) → download the cover (Artwork tab) → open YouTube Studio → paste title + description + tags → upload the WAV and cover. Everything is already in the right format, so upload just works.
+          </p>
+        </div>
       </Card>
     </div>
   );

@@ -169,12 +169,20 @@ export class PreviewPlayer {
     return this.source != null && this.ctx != null;
   }
 
-  async play(fromSec = 0, processed: boolean): Promise<void> {
+  async play(fromSec = 0, processed: boolean, deviceId = ""): Promise<void> {
     this.stop();
     if (!this.buffer) return;
     const W: any = window; // eslint-disable-line @typescript-eslint/no-explicit-any
     const Ctor: typeof AudioContext = W.AudioContext || W.webkitAudioContext;
     this.ctx = new Ctor();
+    // Route audio to a chosen output (e.g. DJ controller sound card) if set.
+    if (deviceId && "setSinkId" in this.ctx) {
+      try {
+        await (this.ctx as AudioContext & { setSinkId: (id: string) => Promise<void> }).setSinkId(deviceId);
+      } catch {
+        /* fall back to default output */
+      }
+    }
     await this.ctx.resume();
     this.processed = processed;
     this.chain = buildChain(this.ctx, this.params);

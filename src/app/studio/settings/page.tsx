@@ -18,6 +18,7 @@ export default function StudioSettingsPage() {
   const [installEvt, setInstallEvt] = useState<{ prompt: () => Promise<void>; userChoice: Promise<unknown> } | null>(null);
   const [showKey, setShowKey] = useState(false);
   const [showFalKey, setShowFalKey] = useState(false);
+  const [audioDeviceLabel, setAudioDeviceLabel] = useState<string | null>(null);
   const [serverAi, setServerAi] = useState<{ serverGemini: boolean; serverFal: boolean; adminConfigured: boolean } | null>(null);
 
   useEffect(() => {
@@ -247,6 +248,31 @@ export default function StudioSettingsPage() {
       </Card>
 
       <Card className="p-4 sm:p-5">
+        <SectionLabel>Audio output</SectionLabel>
+        <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+          Route the studio&apos;s playback (library + master A/B preview) to a specific device — like the DDJ&apos;s sound card — instead of the laptop speakers. Pick the device, then play from the Library or Master tab.
+        </p>
+        <div className="mt-3">
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Playback device</span>
+            <select
+              value={settings.audioOutputDevice}
+              onChange={(e) => update({ audioOutputDevice: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+            >
+              <option value="">Default speakers / headphones</option>
+              <option value="__ddj__">🎚 DDJ-800 / controller (auto-detect)</option>
+            </select>
+          </label>
+          <AudioDevicePicker current={settings.audioOutputDevice} onPick={(id, label) => { update({ audioOutputDevice: id }); setAudioDeviceLabel(label); }} />
+          {audioDeviceLabel && <p className="mt-2 text-[11px] text-zinc-500">Currently: {audioDeviceLabel} — output is set.</p>}
+          <p className="mt-2 text-[11px] text-zinc-600">
+            For the DDJ to be the sound card: plug it in via USB, pick its device name below, and Chrome/Edge will play through it. Full deck mixing (jog wheels) still needs Rekordbox.
+          </p>
+        </div>
+      </Card>
+
+      <Card className="p-4 sm:p-5">
         <SectionLabel>Pings & notifications</SectionLabel>
         <p className="mt-1 text-xs text-zinc-500">When a master finishes or an export is ready, the studio can alert you.</p>
         <div className="mt-3 space-y-2">
@@ -313,6 +339,50 @@ export default function StudioSettingsPage() {
           <Button variant="danger" onClick={resetAll}>Reset all studio data</Button>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function AudioDevicePicker({ current, onPick }: { current: string; onPick: (id: string, label: string) => void }) {
+  const [devices, setDevices] = useState<{ id: string; label: string }[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = () => {
+    if (!navigator.mediaDevices?.enumerateDevices) {
+      setError("This browser can't list output devices — use Chrome or Edge.");
+      setLoaded(true);
+      return;
+    }
+    void navigator.mediaDevices.enumerateDevices().then((list) => {
+      const outs = list.filter((d) => d.kind === "audiooutput").map((d) => ({ id: d.deviceId, label: d.label || "Audio output" }));
+      setDevices(outs);
+      setLoaded(true);
+    }).catch(() => {
+      setError("Couldn't list devices — click again after interacting with the page.");
+      setLoaded(true);
+    });
+  };
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <Button variant="ghost" onClick={load}>{loaded ? "↻ Refresh devices" : "Detect devices"}</Button>
+      {devices.length > 0 && (
+        <select
+          value={current && current !== "__ddj__" ? current : ""}
+          onChange={(e) => {
+            const d = devices.find((x) => x.id === e.target.value);
+            onPick(d?.id ?? "", d?.label ?? "Device");
+          }}
+          className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+        >
+          <option value="">Default</option>
+          {devices.map((d) => (
+            <option key={d.id} value={d.id}>{d.label}</option>
+          ))}
+        </select>
+      )}
+      {error && <span className="text-[11px] text-red-300">{error}</span>}
     </div>
   );
 }
