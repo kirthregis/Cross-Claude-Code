@@ -8,6 +8,7 @@
 
 import type { Gig } from "./types";
 import type { Scored } from "./score";
+import { activeSettings } from "./engine-settings";
 import { quote } from "./pricing";
 import { logAlert, deferAlert, pendingDeferred, markDeferredReleased } from "./db";
 import { sendWhatsApp, sendEmail, actionLinks, whatsappConfigured, emailConfigured } from "./channels";
@@ -167,10 +168,13 @@ export function dubaiHour(now: Date = new Date()): number {
   return (now.getUTCHours() + 4) % 24;
 }
 
-/** 02:00–09:00 Dubai. Only `urgent` may break through. */
+/** Quiet hours window (default 02:00–09:00 Dubai). Only `urgent` may break through. */
 export function isQuietHours(now: Date = new Date()): boolean {
   const h = dubaiHour(now);
-  return h >= 2 && h < 9;
+  const { quietStartHour, quietEndHour } = activeSettings().alerts;
+  if (quietStartHour < quietEndHour) return h >= quietStartHour && h < quietEndHour;
+  // Window crosses midnight (e.g. 22:00–06:00).
+  return h >= quietStartHour || h < quietEndHour;
 }
 
 export async function alert(g: Gig, s: Scored, now: Date = new Date()): Promise<{ sent: string[]; skipped?: string }> {

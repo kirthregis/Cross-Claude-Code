@@ -32,7 +32,10 @@ sources ──▶ normalise ──▶ dedupe ──▶ score ──▶ ALERT (ph
 ## What it does
 
 **1. Finds gigs, everywhere**
-Instagram promoters and venues, WhatsApp promoter groups, the booking inbox, event calendars (Platinumlist / RA / Time Out), gig boards and agency roster calls. Every source is optional and independent — unconfigured feeds are skipped, and one slow or broken feed never blocks the rest.
+Instagram promoters and venues, WhatsApp promoter groups, the booking inbox, event calendars (Platinumlist / RA / Time Out), gig boards, agency roster calls — **and a 24/7 web scan** that actively searches the open web (Google News + your own feeds) for UAE entertainment and booking opportunities. Every source is optional and independent — unconfigured feeds are skipped, and one slow or broken feed never blocks the rest.
+
+**1b. Emy controls everything herself — `/studio`**
+The **Studio** page (top nav → Studio) lets Emy customize the engine with no code: what it hunts (search phrases, extra feeds), a blocklist so she's never bothered by the wrong leads, when she's (not) interrupted (quiet hours), how loud each alert is (score thresholds), the pitch sign-off, an accent colour, and a **media library** where she uploads her own photos and videos to use as backdrops and artwork.
 
 **2. Understands messy text**
 A promoter's caption or a WhatsApp voice-note transcript becomes structured data: venue, tier, area, date, set length, slot, genres, budget, exclusivity, travel, residency, and every contactable person ranked by how close they are to the money.

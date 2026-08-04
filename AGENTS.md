@@ -14,6 +14,13 @@
   import `DJ_EMY` directly outside artist.ts — that bypasses the /profile
   overrides. Server entry points call `registerProfileLoader()` once to wire in
   the DB-backed loader; pure logic modules stay storage-free and testable.
+- Engine settings (hunting, alerts, branding) work the same way: pure modules
+  read `activeSettings()` from `src/lib/engine-settings.ts`; the DB-backed
+  loader is registered via `registerSettingsLoader()` from
+  `src/lib/settings-store.ts`. The Studio UI at `/customize` writes them.
+- Media (her photos/videos) live under `MEDIA_DIR` (default `./data/media`,
+  git-ignored) with metadata in the `media` table; serve files only through
+  `/api/media/[id]/file`. Never read the data dir directly in components.
 - Adding a source = one new file in `src/lib/sources/` implementing `Source`,
   exported from `ALL_SOURCES`. It MUST return `[]` and report
   `configured: false` when its env vars are absent — never throw.

@@ -11,9 +11,11 @@ import { alert, sendMorningDigest, isDigestTime } from "./notify";
 import { upsertGig, alreadyAlerted, recordSweep } from "./db";
 import type { Gig, RawLead } from "./types";
 import { registerProfileLoader } from "./profile-store";
+import { registerSettingsLoader, getSettings } from "./settings-store";
 
-// Inbound leads are scored and priced — make sure saved rate overrides apply.
+// Inbound leads are scored and priced — make sure saved rate/settings apply.
 registerProfileLoader();
+registerSettingsLoader();
 
 export interface SweepResult {
   found: number;
@@ -29,8 +31,13 @@ export async function processLeads(leads: RawLead[]): Promise<SweepResult> {
   const errors: string[] = [];
   const fresh: Gig[] = [];
 
+  // User blocklist applies to every source (see /customize → Hunting).
+  const blocklist = getSettings().hunting.blocklist.map((b) => b.toLowerCase().trim()).filter(Boolean);
+
   for (const lead of leads) {
     try {
+      const hay = `${lead.title} ${lead.body}`.toLowerCase();
+      if (blocklist.some((b) => hay.includes(b))) continue;
       const base = normalise(lead);
       const s = scoreGig(base);
       const gig: Gig = { ...base, id: nanoid(10), score: s.score, stage: "new" };
