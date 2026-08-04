@@ -67,7 +67,7 @@ Performance agreement (fee schedule, cancellation tiers, technical rider, hospit
 npm install
 cp .env.example .env.local     # optional — the app runs fully without it
 npm run seed                   # loads realistic Dubai sample leads
-npm run dev                    # http://localhost:3000
+npm run dev                    # http://localhost:3001
 ```
 
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
