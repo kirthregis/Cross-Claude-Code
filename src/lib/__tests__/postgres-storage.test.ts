@@ -120,3 +120,16 @@ describe("postgres storage", () => {
     expect(await s.listMedia()).toHaveLength(0);
   });
 });
+
+describe("postgres feedback", () => {
+  it("adds, lists and updates suggestions", async () => {
+    await s.addFeedback({ id: "f1", createdAt: new Date().toISOString(), message: "Alert me when venues I played book again", status: "new" });
+    await s.addFeedback({ id: "f2", createdAt: new Date().toISOString(), message: "Add a rider reminder", category: "contracts", contact: "0501234567", status: "new" });
+    const all = await s.listFeedback();
+    expect(all).toHaveLength(2);
+    expect(all.find((f) => f.id === "f1")?.message).toContain("Alert me");
+    expect(all.find((f) => f.id === "f2")?.category).toBe("contracts");
+    await s.setFeedbackStatus("f1", "done");
+    expect((await s.listFeedback()).find((f) => f.id === "f1")?.status).toBe("done");
+  });
+});

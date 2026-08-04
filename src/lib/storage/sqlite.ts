@@ -11,7 +11,7 @@ import type { Gig } from "../types";
 import { DJ_EMY } from "../artist";
 import { DEFAULT_SETTINGS } from "../engine-settings";
 import type { MediaItem } from "../settings-store";
-import type { Storage, DeferredEntry } from "./types";
+import type { Storage, DeferredEntry, Feedback } from "./types";
 
 const dbPath = () => process.env.DB_PATH ?? "./data/gigradar.db";
 const mediaDir = () => process.env.MEDIA_DIR ?? "./data/media";
@@ -95,6 +95,15 @@ const SCHEMA = `
     mime TEXT NOT NULL,
     size INTEGER NOT NULL,
     tags TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS feedback (
+    id TEXT PRIMARY KEY,
+    message TEXT NOT NULL,
+    category TEXT,
+    contact TEXT,
+    status TEXT NOT NULL DEFAULT 'new',
     created_at TEXT NOT NULL
   );
 `;
@@ -300,5 +309,28 @@ export const sqliteStorage: Storage = {
     const path = join(mediaDir(), id);
     try { if (existsSync(path)) unlinkSync(path); } catch { /* best effort */ }
     return true;
+  },
+
+  async addFeedback(f) {
+    const d = raw();
+    d.prepare(`CREATE TABLE IF NOT EXISTS feedback (id TEXT PRIMARY KEY, message TEXT NOT NULL, category TEXT, contact TEXT, status TEXT NOT NULL DEFAULT 'new', created_at TEXT NOT NULL)`).run();
+    d.prepare("INSERT INTO feedback (id, message, category, contact, status, created_at) VALUES (?,?,?,?,?,?)")
+      .run(f.id, f.message, f.category ?? null, f.contact ?? null, f.status, f.createdAt);
+  },
+
+  async listFeedback() {
+    const d = raw();
+    d.prepare(`CREATE TABLE IF NOT EXISTS feedback (id TEXT PRIMARY KEY, message TEXT NOT NULL, category TEXT, contact TEXT, status TEXT NOT NULL DEFAULT 'new', created_at TEXT NOT NULL)`).run();
+    const rows = d.prepare("SELECT * FROM feedback ORDER BY created_at DESC").all() as Array<Record<string, unknown>>;
+    return rows.map((r) => ({
+      id: r.id as string, message: r.message as string, category: (r.category as string | null) ?? undefined,
+      contact: (r.contact as string | null) ?? undefined, status: r.status as Feedback["status"], createdAt: r.created_at as string,
+    }));
+  },
+
+  async setFeedbackStatus(id, status) {
+    const d = raw();
+    const info = d.prepare("UPDATE feedback SET status = ? WHERE id = ?").run(status, id);
+    return info.changes > 0;
   },
 };

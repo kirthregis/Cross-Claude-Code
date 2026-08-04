@@ -50,6 +50,7 @@ then **Redeploy**:
 | `APP_URL` | Your deployed URL, e.g. `https://gigradar.vercel.app` | ✅ always |
 | `CRON_KEY` | A random password protecting `/api/sweep` | ✅ recommended |
 | `INGEST_KEY` | A random password protecting inbound webhooks | only if using webhooks |
+| `ADMIN_KEY` | Password for the suggestions inbox at `/admin/feedback` — where you review what Emy asks for | ✅ recommended |
 | `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_ID` / `WHATSAPP_TO` | Meta WhatsApp Cloud API — her phone alerts | one channel needed |
 | `RESEND_API_KEY` / `ALERT_EMAIL_TO` | Email alerts (Resend free tier) | one channel needed |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | Telegram alerts (fastest free option) | one channel needed |

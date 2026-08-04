@@ -3,6 +3,7 @@
 import useSWRLike from "@/lib/useFetch";
 import { GigCard } from "@/components/GigCard";
 import { useState } from "react";
+import Link from "next/link";
 import type { Gig, PriceQuote } from "@/lib/types";
 import type { Scored } from "@/lib/score";
 
@@ -65,6 +66,8 @@ export default function Dashboard() {
         </div>
       </header>
 
+      <HowToGuide />
+
       <div className="mb-5 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3">
         <textarea
           value={paste}
@@ -117,8 +120,137 @@ export default function Dashboard() {
         <a href="/profile" className="underline hover:text-zinc-400">Artist profile &amp; rates</a>
         <span className="mx-2 text-zinc-700">·</span>
         <a href="/sources" className="underline hover:text-zinc-400">Source status &amp; setup</a>
+        <span className="mx-2 text-zinc-700">·</span>
+        <a href="/admin/feedback" className="underline hover:text-zinc-400">Suggestions</a>
       </footer>
     </main>
+  );
+}
+
+/** "What GigRadar does + how to do it" — the front-facing guide Emy sees first. */
+function HowToGuide() {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="mb-5 overflow-hidden rounded-xl border border-zinc-800 bg-gradient-to-br from-zinc-900/70 to-zinc-900/30">
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
+        <div>
+          <h2 className="text-sm font-bold text-white">How to use GigRadar</h2>
+          <p className="text-[11px] text-zinc-500">Find it first, price it, pitch it, book it — all from your phone.</p>
+        </div>
+        <span className="text-lg text-zinc-400">{open ? "−" : "+"}</span>
+      </button>
+
+      {open && (
+        <div className="space-y-4 border-t border-zinc-800/70 px-4 py-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {STEPS.map((s) => (
+              <div key={s.n} className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white">{s.n}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">{s.what}</span>
+                </div>
+                <p className="mt-1.5 text-xs font-semibold text-zinc-200">{s.title}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-zinc-400">{s.how}</p>
+                <p className="mt-1.5 text-[11px] text-zinc-600"><span className="text-zinc-500">Tip:</span> {s.tip}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-3 text-[11px] leading-relaxed text-zinc-400">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Not sure where something is?</p>
+            The top bar takes you everywhere: <Link href="/gigs" className="text-red-400 underline">Gigs</Link> (this list) ·
+            <Link href="/profile" className="text-red-400 underline"> Profile</Link> (rates, EVG details, documents) ·
+            <Link href="/customize" className="text-red-400 underline"> Studio</Link> (what it hunts, quiet hours, looks, artwork) ·
+            <Link href="/sources" className="text-red-400 underline"> Sources</Link> (alerts &amp; feeds).
+          </div>
+
+          <SuggestImprovement />
+        </div>
+      )}
+    </section>
+  );
+}
+
+const STEPS = [
+  {
+    n: 1, what: "Spot it", title: "GigRadar finds the gig for you",
+    how: "It watches venues, promoters, the web and your inbox around the clock. The moment something worth your time appears, it scores it and — if it's good — alerts your phone.",
+    tip: "Set up alerts in Sources. The web scan works with zero setup.",
+  },
+  {
+    n: 2, what: "Price it", title: "Know exactly what to charge",
+    how: "Every gig shows an opening ask, a realistic target, and a never-go-below number, built on the venue, night, slot and urgency — so you never leave money on the table.",
+    tip: "Enter your real rates in Profile to make quotes accurate.",
+  },
+  {
+    n: 3, what: "Pitch it", title: "Send a pitch in one tap",
+    how: "Each gig has a ready-to-send pitch for WhatsApp, Instagram or email — already addressed to the right contact, in the right voice.",
+    tip: "Copy it and hit send, or open WhatsApp directly from the gig page.",
+  },
+  {
+    n: 4, what: "Share it", title: "Hand the booker a live page",
+    how: "Copy the booking link from any gig. The booker opens a clean page with her EPK, the date and a 'Request this booking' button that lands in EVG's inbox.",
+    tip: "A link beats an attachment — it always looks pro.",
+  },
+  {
+    n: 5, what: "Book it", title: "Paperwork generated instantly",
+    how: "The moment it's agreed, generate the contract, tech rider, runsheet, invoice and press pack — all from the agreed fee.",
+    tip: "Fill the EVG legal name, licence and bank in Profile so contracts are valid.",
+  },
+  {
+    n: 6, what: "Tune it", title: "Make it yours in Studio",
+    how: "Change what it hunts, quiet hours, how loud alerts are, the look, the pitch sign-off, and upload her photos/videos as artwork. No code needed.",
+    tip: "It's all in Studio — changes apply instantly.",
+  },
+];
+
+/** "Suggest an improvement" — Emy's ideas land in the backend inbox. */
+function SuggestImprovement() {
+  const [msg, setMsg] = useState("");
+  const [contact, setContact] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function submit() {
+    if (msg.trim().length < 3) return;
+    setBusy(true);
+    try {
+      await fetch("/api/feedback", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg.trim(), contact: contact.trim() || undefined }),
+      });
+      setMsg(""); setContact(""); setDone(true);
+      setTimeout(() => setDone(false), 3000);
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-3">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">💡 Suggest an improvement</p>
+      <p className="mt-1 text-[11px] text-zinc-500">
+        Want GigRadar to do something new? Tell me and it gets added to the build list.
+      </p>
+      <textarea
+        value={msg}
+        onChange={(e) => setMsg(e.target.value)}
+        placeholder="e.g. 'Alert me when a venue I've played before is booking again'…"
+        rows={2}
+        className="mt-2 w-full resize-none rounded-lg bg-zinc-900 p-2.5 text-xs outline-none ring-zinc-700 placeholder:text-zinc-600 focus:ring-1"
+      />
+      <input
+        value={contact}
+        onChange={(e) => setContact(e.target.value)}
+        placeholder="Your number / WhatsApp (optional)"
+        className="mt-2 w-full rounded-lg bg-zinc-900 p-2.5 text-xs outline-none ring-zinc-700 placeholder:text-zinc-600 focus:ring-1"
+      />
+      <div className="mt-2 flex items-center gap-2">
+        <button onClick={submit} disabled={busy || msg.trim().length < 3}
+          className="rounded-lg bg-zinc-800 px-3 py-1.5 text-[11px] font-medium disabled:opacity-40">
+          {busy ? "Sending…" : "Send suggestion"}
+        </button>
+        {done && <span className="text-[11px] text-emerald-400">Thanks — noted ✓</span>}
+      </div>
+    </div>
   );
 }
 

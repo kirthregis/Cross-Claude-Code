@@ -18,6 +18,19 @@ export interface DeferredEntry {
   queuedAt: string;
 }
 
+/** A suggestion Emy submits from the app ("Suggest an improvement"). */
+export interface Feedback {
+  id: string;
+  createdAt: string;
+  /** The idea, in her words. */
+  message: string;
+  /** Optional category: "hunting" | "alerts" | "pricing" | "contracts" | "look" | "other". */
+  category?: string;
+  /** Optional contact / context she wants you to have. */
+  contact?: string;
+  status: "new" | "in_progress" | "done";
+}
+
 export interface Storage {
   // Gigs
   upsertGig(g: Gig): Promise<{ inserted: boolean }>;
@@ -47,6 +60,11 @@ export interface Storage {
   addMedia(opts: { id: string; name: string; kind: MediaItem["kind"]; mime: string; size: number; tags?: string[] }): Promise<MediaItem>;
   getMediaFile(id: string): Promise<{ item: MediaItem; buffer: Buffer } | null>;
   deleteMedia(id: string): Promise<boolean>;
+
+  // Feedback ("Suggest an improvement")
+  addFeedback(f: Feedback): Promise<void>;
+  listFeedback(): Promise<Feedback[]>;
+  setFeedbackStatus(id: string, status: Feedback["status"]): Promise<boolean>;
 
   // Close / reset (tests)
   close(): Promise<void>;

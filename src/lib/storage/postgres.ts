@@ -11,7 +11,7 @@ import type { Gig } from "../types";
 import { DJ_EMY } from "../artist";
 import { DEFAULT_SETTINGS } from "../engine-settings";
 import type { MediaItem } from "../settings-store";
-import type { Storage, DeferredEntry } from "./types";
+import type { Storage, DeferredEntry, Feedback } from "./types";
 
 export const PG_SCHEMA = `
 CREATE TABLE IF NOT EXISTS gigs (
@@ -71,6 +71,15 @@ CREATE TABLE IF NOT EXISTS media (
   mime TEXT NOT NULL,
   size INTEGER NOT NULL,
   tags TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS feedback (
+  id TEXT PRIMARY KEY,
+  message TEXT NOT NULL,
+  category TEXT,
+  contact TEXT,
+  status TEXT NOT NULL DEFAULT 'new',
   created_at TEXT NOT NULL
 );
 `;
@@ -297,6 +306,29 @@ export function createPostgresStorage(pool: Pool): Storage {
     async deleteMedia(id) {
       await ensureSchema();
       const r = await pool.query("DELETE FROM media WHERE id = $1", [id]);
+      return (r.rowCount ?? 0) > 0;
+    },
+
+    async addFeedback(f) {
+      await ensureSchema();
+      await pool.query(
+        "INSERT INTO feedback (id, message, category, contact, status, created_at) VALUES ($1,$2,$3,$4,$5,$6)",
+        [f.id, f.message, f.category ?? null, f.contact ?? null, f.status, f.createdAt]
+      );
+    },
+
+    async listFeedback() {
+      await ensureSchema();
+      const r = await pool.query("SELECT * FROM feedback ORDER BY created_at DESC");
+      return r.rows.map((row) => ({
+        id: row.id as string, message: row.message as string, category: (row.category as string | null) ?? undefined,
+        contact: (row.contact as string | null) ?? undefined, status: row.status as Feedback["status"], createdAt: row.created_at as string,
+      }));
+    },
+
+    async setFeedbackStatus(id, status) {
+      await ensureSchema();
+      const r = await pool.query("UPDATE feedback SET status = $1 WHERE id = $2", [status, id]);
       return (r.rowCount ?? 0) > 0;
     },
   };
