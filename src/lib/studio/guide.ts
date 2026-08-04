@@ -15,6 +15,14 @@ export interface GuideStep {
 
 export const GUIDE_STEPS: GuideStep[] = [
   {
+    n: 0,
+    title: "Build your library",
+    short: "Import her tracks, play through the controller",
+    detail: "The Library tab imports her music (files or whole folders, stored on-device) and plays it through any output — pick her DDJ-800 as the audio device in Settings and it plays through the controller. Free legal sources for studio-quality music are built in (netlabels, CC collections, DJ promos).",
+    icon: "🎵",
+    command: "“Open the library”",
+  },
+  {
     n: 1,
     title: "Create a project",
     short: "Give the mix a name",
@@ -82,6 +90,8 @@ export const GUIDE_QUICK_TIPS: { icon: string; text: string }[] = [
   { icon: "✈️", text: "Works offline — mastering, templates, release pack and checks all run with no internet." },
   { icon: "🔒", text: "Your music and keys stay on your device. Nothing is uploaded anywhere." },
   { icon: "💡", text: "Find the improvement box at the bottom of the home screen — tell the app what to add and watch it show up." },
+  { icon: "🎚", text: "Playback can route through her DJ controller — Settings → Audio output → pick the DDJ (full deck mixing still needs Rekordbox)." },
+  { icon: "💼", text: "GigRadar lives in the same app — Gigs tab finds, prices and contracts her bookings." },
 ];
 
 export const GUIDE_DISMISSED_KEY = "emy-studio-guide-dismissed";

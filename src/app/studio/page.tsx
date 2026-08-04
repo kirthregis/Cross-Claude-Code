@@ -143,6 +143,20 @@ export default function StudioHome() {
       </Link>
 
       <FeedbackBox />
+
+      <Link
+        href="/"
+        className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900/70 to-zinc-900/30 px-4 py-3.5 transition hover:border-fuchsia-500/50"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">💼</span>
+          <div>
+            <div className="text-sm font-bold text-zinc-100">GigRadar — bookings, pitches & contracts</div>
+            <div className="text-xs text-zinc-500">Find every gig in the Gulf, get priced and pitched automatically, generate contracts and invoices.</div>
+          </div>
+        </div>
+        <span className="shrink-0 text-fuchsia-400">Open →</span>
+      </Link>
     </div>
   );
 }

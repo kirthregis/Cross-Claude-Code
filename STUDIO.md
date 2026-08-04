@@ -34,6 +34,30 @@ stored on the device, her Gemini key stays on the device.
 
 ---
 
+## Music library, DJ-controller audio & one-tap sharing
+
+- **Library tab** (`/studio/library`): import her tracks (files or whole
+  folders — Chrome/Edge), stored on-device in IndexedDB, play them with a
+  built-in player. Free legal sources are built in: Internet Archive
+  netlabels (searchable right in the page, studio-quality CC electronic
+  music), Free Music Archive, Bandcamp pay-what-you-want, SoundCloud
+  downloads, Hypeddit + LabelRadar DJ promos. No ripping tools — latest
+  commercial tracks "for free" isn't legal, and the app doesn't fake it.
+- **Audio output** (Settings → Audio output): route playback (library +
+  master A/B preview) to any device, e.g. the DDJ-800's sound card when
+  plugged in via USB. Full deck mixing (jog wheels) is Rekordbox's job —
+  the studio can't replace that, but listening/previewing through the
+  controller works.
+- **Share row** in the Release tab: one-tap buttons to YouTube (Studio),
+  Instagram, TikTok, Snapchat and Threads.
+
+## GigRadar is in the same app
+
+The gig engine (find → score → price → pitch → contract → invoice) is the
+app's home page `/`; the nav has a **💼 Gigs** button and the studio home
+links to it. Data is shared (same SQLite DB), so bookings and releases live
+side by side. Restore any milestone via the git tags in **SNAPSHOT.md**.
+
 ## Developer setup — what's actually yours
 
 **`DEV-SETUP.md`** is the complete list: **2 required items** (a free Gemini

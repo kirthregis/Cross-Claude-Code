@@ -185,6 +185,8 @@ export interface StudioSettings {
   soundOn: boolean;
   /** Assistant's spoken voice: prefer a male or female TTS voice, or auto. */
   voiceGender: "male" | "female" | "auto";
+  /** Audio output device id (e.g. a DJ controller's sound card). "" = default. */
+  audioOutputDevice: string;
 }
 
 export const DEFAULT_SETTINGS: StudioSettings = {
@@ -205,6 +207,7 @@ export const DEFAULT_SETTINGS: StudioSettings = {
   emailPing: false,
   soundOn: true,
   voiceGender: "male",
+  audioOutputDevice: "",
 };
 
 export type AssistantIntent =
