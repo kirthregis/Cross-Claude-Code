@@ -1,7 +1,32 @@
-# Agent notes — GigRadar
+# Agent notes — GigRadar + EMY Studio
+
+## EMY Studio domain rules (src/lib/studio/)
+- **All DSP is pure and DOM-free** (`dsp.ts`, `wav.ts`) so it runs in the
+  browser AND unit tests. Never import `window`/`document` there.
+- `audio.ts` does the browser-only work: decode, realtime A/B chain,
+  chunked OfflineAudioContext render (8-min chunks → bounded memory),
+  WAV export with tags.
+- **Never mutate a decoded AudioBuffer** — `loudnessWindows()` must work on a
+  copy (regression: measuring used to K-weight the source in place and
+  destroyed the preview audio). Tests cover this.
+- Loudness is measured per-chunk via `loudnessWindows()` and merged with
+  `loudnessFromWindows()` (global gating) — keep both in sync.
+- Release numbers live in `release.ts` and match YouTube Help as of 2026:
+  -14 LUFS (YouTube/Spotify), -16 (Apple), title ≤ 100, desc ≤ 5000,
+  tags ≤ 500 chars total, cover 3000×3000 (min 1280), true peak ≤ -1 dBTP.
+- The assistant must work **without any API key**: `routeCommand()` +
+  `replyForIntent()` are the offline brain; Gemini only extends it. Never
+  require Gemini for a core flow.
+- User settings (Gemini key, handles) are device-local; never log or send
+  them anywhere. The email ping goes through `src/app/api/studio/notify`
+  with the Resend key server-side only.
+- 24-bit WAV writes bytes individually (setInt32 at 3-byte offsets overflows
+  the last sample — regression covered by tests).
+- UI lives in `src/components/studio/`; pages are thin shells. Store reads go
+  through `useProjects()` / `useSettings()` (useSyncExternalStore).
 
 ## Commands
-- `npm run dev` · `npm run build` · `npm test` (vitest, 115 tests) · `npm run lint`
+- `npm run dev` · `npm run build` · `npm test` (vitest, 154 tests) · `npm run lint`
 - `npm run seed` — realistic Dubai sample leads into SQLite
 - `npm run sweep` — one ingest sweep from the CLI
 
