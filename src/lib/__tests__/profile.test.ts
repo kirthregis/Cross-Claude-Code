@@ -15,13 +15,13 @@ describe("profile overrides", () => {
   it("falls back to compiled defaults when nothing saved", async () => {
     const { getProfile } = await import("../profile-store");
     const { DJ_EMY } = await import("../artist");
-    expect(getProfile().name).toBe(DJ_EMY.name);
+    expect((await getProfile()).name).toBe(DJ_EMY.name);
   });
 
   it("deep-merges a partial patch without wiping other fields", async () => {
     const { saveProfile, getProfile } = await import("../profile-store");
-    saveProfile({ baseRatesAed: { superclub: 12345 } as never });
-    const p = getProfile();
+    await saveProfile({ baseRatesAed: { superclub: 12345 } as never });
+    const p = await getProfile();
     expect(p.baseRatesAed.superclub).toBe(12345);
     expect(p.baseRatesAed.beach_club).toBeGreaterThan(0); // untouched
     expect(p.techRider.mixer.length).toBeGreaterThan(0);  // untouched
@@ -35,7 +35,7 @@ describe("profile overrides", () => {
   it("re-reports a gap if a required field is blanked out", async () => {
     const { saveProfile, profileGaps } = await import("../profile-store");
     expect(profileGaps()).toEqual([]);
-    saveProfile({ management: { tradeLicenceNo: "" } as never });
+    await saveProfile({ management: { tradeLicenceNo: "" } as never });
     expect(profileGaps().join(" ")).toMatch(/trade licence/i);
   });
 });

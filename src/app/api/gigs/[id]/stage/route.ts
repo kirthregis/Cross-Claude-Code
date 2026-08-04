@@ -10,7 +10,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const parsed = Body.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
-  const g = setStage(id, parsed.data.stage);
+  const g = await setStage(id, parsed.data.stage);
   if (!g) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ gig: g });
 }

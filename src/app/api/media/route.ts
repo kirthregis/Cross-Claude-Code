@@ -3,8 +3,6 @@ import { nanoid } from "nanoid";
 import { listMedia, addMedia } from "@/lib/settings-store";
 import { registerSettingsLoader } from "@/lib/settings-store";
 
-registerSettingsLoader();
-
 export const dynamic = "force-dynamic";
 
 const IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
@@ -12,7 +10,8 @@ const VIDEO_MIME = new Set(["video/mp4", "video/webm", "video/quicktime"]);
 const MAX_BYTES = 40 * 1024 * 1024; // 40 MB
 
 export async function GET() {
-  return NextResponse.json({ media: listMedia() });
+  await registerSettingsLoader();
+  return NextResponse.json({ media: await listMedia() });
 }
 
 export async function POST(req: Request) {
@@ -30,7 +29,7 @@ export async function POST(req: Request) {
     const tags = (String(form.get("tags") ?? "").split(",").map((t) => t.trim()).filter(Boolean));
     const id = nanoid(16);
     const buffer = Buffer.from(await file.arrayBuffer());
-    const item = addMedia({ id, name: file.name, kind, mime: file.type, size: file.size, tags, file: buffer });
+    const item = await addMedia({ id, name: file.name, kind, mime: file.type, size: file.size, tags, file: buffer });
     return NextResponse.json({ media: item });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

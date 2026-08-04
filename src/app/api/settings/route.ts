@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import { getSettings, saveSettings } from "@/lib/settings-store";
 import { registerSettingsLoader } from "@/lib/settings-store";
 
-registerSettingsLoader();
-
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return NextResponse.json({ settings: getSettings() });
+  await registerSettingsLoader();
+  return NextResponse.json({ settings: await getSettings() });
 }
 
 export async function POST(req: Request) {
+  await registerSettingsLoader();
   const patch = await req.json();
-  return NextResponse.json({ settings: saveSettings(patch) });
+  return NextResponse.json({ settings: await saveSettings(patch) });
 }

@@ -5,14 +5,12 @@ import { registerSettingsLoader } from "@/lib/settings-store";
 import { scoreGig } from "@/lib/score";
 import { quoteFor, pitch, negotiationPlaybook, contactStrategy } from "@/lib/outreach";
 
-registerProfileLoader();
-registerSettingsLoader();
-
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  await Promise.all([registerProfileLoader(), registerSettingsLoader()]);
   const { id } = await params;
-  const g = getGig(id);
+  const g = await getGig(id);
   if (!g) return NextResponse.json({ error: "not found" }, { status: 404 });
   const strategy = contactStrategy(g);
   return NextResponse.json({

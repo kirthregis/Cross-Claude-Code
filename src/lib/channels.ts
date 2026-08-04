@@ -66,10 +66,10 @@ export async function sendWhatsApp(text: string, gigId?: string, tier = "normal"
     });
     const ok = res.ok;
     const detail = ok ? undefined : (await res.text()).slice(0, 300);
-    if (gigId) logAlert(gigId, tier, "whatsapp", ok, detail);
+    if (gigId) await logAlert(gigId, tier, "whatsapp", ok, detail);
     return { channel: "whatsapp", ok, detail };
   } catch (e) {
-    if (gigId) logAlert(gigId, tier, "whatsapp", false, String(e));
+    if (gigId) await logAlert(gigId, tier, "whatsapp", false, String(e));
     return { channel: "whatsapp", ok: false, detail: String(e) };
   }
 }
@@ -109,10 +109,10 @@ export async function sendEmail(
     });
     const ok = res.ok;
     const detail = ok ? undefined : (await res.text()).slice(0, 300);
-    if (gigId) logAlert(gigId, tier, "email", ok, detail);
+    if (gigId) await logAlert(gigId, tier, "email", ok, detail);
     return { channel: "email", ok, detail };
   } catch (e) {
-    if (gigId) logAlert(gigId, tier, "email", false, String(e));
+    if (gigId) await logAlert(gigId, tier, "email", false, String(e));
     return { channel: "email", ok: false, detail: String(e) };
   }
 }
