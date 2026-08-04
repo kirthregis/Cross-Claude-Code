@@ -37,10 +37,36 @@ function writeJSON(key: string, value: unknown): void {
   }
 }
 
+/** Raw-string read of a localStorage key. Returns null on server / absent. */
+function readRaw(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 // ---- settings ----
 
+let settingsCache: { raw: string | null; s: StudioSettings } | null = null;
+
 export function loadSettings(): StudioSettings {
-  return { ...DEFAULT_SETTINGS, ...readJSON<Partial<StudioSettings>>(SETTINGS_KEY, {}) };
+  const raw = readRaw(SETTINGS_KEY);
+  // Same raw value -> return the SAME object reference (React requires stable
+  // snapshots; a fresh object each call caused an infinite re-render loop).
+  if (settingsCache && settingsCache.raw === raw) return settingsCache.s;
+  let parsed: Partial<StudioSettings> = {};
+  if (raw) {
+    try {
+      parsed = JSON.parse(raw) as Partial<StudioSettings>;
+    } catch {
+      parsed = {};
+    }
+  }
+  const s: StudioSettings = { ...DEFAULT_SETTINGS, ...parsed };
+  settingsCache = { raw, s };
+  return s;
 }
 
 export function saveSettings(s: StudioSettings): void {
@@ -50,9 +76,22 @@ export function saveSettings(s: StudioSettings): void {
 
 // ---- projects ----
 
+let projectsCache: { raw: string | null; list: Project[] } | null = null;
+
 export function loadProjects(): Project[] {
-  const list = readJSON<Project[]>(PROJECTS_KEY, []);
-  return list.sort((a, b) => b.meta.updatedAt - a.meta.updatedAt);
+  const raw = readRaw(PROJECTS_KEY);
+  if (projectsCache && projectsCache.raw === raw) return projectsCache.list;
+  let list: Project[] = [];
+  if (raw) {
+    try {
+      list = JSON.parse(raw) as Project[];
+    } catch {
+      list = [];
+    }
+  }
+  list = list.sort((a, b) => b.meta.updatedAt - a.meta.updatedAt);
+  projectsCache = { raw, list };
+  return list;
 }
 
 export function saveProjects(list: Project[]): void {
@@ -191,8 +230,12 @@ function subscribe(l: () => void): () => void {
   };
 }
 
+// Stable server snapshots: a fresh []/object each call also trips React's
+// "getServerSnapshot should be cached" guard during hydration.
+const EMPTY_PROJECTS: Project[] = [];
+
 export function useProjects(): Project[] {
-  return useSyncExternalStore(subscribe, loadProjects, () => []);
+  return useSyncExternalStore(subscribe, loadProjects, () => EMPTY_PROJECTS);
 }
 
 export function useSettings(): StudioSettings {

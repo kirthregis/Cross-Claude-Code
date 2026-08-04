@@ -39,10 +39,16 @@ export function AssistantPanel({
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [voiceOk] = useState(() => speechSupported());
+  const [voiceOk, setVoiceOk] = useState(false);
   const settings = loadSettings();
   const stopListenRef = useRef<(() => void) | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Detect speech support after mount so server and client HTML agree
+    // (a window-dependent initial value caused a hydration mismatch).
+    setVoiceOk(speechSupported());
+  }, []);
 
   useEffect(() => {
     if (project) setMessages(project.chatHistory ?? []);
