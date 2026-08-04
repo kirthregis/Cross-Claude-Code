@@ -4,14 +4,12 @@ import { pendingDeferred } from "@/lib/db";
 import { registerProfileLoader } from "@/lib/profile-store";
 import { registerSettingsLoader } from "@/lib/settings-store";
 
-registerProfileLoader();
-registerSettingsLoader();
-
 export const dynamic = "force-dynamic";
 
 /** What's currently held for the morning digest. */
 export async function GET() {
-  const pending = pendingDeferred();
+  await Promise.all([registerProfileLoader(), registerSettingsLoader()]);
+  const pending = await pendingDeferred();
   return NextResponse.json({
     count: pending.length,
     gigs: pending.map((p) => ({ id: p.gig.id, venue: p.gig.venueName, score: p.gig.score, queuedAt: p.queuedAt })),

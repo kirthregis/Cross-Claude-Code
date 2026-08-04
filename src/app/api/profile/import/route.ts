@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { extractText, parseDocText, mergeDocs } from "@/lib/docparse";
 import { saveProfile, profileGaps, registerProfileLoader } from "@/lib/profile-store";
 
-registerProfileLoader();
-
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
@@ -43,6 +41,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "could not read any of the files", errors }, { status: 422 });
   }
 
+  await registerProfileLoader();
   const found = mergeDocs(docs);
 
   // Two-step by design: preview first, then explicitly apply. Nothing is
@@ -51,7 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ found, errors, applied: false });
   }
 
-  saveProfile({
+  await saveProfile({
     management: {
       ...(found.legalName ? { legalName: found.legalName } : {}),
       ...(found.tradeLicenceNo ? { tradeLicenceNo: found.tradeLicenceNo } : {}),

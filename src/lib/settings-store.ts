@@ -1,18 +1,16 @@
 /**
  * Persistence for engine settings + media library.
  *
- * Settings are stored as one JSON row in SQLite (git-ignored), exactly like the
- * profile overrides. Media files live under /data/media with metadata in SQLite
- * so Emy can upload pics/videos as artwork and reuse them as backdrops.
+ * Settings are stored in one JSON row (SQLite locally, Postgres in
+ * production). Media files live under /data/media (local) — on Vercel, media
+ * persistence is handled by object/blob storage; see ROADMAP notes.
  *
- * NOTE on hosting: SQLite and the local /data/media folder persist on her own
- * machine but reset on Vercel's ephemeral filesystem per deploy. For a permanent
- * Vercel setup you'd point the media store at a blob service; the structure here
- * keeps that a contained change.
+ * Storage is async. The sync `activeSettings()` loader is fed from an in-memory
+ * cache populated once from storage, so pure logic modules stay testable.
  */
 
-import { db } from "./db";
-import { mkdirSync, writeFileSync, existsSync, readFileSync, unlinkSync, renameSync } from "fs";
+import { getStorage } from "./storage";
+import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import {
   DEFAULT_SETTINGS,
@@ -21,81 +19,33 @@ import {
   type EngineSettings,
 } from "./engine-settings";
 
-/* ------------------------------------------------------------------ *
- * Settings
- * ------------------------------------------------------------------ */
-function ensureSettings() {
-  db().exec(`CREATE TABLE IF NOT EXISTS settings (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    data TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  );`);
+let _cache: EngineSettings = DEFAULT_SETTINGS;
+let _loaderReady = false;
+
+/** Always reads fresh from storage (used by API routes). */
+export async function getSettings(): Promise<EngineSettings> {
+  const s = await getStorage();
+  _cache = await s.getSettings();
+  _loaderReady = true;
+  return _cache;
 }
 
-/**
- * Deep-merge over an existing value so a partial save never drops a field.
- *
- * `over` always wins, INCLUDING falsy values (false, 0, ""). The only time we
- * keep `base` is when `over` is null/undefined. (A naive `(over || base)`
- * here silently discards webScanOn=false, quietStartHour=0, a cleared sign-off,
- * etc. — that bug shipped once; the tests guard against it.)
- */
-function merge<T>(base: T, over: unknown): T {
-  if (over === undefined || over === null) return base;
-  const baseIsObj = typeof base === "object" && base !== null && !Array.isArray(base);
-  const overIsObj = typeof over === "object" && over !== null && !Array.isArray(over);
-  if (baseIsObj && overIsObj) {
-    const out: Record<string, unknown> = { ...(base as unknown as Record<string, unknown>) };
-    for (const [k, v] of Object.entries(over as Record<string, unknown>)) {
-      out[k] = k in out ? merge((base as unknown as Record<string, unknown>)[k], v) : v;
-    }
-    return out as unknown as T;
-  }
-  return over as T;
-}
-
-export function getSettings(): EngineSettings {
-  ensureSettings();
-  const row = db().prepare("SELECT data FROM settings WHERE id = 1").get() as { data: string } | undefined;
-  if (!row) return DEFAULT_SETTINGS;
-  try {
-    return merge(DEFAULT_SETTINGS, JSON.parse(row.data));
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
-}
-
-const RATE_KEYS = ["urgentFrom", "highFrom", "normalFrom", "digestFrom", "suppressBelow"] as const;
-
-export function saveSettings(patch: Partial<EngineSettings>): EngineSettings {
-  ensureSettings();
-  const row = db().prepare("SELECT data FROM settings WHERE id = 1").get() as { data: string } | undefined;
-  const existing: unknown = row ? JSON.parse(row.data) : {};
-  const next = merge(DEFAULT_SETTINGS, merge(existing as EngineSettings, patch));
-  // Clamp numbers to sane ranges.
-  next.alerts.quietStartHour = clamp(next.alerts.quietStartHour, 0, 23);
-  next.alerts.quietEndHour = clamp(next.alerts.quietEndHour, 0, 23);
-  for (const k of RATE_KEYS) next.alerts[k] = clamp(next.alerts[k], 0, 100);
-  if (typeof next.hunting?.webScanOn !== "boolean") next.hunting.webScanOn = true;
-  if (typeof next.branding?.accentColor !== "string") next.branding.accentColor = "#e11d48";
-
-  db().prepare(
-    `INSERT INTO settings (id, data, updated_at) VALUES (1, @d, @t)
-     ON CONFLICT(id) DO UPDATE SET data = @d, updated_at = @t`
-  ).run({ d: JSON.stringify(next), t: new Date().toISOString() });
+export async function saveSettings(patch: Partial<EngineSettings>): Promise<EngineSettings> {
+  const s = await getStorage();
+  _cache = await s.saveSettings(patch);
+  _loaderReady = true;
   invalidateSettingsCache();
-  return getSettings();
+  return _cache;
 }
-
-const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(n)));
 
 /** Registers the DB-backed loader so `activeSettings()` reflects saved values. */
-export function registerSettingsLoader() {
-  setSettingsLoader(getSettings);
+export async function registerSettingsLoader(): Promise<void> {
+  if (!_loaderReady) await getSettings();
+  setSettingsLoader(() => _cache);
 }
 
 /* ------------------------------------------------------------------ *
- * Media library
+ * Media library (delegates to the active backend)
  * ------------------------------------------------------------------ */
 export interface MediaItem {
   id: string;
@@ -104,84 +54,25 @@ export interface MediaItem {
   mime: string;
   size: number;
   createdAt: string;
-  /** Optional roles, e.g. ["backdrop", "press", "contract-logo"]. */
   tags: string[];
 }
 
-const mediaDir = () => process.env.MEDIA_DIR ?? "./data/media";
-
-function ensureMedia() {
-  mkdirSync(mediaDir(), { recursive: true });
-  db().exec(`CREATE TABLE IF NOT EXISTS media (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    kind TEXT NOT NULL,
-    mime TEXT NOT NULL,
-    size INTEGER NOT NULL,
-    tags TEXT NOT NULL,
-    created_at TEXT NOT NULL
-  );`);
+export async function listMedia(): Promise<MediaItem[]> {
+  return (await getStorage()).listMedia();
 }
 
-export function listMedia(): MediaItem[] {
-  ensureMedia();
-  const rows = db().prepare("SELECT * FROM media ORDER BY created_at DESC").all() as Array<{
-    id: string; name: string; kind: string; mime: string; size: number; tags: string; created_at: string;
-  }>;
-  return rows.map((r) => ({
-    id: r.id, name: r.name, kind: r.kind as MediaItem["kind"], mime: r.mime,
-    size: r.size, tags: JSON.parse(r.tags), createdAt: r.created_at,
-  }));
+export async function addMedia(opts: { id: string; name: string; kind: MediaItem["kind"]; mime: string; size: number; tags?: string[]; file: Buffer }): Promise<MediaItem> {
+  // On SQLite the file also goes to disk; the storage backend handles metadata.
+  const dir = process.env.MEDIA_DIR ?? "./data/media";
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, opts.id), opts.file);
+  return (await getStorage()).addMedia(opts);
 }
 
-export function addMedia(opts: { id: string; name: string; kind: MediaItem["kind"]; mime: string; size: number; tags?: string[]; file: Buffer }): MediaItem {
-  ensureMedia();
-  mkdirSync(mediaDir(), { recursive: true });
-  writeFileSync(join(mediaDir(), opts.id), opts.file);
-  const item: MediaItem = {
-    id: opts.id, name: opts.name, kind: opts.kind, mime: opts.mime,
-    size: opts.size, tags: opts.tags ?? [], createdAt: new Date().toISOString(),
-  };
-  db().prepare(
-    `INSERT INTO media (id, name, kind, mime, size, tags, created_at)
-     VALUES (@id, @name, @kind, @mime, @size, @tags, @created_at)`
-  ).run({
-    id: item.id, name: item.name, kind: item.kind, mime: item.mime,
-    size: item.size, tags: JSON.stringify(item.tags), created_at: item.createdAt,
-  });
-  return item;
+export async function getMediaFile(id: string): Promise<{ item: MediaItem; buffer: Buffer } | null> {
+  return (await getStorage()).getMediaFile(id);
 }
 
-export function getMediaFile(id: string): { item: MediaItem; buffer: Buffer } | null {
-  ensureMedia();
-  const row = db().prepare("SELECT * FROM media WHERE id = ?").get(id) as Record<string, string> | undefined;
-  if (!row) return null;
-  const path = join(mediaDir(), id);
-  if (!existsSync(path)) return null;
-  return {
-    item: {
-      id: row.id, name: row.name, kind: row.kind as MediaItem["kind"], mime: row.mime,
-      size: Number(row.size), tags: JSON.parse(row.tags), createdAt: row.created_at,
-    },
-    buffer: readFileSync(path),
-  };
+export async function deleteMedia(id: string): Promise<boolean> {
+  return (await getStorage()).deleteMedia(id);
 }
-
-export function deleteMedia(id: string): boolean {
-  ensureMedia();
-  const row = db().prepare("SELECT * FROM media WHERE id = ?").get(id);
-  if (!row) return false;
-  db().prepare("DELETE FROM media WHERE id = ?").run(id);
-  const path = join(mediaDir(), id);
-  try { if (existsSync(path)) unlinkSync(path); } catch { /* best effort */ }
-  // Clear any backdrop reference.
-  const settings = getSettings();
-  if (settings.branding.backdropMediaId === id) {
-    saveSettings({ branding: { ...settings.branding, backdropMediaId: undefined } });
-  }
-  return true;
-}
-
-// renameSync imported for forward-compat (file moves) — keeps this module's API
-// surface stable if we later add rename support.
-export { renameSync };

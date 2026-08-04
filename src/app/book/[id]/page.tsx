@@ -6,14 +6,12 @@ import { registerSettingsLoader } from "@/lib/settings-store";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-registerProfileLoader();
-registerSettingsLoader();
-
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  await Promise.all([registerProfileLoader(), registerSettingsLoader()]);
   const { id } = await params;
-  const g = getGig(id);
+  const g = await getGig(id);
   if (!g) return {};
   return {
     title: `Book ${activeProfile().name} — ${g.venueName ?? g.title}`,
@@ -31,7 +29,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  */
 export default async function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const g = getGig(id);
+  await Promise.all([registerProfileLoader(), registerSettingsLoader()]);
+  const g = await getGig(id);
   if (!g) notFound();
 
   const p = activeProfile();

@@ -136,10 +136,10 @@ async function sendTelegram(g: Gig, s: Scored): Promise<boolean> {
       signal: AbortSignal.timeout(10_000),
     });
     const ok = res.ok;
-    logAlert(g.id, s.tier, "telegram", ok, ok ? undefined : await res.text());
+    await logAlert(g.id, s.tier, "telegram", ok, ok ? undefined : await res.text());
     return ok;
   } catch (e) {
-    logAlert(g.id, s.tier, "telegram", false, String(e));
+    await logAlert(g.id, s.tier, "telegram", false, String(e));
     return false;
   }
 }
@@ -155,10 +155,10 @@ async function sendWebhook(g: Gig, s: Scored): Promise<boolean> {
       body: JSON.stringify({ text: buildMessage(g, s), gig: g, score: s }),
       signal: AbortSignal.timeout(10_000),
     });
-    logAlert(g.id, s.tier, "webhook", res.ok);
+    await logAlert(g.id, s.tier, "webhook", res.ok);
     return res.ok;
   } catch (e) {
-    logAlert(g.id, s.tier, "webhook", false, String(e));
+    await logAlert(g.id, s.tier, "webhook", false, String(e));
     return false;
   }
 }
@@ -183,7 +183,7 @@ export async function alert(g: Gig, s: Scored, now: Date = new Date()): Promise<
   // Quiet hours: hold non-urgent gigs for the morning digest.
   // These are QUEUED, never dropped — a strong 3am lead must still be seen.
   if (isQuietHours(now) && s.tier !== "urgent") {
-    deferAlert(g.id, s.tier);
+    await deferAlert(g.id, s.tier);
     return { sent: [], skipped: "quiet hours — queued for morning digest" };
   }
 
@@ -211,7 +211,7 @@ export async function alert(g: Gig, s: Scored, now: Date = new Date()): Promise<
  * ranked briefing rather than a wall of individual pings.
  */
 export async function sendMorningDigest(): Promise<{ sent: boolean; count: number }> {
-  const pending = pendingDeferred();
+  const pending = await pendingDeferred();
   if (!pending.length) return { sent: false, count: 0 };
 
   const token = env("TELEGRAM_BOT_TOKEN");
@@ -278,8 +278,8 @@ export async function sendMorningDigest(): Promise<{ sent: boolean; count: numbe
   }
 
   if (ok) {
-    for (const p of pending) logAlert(p.gig.id, "digest", "telegram-digest", true);
-    markDeferredReleased(pending.map((p) => p.gig.id));
+    for (const p of pending) await logAlert(p.gig.id, "digest", "telegram-digest", true);
+    await markDeferredReleased(pending.map((p) => p.gig.id));
   }
   return { sent: ok, count: pending.length };
 }

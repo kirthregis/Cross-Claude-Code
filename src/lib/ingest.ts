@@ -13,9 +13,13 @@ import type { Gig, RawLead } from "./types";
 import { registerProfileLoader } from "./profile-store";
 import { registerSettingsLoader, getSettings } from "./settings-store";
 
-// Inbound leads are scored and priced — make sure saved rate/settings apply.
-registerProfileLoader();
-registerSettingsLoader();
+let loadersReady: Promise<void> | null = null;
+async function ensureLoaders() {
+  if (!loadersReady) {
+    loadersReady = Promise.all([registerProfileLoader(), registerSettingsLoader()]).then(() => undefined);
+  }
+  return loadersReady;
+}
 
 export interface SweepResult {
   found: number;
@@ -28,11 +32,12 @@ export interface SweepResult {
 }
 
 export async function processLeads(leads: RawLead[]): Promise<SweepResult> {
+  await ensureLoaders();
   const errors: string[] = [];
   const fresh: Gig[] = [];
 
   // User blocklist applies to every source (see /customize → Hunting).
-  const blocklist = getSettings().hunting.blocklist.map((b) => b.toLowerCase().trim()).filter(Boolean);
+  const blocklist = (await getSettings()).hunting.blocklist.map((b) => b.toLowerCase().trim()).filter(Boolean);
 
   for (const lead of leads) {
     try {
@@ -41,7 +46,7 @@ export async function processLeads(leads: RawLead[]): Promise<SweepResult> {
       const base = normalise(lead);
       const s = scoreGig(base);
       const gig: Gig = { ...base, id: nanoid(10), score: s.score, stage: "new" };
-      const { inserted } = upsertGig(gig);
+      const { inserted } = await upsertGig(gig);
       if (inserted) fresh.push(gig);
     } catch (e) {
       errors.push(`normalise failed for "${lead.title}": ${e}`);
@@ -50,7 +55,7 @@ export async function processLeads(leads: RawLead[]): Promise<SweepResult> {
 
   let alerted = 0;
   for (const g of fresh) {
-    if (alreadyAlerted(g.id)) continue;
+    if (await alreadyAlerted(g.id)) continue;
     const s = scoreGig(g);
     try {
       const r = await alert(g, s);
@@ -89,6 +94,6 @@ export async function sweep(): Promise<SweepResult> {
     }
   }
 
-  recordSweep(out.found, out.newGigs, out.errors);
+  await recordSweep(out.found, out.newGigs, out.errors);
   return out;
 }

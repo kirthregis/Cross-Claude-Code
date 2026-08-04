@@ -46,14 +46,14 @@ describe("regression: overnight gigs must never be silently dropped", () => {
     });
     const s = scoreGig(base);
     const gig = { ...base, id: "night01", score: s.score, stage: "new" as const };
-    upsertGig(gig);
+    await upsertGig(gig);
 
     const r = await alert(gig, { ...s, tier: "high" }, at(3));
     expect(r.sent).toHaveLength(0);
     expect(r.skipped).toMatch(/digest/);
 
     // The critical assertion: it is still recoverable.
-    expect(pendingDeferred().map((p) => p.gig.id)).toContain("night01");
+    expect((await pendingDeferred()).map((p) => p.gig.id)).toContain("night01");
   });
 
   it("lets an urgent gig break through quiet hours", async () => {
@@ -69,11 +69,11 @@ describe("regression: overnight gigs must never be silently dropped", () => {
     });
     const s = scoreGig(base);
     const gig = { ...base, id: "urgent01", score: s.score, stage: "new" as const };
-    upsertGig(gig);
+    await upsertGig(gig);
 
     // No Telegram configured in tests, so nothing sends — but it must NOT queue.
     await alert(gig, { ...s, tier: "urgent" }, at(3));
-    expect(pendingDeferred().map((p) => p.gig.id)).not.toContain("urgent01");
+    expect((await pendingDeferred()).map((p) => p.gig.id)).not.toContain("urgent01");
   });
 
   it("does not queue during waking hours", async () => {
@@ -89,10 +89,10 @@ describe("regression: overnight gigs must never be silently dropped", () => {
     });
     const s = scoreGig(base);
     const gig = { ...base, id: "day01", score: s.score, stage: "new" as const };
-    upsertGig(gig);
+    await upsertGig(gig);
 
     await alert(gig, { ...s, tier: "high" }, at(14));
-    expect(pendingDeferred()).toHaveLength(0);
+    expect((await pendingDeferred())).toHaveLength(0);
   });
 
   it("ranks the digest queue by score, best first", async () => {
@@ -108,10 +108,10 @@ describe("regression: overnight gigs must never be silently dropped", () => {
     ] as [string, string, number][]) {
       const base = normalise({ sourceKind: "instagram", sourceName: "@p", title: "t", body, postedAt: new Date().toISOString() });
       const g = { ...base, id, score, stage: "new" as const };
-      upsertGig(g);
+      await upsertGig(g);
       await alert(g, { ...scoreGig(base), tier: "high" }, at(4));
     }
-    expect(pendingDeferred().map((p) => p.gig.id)).toEqual(["high", "mid", "low"]);
+    expect((await pendingDeferred()).map((p) => p.gig.id)).toEqual(["high", "mid", "low"]);
   });
 
   it("does not double-queue the same gig", async () => {
@@ -123,11 +123,11 @@ describe("regression: overnight gigs must never be silently dropped", () => {
     const base = normalise({ sourceKind: "instagram", sourceName: "@p", title: "t", body: "Afro House DJ beach club AED 6000", postedAt: new Date().toISOString() });
     const s = scoreGig(base);
     const gig = { ...base, id: "dupe01", score: s.score, stage: "new" as const };
-    upsertGig(gig);
+    await upsertGig(gig);
 
     await alert(gig, { ...s, tier: "high" }, at(3));
     await alert(gig, { ...s, tier: "high" }, at(4));
-    expect(pendingDeferred()).toHaveLength(1);
+    expect((await pendingDeferred())).toHaveLength(1);
   });
 
   it("reports nothing to send on an empty queue", async () => {
