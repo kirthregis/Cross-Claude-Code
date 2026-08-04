@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AssistantPanel } from "@/components/studio/AssistantPanel";
 import { ProjectCard } from "@/components/studio/ProjectCard";
+import { StudioGuide } from "@/components/studio/StudioGuide";
+import { FeedbackBox } from "@/components/studio/FeedbackBox";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
 import type { ProjectKind } from "@/lib/studio/types";
 import { createProject, deleteProject, loadSettings, saveSettings, useProjects } from "@/lib/studio/store";
@@ -38,6 +40,8 @@ export default function StudioHome() {
         </div>
         <Button onClick={() => setShowForm((v) => !v)}>{showForm ? "Cancel" : "+ New project"}</Button>
       </div>
+
+      <StudioGuide onCreateProject={(n, k) => makeProject(n, k)} /> 
 
       {showForm && (
         <Card className="p-4 sm:p-5">
@@ -138,12 +142,7 @@ export default function StudioHome() {
         <span className="shrink-0 text-fuchsia-400">Open →</span>
       </Link>
 
-      <div className="flex items-start justify-between rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3">
-        <div className="text-xs text-zinc-500">
-          <span className="font-semibold text-zinc-300">First time?</span> Add your free Gemini API key and handles in{" "}
-          <button onClick={() => router.push("/studio/settings")} className="text-fuchsia-400 hover:underline">Settings</button> — everything works without it too.
-        </div>
-      </div>
+      <FeedbackBox />
     </div>
   );
 }

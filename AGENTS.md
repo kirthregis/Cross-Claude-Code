@@ -36,8 +36,20 @@
 - UI lives in `src/components/studio/`; pages are thin shells. Store reads go
   through `useProjects()` / `useSettings()` (useSyncExternalStore).
 
+## Improvement loop (feedback → dev back end)
+- Suggestions live in the `studio_feedback` table in the shared SQLite DB
+  (`src/lib/db.ts`) — NOT in localStorage — so the developer sees them.
+- `POST /api/studio/feedback` stores + analyses (AI if `GEMINI_API_KEY` set,
+  else `analyzeSuggestion()` in `src/lib/studio/improve.ts`) + emails the dev
+  (`DEV_FEEDBACK_TO`). `GET ?clientId=` returns only her own rows.
+- Admin APIs and `/studio/admin` are gated by `STUDIO_ADMIN_TOKEN` via
+  `src/lib/studio/admin-auth.ts` — never weaken this; the artist must not see
+  the back end. Statuses: new → planned → done/dismissed (client shows them).
+- Guide content is data-driven (`src/lib/studio/guide.ts`) — keep the 6 steps
+  in sync when screens/commands change.
+
 ## Commands
-- `npm run dev` · `npm run build` · `npm test` (vitest, 154 tests) · `npm run lint`
+- `npm run dev` · `npm run build` · `npm test` (vitest, 161 tests) · `npm run lint`
 - `npm run seed` — realistic Dubai sample leads into SQLite
 - `npm run sweep` — one ingest sweep from the CLI
 

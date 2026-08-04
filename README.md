@@ -73,7 +73,7 @@ npm run dev                    # http://localhost:3000
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 154 tests (incl. EMY Studio DSP/release/assistant)
+npm test          # 161 tests (incl. EMY Studio DSP, release, assistant, feedback)
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 ```
@@ -233,7 +233,10 @@ Also review:
 | `src/lib/studio/server-ai.ts` | Resolves server vs device AI keys (handoff mode) |
 | `src/lib/studio/artwork.ts` | Canvas templates + AI cover pipeline (3000×3000) |
 | `src/lib/studio/store.ts` | localStorage + IndexedDB persistence |
-| `src/app/api/studio/*` | Server proxies: AI keys + email ping, env-driven, never in the bundle |
+| `src/app/api/studio/*` | Server proxies: AI keys, email ping, feedback; env-driven, never in the bundle |
+| `src/app/studio/guide` | The 6-step "How to use the studio" walkthrough |
+| `src/app/studio/admin` | Developer back end for suggestions (STUDIO_ADMIN_TOKEN) |
+| `src/lib/studio/improve.ts` | Suggestion categoriser + AI analysis prompt (feedback loop) |
 | `src/app/studio/distribute` | Free distribution/hosting/label-submission links (2026) |
 
 Developer handoff: set `GEMINI_API_KEY` / `FAL_KEY` / `RESEND_API_KEY` in
@@ -261,7 +264,7 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-154 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+161 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back
