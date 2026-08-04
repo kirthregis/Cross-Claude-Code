@@ -42,6 +42,8 @@ next-env.d.ts
 
 # app data
 /data
+*.db
+.nexus-access-token
 .env
 .env.local
 
