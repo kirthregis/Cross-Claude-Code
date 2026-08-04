@@ -1,4 +1,11 @@
-# GigRadar — DJ Emy
+# GigRadar — DJ Emy (gigs + EMY Studio)
+
+> ### 🎧 EMY Studio — her production studio
+> **Master the mix, design the cover, package the release, pass the platform
+> checks, hand off to YouTube** — in one installable app that runs on her
+> laptop and her phone, offline and online, with a voice assistant she can
+> talk to. See **[STUDIO.md](STUDIO.md)** for the full walkthrough.
+> Open it at **`/studio`**.
 
 > ### 📄  Want the documents without running anything?
 > Open the **[`pack/`](pack/)** folder. Rate card, pitch scripts, negotiation
@@ -66,7 +73,7 @@ npm run dev                    # http://localhost:3000
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 126 tests
+npm test          # 154 tests (incl. EMY Studio DSP/release/assistant)
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 ```
@@ -209,6 +216,26 @@ Also review:
 
 ---
 
+## EMY Studio
+
+| Path | Role |
+|---|---|
+| `src/app/studio/*` | The studio: home, project workspace, settings |
+| `src/components/studio/*` | Assistant, Master, Artwork, Release, Check panels |
+| `src/lib/studio/types.ts` | Project / settings / master-params models |
+| `src/lib/studio/audio.ts` | Browser audio engine: decode, A/B preview, chunked offline render, 48 kHz WAV export |
+| `src/lib/studio/dsp.ts` | Pure DSP: BS.1770-4 loudness (LUFS), true-peak, biquads, soft-clip |
+| `src/lib/studio/wav.ts` | WAV encoder (16/24-bit + RIFF INFO tags) |
+| `src/lib/studio/release.ts` | Title/description/tags/file names + compliance checks |
+| `src/lib/studio/assistant.ts` | Offline voice-command brain (works with zero keys) |
+| `src/lib/studio/gemini.ts` | Free-tier Gemini REST client (chat + image) |
+| `src/lib/studio/artwork.ts` | Canvas templates + AI cover pipeline (3000×3000) |
+| `src/lib/studio/store.ts` | localStorage + IndexedDB persistence |
+| `src/app/api/studio/*` | Email ping routes (Resend, server-side only) |
+
+The studio is a PWA (`public/sw.js`, `public/manifest.json`, icons) — installs
+to the home screen, works offline after first visit.
+
 ## Architecture
 
 | Path | Role |
@@ -229,7 +256,7 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-126 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+154 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back
