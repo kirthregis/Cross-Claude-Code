@@ -32,17 +32,26 @@ function ensureSettings() {
   );`);
 }
 
-/** Deep-merge over an existing value so a partial save never drops a field. */
+/**
+ * Deep-merge over an existing value so a partial save never drops a field.
+ *
+ * `over` always wins, INCLUDING falsy values (false, 0, ""). The only time we
+ * keep `base` is when `over` is null/undefined. (A naive `(over || base)`
+ * here silently discards webScanOn=false, quietStartHour=0, a cleared sign-off,
+ * etc. — that bug shipped once; the tests guard against it.)
+ */
 function merge<T>(base: T, over: unknown): T {
-  if (over === null || over === undefined) return base;
-  if (typeof base !== "object" || Array.isArray(base) || typeof over !== "object" || Array.isArray(over)) {
-    return (over as T) || base;
+  if (over === undefined || over === null) return base;
+  const baseIsObj = typeof base === "object" && base !== null && !Array.isArray(base);
+  const overIsObj = typeof over === "object" && over !== null && !Array.isArray(over);
+  if (baseIsObj && overIsObj) {
+    const out: Record<string, unknown> = { ...(base as unknown as Record<string, unknown>) };
+    for (const [k, v] of Object.entries(over as Record<string, unknown>)) {
+      out[k] = k in out ? merge((base as unknown as Record<string, unknown>)[k], v) : v;
+    }
+    return out as unknown as T;
   }
-  const out: Record<string, unknown> = { ...(base as unknown as Record<string, unknown>) };
-  for (const [k, v] of Object.entries(over as Record<string, unknown>)) {
-    out[k] = k in out ? merge((base as unknown as Record<string, unknown>)[k], v) : v;
-  }
-  return out as unknown as T;
+  return over as T;
 }
 
 export function getSettings(): EngineSettings {

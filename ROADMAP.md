@@ -38,6 +38,44 @@ Three things have to be true, in this order:
 - [ ] Fill the `/profile` (EVG name, licence, bank, real rates)
 - [ ] Deploy + add the `/api/sweep` cron (Vercel crons are in `vercel.json`)
 
+## The edge — what nobody in this space gives an artist
+
+Category positioning: GigRadar is not "another marketplace listing" and not a
+"chatbot." It is the only tool that gives a **working artist the full
+find → price → pitch → book → contract loop on their own phone, personalized to
+their own positioning, for free, in under a minute per gig.** The defensible,
+hard-to-copy edges:
+
+1. **Radar-first, not search-first.** It hunts for the artist continuously
+   (feeds + web scan) instead of making them scroll. "Before anyone else" comes
+   from speed of discovery, and the scoring model ranks *what to move on now*.
+2. **A pricing brain with a position, not a number.** Every quote is a
+   transparent stack (season · night · slot · urgency · exclusivity · residency)
+   built on researched Dubai tier rates and her actual leverage (FIFA credits,
+   genre scarcity, EN/AR, full agency). Competitors quote a flat fee; GigRadar
+   gives an ask / target / walk-away she can defend.
+3. **One tap from alert to a client-facing booking page (`/book/[id]`).**
+   The radar's output is a live, shareable microsite: her EPK, the date, the
+   fee, and a "Request this booking" that lands in the agency's inbox. No
+   booking tool lets an artist hand a client a per-opportunity booking page
+   straight off their own radar. **This is the differentiator.**
+4. **The whole paperwork pack auto-generates** — contract, tech rider,
+   runsheet, invoice, press/IP — off the same profile and fee. Bookers and
+   artists both hate admin; it's removed.
+5. **Agency-routed by design.** EVG is the single contracted point of contact
+   (non-circumvention, invoices payable to EVG). That's a *trust* feature that
+   protects the relationship and supports premium pricing.
+
+### Known architectural debt (do not regress, but be honest about it)
+- There are **two "always-on" paths**: the Next/Vercel app with the cron sweep,
+  and a Cloudflare Worker (`worker/`) with its own feeds + Web Push. They share
+  the lib logic but have separate storage and channel wiring. Before the
+  marketplace phase, consolidate onto ONE runtime to avoid drift.
+- **Vercel's filesystem is ephemeral** — SQLite (`/data`) and uploaded media
+  reset on every deploy. For a permanent hosted setup, move storage to
+  Postgres/object storage (`db.ts` is the only swap point). Local use persists
+  fine.
+
 ## The longer vision: a UAE entertainment marketplace
 
 Down the road GigRadar becomes a **two-sided marketplace**:

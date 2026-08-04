@@ -20,6 +20,10 @@ const GCC_AREAS = [
   "Dubai Marina", "JBR", "Palm Jumeirah", "DIFC", "Downtown", "Business Bay",
   "Jumeirah", "Al Quoz", "Deira", "Bur Dubai", "City Walk", "Bluewaters",
   "Dubai Hills", "Barsha", "Media City", "Festival City", "Al Seef", "The Walk",
+  "JVC", "Motor City", "Dubai Silicon Oasis", "Jumeirah Village",
+  "Dubai South", "Al Sufouh", "Dubai Creek", "Al Wasl", "La Mer",
+  "Dubai Design District", "D3", "Alserkal", "Meydan", "Emirates Hills",
+  "The Palm", "Palm", "World Islands", "Nad Al Sheba", "Hatta",
 ];
 
 /**
@@ -77,12 +81,16 @@ export function detectBudgetAed(text: string): number | undefined {
   return Math.max(...nums); // top of a stated range
 }
 
-/** Set length in minutes: "2 hours", "90 mins", "2-3hr set". */
+/** Set length in minutes: "2 hours", "90 mins", "2-3hr set", "45 min". */
 export function detectSetLength(text: string): number | undefined {
   const hr = text.match(/(\d+(?:\.\d+)?)\s*(?:-\s*(\d+(?:\.\d+)?)\s*)?(?:h|hr|hrs|hour|hours)\b/i);
   if (hr) return Math.round(parseFloat(hr[2] ?? hr[1]) * 60);
-  const min = text.match(/(\d{2,3})\s*(?:m|min|mins|minutes)\b/i);
-  if (min) return parseInt(min[1], 10);
+  // 1-3 digits; "10 min" and "120 minutes" both matter. Exclude pure years ("2004").
+  const min = text.match(/\b(\d{1,3})\s*(?:m|min|mins|minutes)\b/i);
+  if (min) {
+    const v = parseInt(min[1], 10);
+    if (v >= 15 && v <= 480) return v; // a plausible DJ set length
+  }
   return undefined;
 }
 
@@ -105,7 +113,15 @@ export function detectGenres(text: string): string[] {
 export function detectContacts(text: string): Contact[] {
   const contacts: Contact[] = [];
   const emails = text.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) ?? [];
-  const phones = text.match(/(?:\+971|00971|0)\s?5\d(?:[\s-]?\d){7}/g) ?? [];
+
+  // UAE mobile formats: 05X XXXXXXX | +971 5X XXXXXXX | 00971 5X XXXXXXX,
+  // with spaces/dashes anywhere between digit groups.
+  const rawPhones = text.match(/(?:\+?971|00971|0)[\s-]?5\d(?:[\s-]?\d){7}/g) ?? [];
+  const phones = [...new Set(rawPhones.map((p) => p.replace(/\D/g, "")))]
+    // Normalise everything to E.164 "+9715XXXXXXXX".
+    .map((d) => (d.startsWith("0") ? `971${d.slice(1)}` : d.startsWith("971") ? d : `971${d}`))
+    .filter((d) => /^9715\d{8}$/.test(d));
+
   const handles = text.match(/(?<![\w@])@([A-Za-z0-9._]{3,30})/g) ?? [];
 
   const role = (): Contact["role"] => {
@@ -122,7 +138,9 @@ export function detectContacts(text: string): Contact[] {
     const bookingy = /^(book|bookings|events|talent|entertainment)@/i.test(e);
     contacts.push({ email: e, role: role(), decisionPower: generic ? 30 : bookingy ? 65 : 55 });
   }
-  for (const p of phones) contacts.push({ phone: p.replace(/\s/g, ""), whatsapp: p.replace(/\s/g, ""), role: role(), decisionPower: 75 });
+  for (const p of phones) {
+    contacts.push({ phone: `+${p}`, whatsapp: `+${p}`, role: role(), decisionPower: 75 });
+  }
   for (const h of handles.slice(0, 3)) contacts.push({ instagram: h, role: role(), decisionPower: 45 });
 
   return contacts;
@@ -198,8 +216,16 @@ export function fingerprint(g: { venueName?: string; eventDate?: string; title: 
 }
 
 export function detectVenueName(text: string): string | undefined {
-  const at = text.match(/\b(?:at|@)\s+([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*){0,3})/);
-  if (at) return at[1].trim();
+  // "at The Ritz-Carlton", "at @CoveBeach", "at the Rooftop" (skip filler).
+  const at = text.match(/\b(?:at|@)\s+(?:the\s+)?([A-Za-z][\w'&.]*(?:\s+[A-Za-z][\w'&.]*){0,3})/i);
+  if (at) {
+    const v = at[1].trim();
+    if (/^(the|our|their|your|my)$/i.test(v)) return undefined;
+    return v;
+  }
+  // Instagram captions often say "@venue" with no space — capture that form.
+  const handle = text.match(/(?<![@\w])@([A-Z][A-Za-z0-9_.]{2,24})/);
+  if (handle) return handle[1];
   return undefined;
 }
 

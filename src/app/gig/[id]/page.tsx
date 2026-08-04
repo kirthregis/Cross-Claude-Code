@@ -69,6 +69,8 @@ export default function GigPage({ params }: { params: Promise<{ id: string }> })
         ))}
       </nav>
 
+      <ShareLink id={id} />
+
       <div className="mt-4">
         {tab === "Price" && <PriceTab quote={quote} gig={gig} scored={scored} />}
         {tab === "Contact" && <ContactTab strategy={strategy} pitches={pitches} />}
@@ -76,6 +78,22 @@ export default function GigPage({ params }: { params: Promise<{ id: string }> })
         {tab === "Paperwork" && <PaperworkTab id={id} defaultFee={quote.targetAed} />}
       </div>
     </main>
+  );
+}
+
+/** One-tap copy of the client-facing booking link for this gig. */
+function ShareLink({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = `${typeof location !== "undefined" ? location.origin : ""}/book/${id}`;
+  return (
+    <div className="mt-4 flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-2">
+      <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-500">{url}</span>
+      <button
+        onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+        className="shrink-0 rounded bg-red-600 px-3 py-1.5 text-[11px] font-medium">
+        {copied ? "Copied ✓" : "Copy booking link"}
+      </button>
+    </div>
   );
 }
 

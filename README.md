@@ -37,6 +37,9 @@ Instagram promoters and venues, WhatsApp promoter groups, the booking inbox, eve
 **1b. Emy controls everything herself — `/studio`**
 The **Studio** page (top nav → Studio) lets Emy customize the engine with no code: what it hunts (search phrases, extra feeds), a blocklist so she's never bothered by the wrong leads, when she's (not) interrupted (quiet hours), how loud each alert is (score thresholds), the pitch sign-off, an accent colour, and a **media library** where she uploads her own photos and videos to use as backdrops and artwork.
 
+**1c. One tap to a client-facing booking page — `/book/[id]`**
+Every gig has a **shareable booking link** (copy it from the gig page). Send it to a booker and they see her EPK, the date, the fee, and a "Request this booking" button that lands in EVG's inbox. The radar's output becomes a live microsite she can text a client in seconds — something no booking tool gives an artist.
+
 **2. Understands messy text**
 A promoter's caption or a WhatsApp voice-note transcript becomes structured data: venue, tier, area, date, set length, slot, genres, budget, exclusivity, travel, residency, and every contactable person ranked by how close they are to the money.
 

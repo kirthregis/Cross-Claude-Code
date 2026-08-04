@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { getGig } from "@/lib/db";
 import { registerProfileLoader } from "@/lib/profile-store";
+import { registerSettingsLoader } from "@/lib/settings-store";
 import { scoreGig } from "@/lib/score";
 import { quoteFor, pitch, negotiationPlaybook, contactStrategy } from "@/lib/outreach";
 
 registerProfileLoader();
+registerSettingsLoader();
 
 export const dynamic = "force-dynamic";
 
