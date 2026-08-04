@@ -71,10 +71,11 @@ hard-to-copy edges:
   and a Cloudflare Worker (`worker/`) with its own feeds + Web Push. They share
   the lib logic but have separate storage and channel wiring. Before the
   marketplace phase, consolidate onto ONE runtime to avoid drift.
-- **Vercel's filesystem is ephemeral** — SQLite (`/data`) and uploaded media
-  reset on every deploy. For a permanent hosted setup, move storage to
-  Postgres/object storage (`db.ts` is the only swap point). Local use persists
-  fine.
+- **Storage is now solved:** a Postgres backend (`src/lib/storage/postgres.ts`)
+  makes data durable across Vercel redeploys; SQLite remains the zero-config
+  local default. See `DEPLOY.md` for the permanent deploy walkthrough.
+  Remaining: media files (photos/videos) still need a blob store to persist on
+  Vercel; the database, profile, settings and gigs persist today.
 
 ## The longer vision: a UAE entertainment marketplace
 
