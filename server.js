@@ -75,7 +75,7 @@ app.put('/api/settings', (req, res) => { for (const key of ['provider', 'model']
 async function getChrome() {
   if (browserContext && browserContext.pages().length) { browserPage = browserContext.pages()[0]; return browserPage; }
   if (!browserContext) {
-    try { browserContext = await chromium.launchPersistentContext(PROFILE, { headless: false, timezoneId: TZ, viewport: null, args: ['--disable-blink-features=AutomationControlled'] }); }
+    try { browserContext = await chromium.launchPersistentContext(PROFILE, { channel: 'chrome', headless: false, timezoneId: TZ, viewport: null, args: ['--disable-blink-features=AutomationControlled'] }); }
     catch (error) { throw new Error(`Chrome could not open the profile. Close Chrome first, or set CHROME_USER_DATA_DIR. ${error.message}`); }
   }
   browserPage = browserContext.pages()[0] || await browserContext.newPage();
