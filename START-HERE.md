@@ -16,7 +16,7 @@ Nothing to install. Start there.
 
 ## 🚀 Want it live on her phone? One click, no terminal
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkirthregis%2FCross-Claude-Code%2Ftree%2Farena%2F019fc128-cross-claude-code)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkirthregis%2FCross-Claude-Code%2Ftree%2Farena%2F019fcd29-cross-claude-code)
 
 1. Click the button, sign in with GitHub, click **Deploy**. Wait ~2 minutes.
 2. You get a URL like `https://gigradar-xyz.vercel.app`.
@@ -49,7 +49,7 @@ paste these one line at a time:
 ```bash
 git clone https://github.com/kirthregis/Cross-Claude-Code.git
 cd Cross-Claude-Code
-git checkout arena/019fc128-cross-claude-code
+git checkout arena/019fcd29-cross-claude-code
 npm install
 npm run seed     # loads example gigs so it isn't empty
 npm run dev
@@ -80,7 +80,7 @@ Free on Vercel.
 
 1. Go to <https://vercel.com>, sign up with GitHub.
 2. **Add New → Project**, pick `Cross-Claude-Code`, set the branch to
-   `arena/019fc128-cross-claude-code`, click **Deploy**.
+   `arena/019fcd29-cross-claude-code`, click **Deploy**.
 3. You get a URL like `https://gigradar.vercel.app`. Open it on her phone,
    then **Share → Add to Home Screen**. It behaves like a real app.
 

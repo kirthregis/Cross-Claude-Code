@@ -34,32 +34,30 @@ stored on the device, her Gemini key stays on the device.
 
 ---
 
-## Two ways to set it up
+## Developer setup — what's actually yours
+
+**`DEV-SETUP.md`** is the complete list: **2 required items** (a free Gemini
+key + an admin token) and a few optional ones. Run `npm run devcheck` after
+each step — it prints exactly what's left. The app works fully for her even
+before that (mastering, templates, release pack, checks, voice commands,
+distribute); the key and token unlock AI chat/artwork and your back end.
+
+Two ways the app can run:
 
 ### A) Developer mode — hand her a finished app (recommended)
 
 You configure everything **once on the server** (env vars), and the app is
 fully functional the moment she opens it — she never pastes a key or sees a
-setting she doesn't need. See `.env.example`:
-
-| Env var | What it powers |
-|---|---|
-| `GEMINI_API_KEY` | Open-ended assistant chat + AI cover art (free tier) |
-| `FAL_KEY` | AI cover art via fal.ai (Flux / Recraft / Ideogram — pay-per-image) |
-| `RESEND_API_KEY` + `STUDIO_NOTIFY_TO` | Email ping when a master/export is ready |
-
-Keys live **server-side only** (proxy routes in `src/app/api/studio/ai/*`) —
-they never ship in the browser bundle. Set them in Vercel → Settings →
-Environment Variables (or `.env.local` on her laptop) and redeploy.
-
-Then optionally **pre-fill her handles** once on her device (Settings →
-Artist profile) — or they already default to her real ones.
+setting she doesn't need. Keys live **server-side only** (proxy routes in
+`src/app/api/studio/ai/*`) — they never ship in the browser bundle. Set them
+in Vercel → Settings → Environment Variables (or `.env.local` on her laptop)
+and redeploy.
 
 ### B) Personal mode — she pastes her own key
 
 If she runs it on her own laptop without a server config, she can paste a
-free Gemini key (and/or fal.ai key) in **Studio → Settings**. Keys are stored
-only on that device. Everything else works identically.
+free Gemini key in **Studio → Settings**. Keys are stored only on that
+device. Everything else works identically.
 
 ### Either way, once:
 
