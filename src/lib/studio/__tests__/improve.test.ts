@@ -9,6 +9,7 @@ describe("improve (suggestion analysis)", () => {
   it("categorises features, bugs, design and content", () => {
     expect(categorizeSuggestion("Can we add auto-upload to YouTube?")).toBe("feature");
     expect(categorizeSuggestion("The master tab crashed when I loaded a big file")).toBe("bug");
+    expect(categorizeSuggestion("The cover preview is blurry on my phone")).toBe("bug");
     expect(categorizeSuggestion("Could the cover look warmer / more gold?")).toBe("design");
     expect(categorizeSuggestion("Write better descriptions with more hashtags")).toBe("content");
     expect(categorizeSuggestion("Hello there")).toBe("other");

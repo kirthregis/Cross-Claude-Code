@@ -76,6 +76,7 @@ npm run dev                    # http://localhost:3000
 npm test          # 161 tests (incl. EMY Studio DSP, release, assistant, feedback)
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
+npm run inbox     # read artist suggestions from the local DB
 ```
 
 ---
