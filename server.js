@@ -22,8 +22,8 @@ const TZ = process.env.TZ || 'Asia/Dubai';
 const PROFILE = process.env.CHROME_USER_DATA_DIR || 'C:\\Users\\kirth\\AppData\\Local\\Google\\Chrome\\User Data';
 const DB_FILE = process.env.NEXUS_DB || path.join(process.cwd(), 'nexus.db');
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-// Offline is the safe default. Set NEXUS_OFFLINE=0 only when internet use is intentional.
-const OFFLINE = process.env.NEXUS_OFFLINE !== '0';
+// Hybrid by default: use online services when reachable, then fall back locally. Set NEXUS_OFFLINE=1 for strict air-gapped mode.
+const OFFLINE = process.env.NEXUS_OFFLINE === '1';
 const LOCAL_MODEL = process.env.NEXUS_LOCAL_MODEL || '';
 const LOCAL_AI_URL = process.env.NEXUS_LOCAL_AI_URL || 'http://127.0.0.1:11434/api/generate';
 const app = express();
@@ -55,7 +55,7 @@ function setting(key, fallback = '') { const row = db.prepare('SELECT value FROM
 function setSetting(key, value) { db.prepare('INSERT INTO nexus_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(key, String(value)); }
 function publicFile(row) { return { id: row.id, name: row.name, mime: row.mime, size: row.size, created_at: row.created_at }; }
 
-app.get('/api/health', (_req, res) => json(res, { ok: true, port: PORT, timezone: TZ, offline: OFFLINE, provider: OFFLINE ? 'offline' : 'gemini', chrome: Boolean(browserContext) }));
+app.get('/api/health', (_req, res) => json(res, { ok: true, port: PORT, timezone: TZ, offline: OFFLINE, provider: OFFLINE ? 'offline' : (process.env.GEMINI_API_KEY ? 'gemini with offline fallback' : 'offline fallback'), chrome: Boolean(browserContext) }));
 app.get('/api/dashboard', (_req, res) => {
   const notes = db.prepare('SELECT id,title,body,created_at,updated_at FROM nexus_notes ORDER BY updated_at DESC LIMIT 6').all();
   const files = db.prepare('SELECT id,name,mime,size,created_at FROM nexus_files ORDER BY created_at DESC LIMIT 6').all();
@@ -69,7 +69,7 @@ app.delete('/api/notes/:id', (req, res) => json(res, { ok: db.prepare('DELETE FR
 app.get('/api/files', (_req, res) => json(res, db.prepare('SELECT id,name,mime,size,created_at FROM nexus_files ORDER BY created_at DESC').all()));
 app.post('/api/files', upload.single('file'), (req, res) => { if (!req.file) return json(res, { error: 'file is required' }, 400); const t = now(); const info = db.prepare('INSERT INTO nexus_files(name,mime,size,content,created_at) VALUES(?,?,?,?,?)').run(req.file.originalname, req.file.mimetype, req.file.size, req.file.buffer, t); json(res, { ...publicFile({ id: info.lastInsertRowid, name: req.file.originalname, mime: req.file.mimetype, size: req.file.size, created_at: t }) }, 201); });
 app.get('/api/files/:id/download', (req, res) => { const f = db.prepare('SELECT * FROM nexus_files WHERE id=?').get(req.params.id); if (!f) return res.sendStatus(404); res.type(f.mime || 'application/octet-stream').set('Content-Disposition', `attachment; filename="${String(f.name).replace(/["\r\n]/g, '')}"`).send(f.content); });
-app.get('/api/settings', (_req, res) => json(res, { timezone: TZ, chromeProfile: PROFILE, provider: setting('provider', OFFLINE ? 'offline' : 'gemini'), model: setting('model', OFFLINE ? (LOCAL_MODEL || 'offline-rules') : GEMINI_MODEL), chromeConnected: Boolean(browserContext) }));
+app.get('/api/settings', (_req, res) => json(res, { timezone: TZ, chromeProfile: PROFILE, provider: setting('provider', OFFLINE ? 'offline' : (process.env.GEMINI_API_KEY ? 'gemini with offline fallback' : 'offline fallback')), model: setting('model', OFFLINE ? (LOCAL_MODEL || 'offline-rules') : (process.env.GEMINI_API_KEY ? GEMINI_MODEL : (LOCAL_MODEL || 'offline-rules'))), chromeConnected: Boolean(browserContext) }));
 app.put('/api/settings', (req, res) => { for (const key of ['provider', 'model']) if (req.body[key] !== undefined) setSetting(key, req.body[key]); json(res, { ok: true }); });
 
 async function getChrome() {
@@ -124,10 +124,12 @@ async function askLocalModel(prompt, jsonMode = false) {
   } catch { return null; }
 }
 async function askGemini(prompt) {
-  if (OFFLINE) return (await askLocalModel(prompt)) || `Offline mode is active. No internet request was made.\n\nLocal request received: ${String(prompt).slice(0, 500)}`;
-  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not configured');
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } }) });
-  const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || `Gemini HTTP ${response.status}`); return data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  const localFallback = async () => (await askLocalModel(prompt)) || `No online AI connection is available. NexusCommand is still running locally.\n\nRequest received: ${String(prompt).slice(0, 500)}`;
+  if (OFFLINE || !process.env.GEMINI_API_KEY) return localFallback();
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, { method: 'POST', headers: { 'content-type': 'application/json' }, signal: AbortSignal.timeout(20000), body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } }) });
+    const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || `Gemini HTTP ${response.status}`); return data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || await localFallback();
+  } catch { return localFallback(); }
 }
 function parsePlan(text) { const match = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/); if (!match) throw new Error('Gemini returned no executable plan'); return JSON.parse(match[1]); }
 async function makeAgentPlan(prompt) {
@@ -136,9 +138,11 @@ async function makeAgentPlan(prompt) {
     if (localText) { try { return parsePlan(localText); } catch {} }
     return localPlan(prompt);
   }
-  const planText = await askGemini(`You are NexusCommand, a local desktop automation planner. Return ONLY valid JSON. Schema: {\"message\":\"short explanation\",\"steps\":[{\"kind\":\"chrome\",\"type\":\"navigate|click|type|press|wait|back|screenshot\",...}|{\"kind\":\"shell\",\"command\":\"...\",\"timeout\":30000}]}. Use CSS selectors. Never request passwords, tokens, payment actions, destructive commands, arbitrary JavaScript/evaluate, or downloading untrusted executables. User task: ${prompt}`);
-  const plan = parsePlan(planText); if (!Array.isArray(plan.steps) || plan.steps.length > 20) throw new Error('Invalid or oversized agent plan');
-  return plan;
+  try {
+    const planText = await askGemini(`You are NexusCommand, a local desktop automation planner. Return ONLY valid JSON. Schema: {\"message\":\"short explanation\",\"steps\":[{\"kind\":\"chrome\",\"type\":\"navigate|click|type|press|wait|back|screenshot\",...}|{\"kind\":\"shell\",\"command\":\"...\",\"timeout\":30000}]}. Use CSS selectors. Never request passwords, tokens, payment actions, destructive commands, arbitrary JavaScript/evaluate, or downloading untrusted executables. User task: ${prompt}`);
+    const plan = parsePlan(planText); if (!Array.isArray(plan.steps) || plan.steps.length > 20) throw new Error('Invalid or oversized agent plan');
+    return plan;
+  } catch { return localPlan(prompt); }
 }
 async function executePlan(plan) {
   const results = [];
@@ -151,12 +155,12 @@ app.post('/api/ai/chat', async (req, res) => { try { json(res, { text: await ask
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NexusCommand v4</title><style>
 :root{color-scheme:dark;--bg:#080b1c;--panel:#111633;--line:#28305f;--muted:#8992bd;--a:#8b5cf6;--b:#22d3ee}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#1e1750 0,#080b1c 45%);color:#eef1ff;font:14px system-ui,Segoe UI,sans-serif}header{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;background:#0b0f27e8;backdrop-filter:blur(12px)}h1{font-size:20px;letter-spacing:.08em;margin:0;color:#fff}h1 i{color:var(--b);font-style:normal}.layout{display:flex;min-height:calc(100vh - 70px)}nav{width:210px;border-right:1px solid var(--line);padding:22px 12px}nav button{display:block;width:100%;color:var(--muted);background:none;border:0;text-align:left;padding:12px 15px;border-radius:9px;cursor:pointer}nav button.active,nav button:hover{color:white;background:linear-gradient(90deg,#332474,#15234b);box-shadow:inset 2px 0 var(--b)}main{max-width:1000px;width:100%;padding:30px}section{display:none}section.active{display:block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.card{background:#111633cc;border:1px solid var(--line);border-radius:13px;padding:18px;margin:12px 0;box-shadow:0 12px 30px #0002}.stat{font-size:28px;color:var(--b);font-weight:700}textarea,input{width:100%;background:#080d23;border:1px solid #303a70;border-radius:8px;padding:11px;color:white;outline:0}textarea:focus,input:focus{border-color:var(--b);box-shadow:0 0 0 2px #22d3ee22}button.go{background:linear-gradient(90deg,#6d36db,#157caa);border:0;color:white;border-radius:8px;padding:10px 16px;cursor:pointer}pre{white-space:pre-wrap;color:#b8c4f2;background:#080d23;border-radius:8px;padding:12px;min-height:70px}.muted{color:var(--muted)}.voice{float:right;background:none;border:0;color:var(--b);font-size:18px;cursor:pointer}@media(max-width:700px){nav{width:72px}nav button{font-size:0;text-align:center}nav button:first-letter{font-size:20px}main{padding:18px}}
-</style></head><body><header><h1>NEXUS<i>COMMAND</i> <small class="muted">v4</small></h1><button id="voiceCommand" class="voice" title="Speak a command">🎙 Voice command</button><span style="margin-left:auto" class="muted">Dubai · <span id="clock"></span></span></header><div class="layout"><nav>${['Dashboard','Notes','Files','Browse','AI Chat','AI Agent','Settings'].map((x,i)=>`<button class="${i?'':'active'}" data-tab="${x.replace(' ','-').toLowerCase()}">${['◈','✎','▣','◎','✦','⚡','⚙'][i]} &nbsp;${x}</button>`).join('')}</nav><main>
+</style></head><body><header><h1>NEXUS<i>COMMAND</i> <small class="muted">v4</small></h1><button id="voiceCommand" class="voice" title="Speak a command">🎙 Voice command</button><span style="margin-left:auto" class="muted">Hybrid · Dubai · <span id="clock"></span></span></header><div class="layout"><nav>${['Dashboard','Notes','Files','Browse','AI Chat','AI Agent','Settings'].map((x,i)=>`<button class="${i?'':'active'}" data-tab="${x.replace(' ','-').toLowerCase()}">${['◈','✎','▣','◎','✦','⚡','⚙'][i]} &nbsp;${x}</button>`).join('')}</nav><main>
 <section id="dashboard" class="active"><h2>Command overview</h2><div class="grid"><div class="card"><div class="stat" id="snotes">0</div><div class="muted">Notes</div></div><div class="card"><div class="stat" id="sfiles">0</div><div class="muted">Files</div></div><div class="card"><div class="stat" id="stasks">0</div><div class="muted">Agent tasks</div></div></div><div class="card"><h3>Recent activity</h3><div id="activity" class="muted">Loading…</div></div></section>
 <section id="notes"><h2>Notes</h2><div class="card"><input id="nt" placeholder="Title"><button class="voice" data-voice="nt">🎙</button><textarea id="nb" rows="5" placeholder="Write a note…"></textarea><button class="go" onclick="saveNote()">Save note</button></div><div id="notesList"></div></section>
 <section id="files"><h2>Files</h2><div class="card"><input type="file" id="upload"><button class="go" onclick="uploadFile()">Upload</button></div><div id="filesList"></div></section>
 <section id="browse"><h2>Browse</h2><div class="card"><p class="muted">Control the configured Chrome profile.</p><input id="url" placeholder="https://example.com"><button class="go" onclick="browse()">Open in Chrome</button><pre id="browseOut">Chrome is disconnected.</pre></div></section>
-<section id="ai-chat"><h2>AI Chat <span class="muted">· Offline</span></h2><div class="card"><textarea id="chat" rows="5" placeholder="Ask Gemini anything…"></textarea><button class="voice" data-voice="chat">🎙</button><button class="go" onclick="chat()">Send</button><pre id="chatOut"></pre></div></section>
+<section id="ai-chat"><h2>AI Chat <span class="muted">· Online + offline fallback</span></h2><div class="card"><textarea id="chat" rows="5" placeholder="Ask Gemini anything…"></textarea><button class="voice" data-voice="chat">🎙</button><button class="go" onclick="chat()">Send</button><pre id="chatOut"></pre></div></section>
 <section id="ai-agent"><h2>AI Agent <span class="muted">· Chrome + shell</span></h2><div class="card"><p class="muted">Describe a task. The agent will show and execute a short, bounded plan.</p><textarea id="agent" rows="5" placeholder="Example: open example.com in Chrome"></textarea><button class="voice" data-voice="agent">🎙</button><button class="go" onclick="runAgent()">Run task</button><pre id="agentOut"></pre></div></section>
 <section id="settings"><h2>Settings</h2><div class="card" id="settingsOut">Loading…</div></section></main></div><script>
 const NEXUS_TOKEN=${JSON.stringify(ACCESS_TOKEN)};
