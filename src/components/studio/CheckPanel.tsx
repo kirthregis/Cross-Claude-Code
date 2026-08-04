@@ -47,7 +47,7 @@ export function CheckPanel({ project }: { project: Project }) {
       setChecks(list);
       const s = checksSummary(list);
       const phrase = s.fail === 0 ? (s.warn > 0 ? "mostly ready — a couple of warnings" : "fully ready to upload") : `${s.fail} thing${s.fail === 1 ? "" : "s"} still need${s.fail === 1 ? "s" : ""} attention`;
-      speak(`Release check complete: ${phrase}.`, settings.soundOn);
+      speak(`Release check complete: ${phrase}.`, settings.soundOn, "en-US", settings.voiceGender);
     },
     [project, artworkDims, platform, settings.soundOn],
   );

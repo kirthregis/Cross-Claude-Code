@@ -28,19 +28,36 @@ export async function geminiChat(opts: {
   messages: GeminiMessage[];
   temperature?: number;
 }): Promise<{ text: string }> {
-  const res = await genFetch(`/models/${opts.model}:generateContent`, opts.key, {
-    systemInstruction: opts.system ? { parts: [{ text: opts.system }] } : undefined,
-    contents: opts.messages,
-    generationConfig: { temperature: opts.temperature ?? 0.7, maxOutputTokens: 1024 },
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    const msg = json?.error?.message || `Gemini returned ${res.status}`;
-    throw new Error(msg);
+  // Google retires model names regularly (gemini-2.5-flash was retired early
+  // in 2026) — try the requested model, then newer/current fallbacks.
+  const candidates = [opts.model, "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
+  const seen = new Set<string>();
+  let lastError: string | null = null;
+  for (const model of candidates) {
+    if (seen.has(model)) continue;
+    seen.add(model);
+    try {
+      const res = await genFetch(`/models/${model}:generateContent`, opts.key, {
+        systemInstruction: opts.system ? { parts: [{ text: opts.system }] } : undefined,
+        contents: opts.messages,
+        generationConfig: { temperature: opts.temperature ?? 0.7, maxOutputTokens: 1024 },
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        lastError = json?.error?.message || `Gemini returned ${res.status}`;
+        continue;
+      }
+      const text = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+      if (!text) {
+        lastError = "Gemini returned an empty response.";
+        continue;
+      }
+      return { text };
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
   }
-  const text = json?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
-  if (!text) throw new Error("Gemini returned an empty response.");
-  return { text };
+  throw new Error(lastError || "Gemini chat failed.");
 }
 
 export interface GeneratedImage {
@@ -62,6 +79,7 @@ export async function geminiImage(opts: {
 }): Promise<GeneratedImage> {
   const candidates = [
     opts.model,
+    "gemini-3.1-flash-image-preview",
     "gemini-2.5-flash-image",
     "gemini-2.0-flash-preview-image-generation",
     "gemini-image-generation-2",

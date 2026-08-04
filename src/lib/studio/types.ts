@@ -183,6 +183,8 @@ export interface StudioSettings {
   defaultTargetLufs: number;
   emailPing: boolean;
   soundOn: boolean;
+  /** Assistant's spoken voice: prefer a male or female TTS voice, or auto. */
+  voiceGender: "male" | "female" | "auto";
 }
 
 export const DEFAULT_SETTINGS: StudioSettings = {
@@ -194,14 +196,15 @@ export const DEFAULT_SETTINGS: StudioSettings = {
   defaultGenre: "Afro House",
   defaultKind: "mix",
   geminiKey: "",
-  geminiTextModel: "gemini-2.5-flash",
-  geminiImageModel: "gemini-2.5-flash-image",
+  geminiTextModel: "gemini-3.5-flash",
+  geminiImageModel: "gemini-3.1-flash-image-preview",
   imageProvider: "gemini",
   falKey: "",
   falModel: "fal-ai/flux/dev",
   defaultTargetLufs: -14,
   emailPing: false,
   soundOn: true,
+  voiceGender: "male",
 };
 
 export type AssistantIntent =

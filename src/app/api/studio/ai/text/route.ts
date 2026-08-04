@@ -32,23 +32,40 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ ok: false, error: "Bad request body." }, { status: 400 });
   }
-  const model = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: body.system ? { parts: [{ text: body.system }] } : undefined,
-        contents: body.messages ?? [],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-      }),
-    },
-  );
-  const json: GeminiResponse | null = await res.json().catch(() => null);
-  if (!res.ok) {
-    return NextResponse.json({ ok: false, error: json?.error?.message || `Gemini returned ${res.status}` }, { status: 200 });
+  const model = process.env.GEMINI_TEXT_MODEL || "gemini-3.5-flash";
+  const candidates = [model, "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
+  let lastError: string | null = null;
+  const seen = new Set<string>();
+  for (const m of candidates) {
+    if (seen.has(m)) continue;
+    seen.add(m);
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: body.system ? { parts: [{ text: body.system }] } : undefined,
+            contents: body.messages ?? [],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+          }),
+        },
+      );
+      const json: GeminiResponse | null = await res.json().catch(() => null);
+      if (!res.ok) {
+        lastError = json?.error?.message || `Gemini returned ${res.status}`;
+        continue;
+      }
+      const text = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
+      if (!text) {
+        lastError = "Gemini returned an empty response.";
+        continue;
+      }
+      return NextResponse.json({ ok: true, text });
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
   }
-  const text = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
-  return NextResponse.json({ ok: true, text });
+  return NextResponse.json({ ok: false, error: lastError || "Gemini chat failed." }, { status: 200 });
 }

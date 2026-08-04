@@ -84,7 +84,7 @@ export function startListening(handlers: {
   };
 }
 
-export function speak(text: string, enabled: boolean, lang = "en-US"): void {
+export function speak(text: string, enabled: boolean, lang = "en-US", gender: "male" | "female" | "auto" = "male"): void {
   if (!enabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
   try {
     window.speechSynthesis.cancel();
@@ -93,7 +93,19 @@ export function speak(text: string, enabled: boolean, lang = "en-US"): void {
     u.rate = 1;
     u.pitch = 1.05;
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find((v) => /en[-_](GB|US|AU)/i.test(v.lang) && /female|zira|samantha|google/i.test(v.name)) || voices.find((v) => /en/i.test(v.lang));
+    // Nicer, more natural voices first; prefer the requested gender.
+    const score = (v: SpeechSynthesisVoice): number => {
+      let s = 0;
+      if (/en[-_](US|GB|AU)/i.test(v.lang)) s += 10;
+      if (gender === "male" && /david|guy|male|christopher|james|daniel|george|ryan|mark|eric|alex|arthur|thomas|james/i.test(v.name)) s += 8;
+      if (gender === "female" && /zira|female|samantha|victoria|susan|hazel|aria|jenny|kate|michelle|libby/i.test(v.name)) s += 8;
+      if (/natural|online|premium|enhanced|neural|google/i.test(v.name)) s += 4;
+      if (/google/i.test(v.name) && /en[-_](US|GB|AU)/i.test(v.lang)) s += 2;
+      if (/^en/i.test(v.lang)) s += 1;
+      return s;
+    };
+    const ranked = [...voices].sort((a, b) => score(b) - score(a));
+    const preferred = ranked[0];
     if (preferred) u.voice = preferred;
     window.speechSynthesis.speak(u);
   } catch {

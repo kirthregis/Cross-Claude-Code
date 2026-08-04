@@ -251,6 +251,18 @@ export default function StudioSettingsPage() {
         <p className="mt-1 text-xs text-zinc-500">When a master finishes or an export is ready, the studio can alert you.</p>
         <div className="mt-3 space-y-2">
           <Toggle label="Sound replies from the assistant (speech)" checked={settings.soundOn} onChange={(v) => update({ soundOn: v })} />
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2.5">
+            <span className="text-sm text-zinc-300">Assistant voice</span>
+            <select
+              value={settings.voiceGender}
+              onChange={(e) => update({ voiceGender: e.target.value as "male" | "female" | "auto" })}
+              className="rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="auto">Auto</option>
+            </select>
+          </label>
           <Toggle label="Email me when a master / export is ready" checked={settings.emailPing} onChange={(v) => update({ emailPing: v })} />
           {settings.emailPing && (
             <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-400">

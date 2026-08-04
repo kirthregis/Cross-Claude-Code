@@ -29,8 +29,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function geminiImageServer(prompt: string): Promise<{ dataUrl: string; mimeType: string }> {
   const key = process.env.GEMINI_API_KEY!;
-  const model = process.env.GEMINI_IMAGE_MODEL || "gemini-2.5-flash-image";
-  const candidates = [model, "gemini-2.5-flash-image", "gemini-2.0-flash-preview-image-generation", "gemini-image-generation-2"];
+  const model = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
+  const candidates = [model, "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image", "gemini-2.0-flash-preview-image-generation", "gemini-image-generation-2"];
   let lastError: string | null = null;
   for (const m of candidates) {
     try {

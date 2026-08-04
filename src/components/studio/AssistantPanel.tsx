@@ -78,7 +78,7 @@ export function AssistantPanel({
         }
         return next;
       });
-      speak(text, settings.soundOn);
+      speak(text, settings.soundOn, "en-US", settings.voiceGender);
       return turn;
     },
     [project, settings.soundOn],
