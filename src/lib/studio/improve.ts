@@ -17,7 +17,7 @@ export interface SuggestionAnalysis {
 }
 
 const CATEGORY_RULES: { cat: SuggestionCategory; words: RegExp }[] = [
-  { cat: "bug", words: /\b(bug\w*|broken|error\w*|crash\w*|fail\w*|frozen|stuck|wrong|not working|doesn'?t work|issue\w*)\b/i },
+  { cat: "bug", words: /\b(bug\w*|broken|error\w*|crash\w*|fail\w*|frozen|stuck|wrong|not working|doesn'?t work|issue\w*|blurr\w*|pixelat\w*|flicker\w*|delay\w*|slow)\b/i },
   { cat: "design", words: /\b(look|colour|color|design|dark|light|theme|font|button|style|ugly|pretty|layout|artwork style)\b/i },
   { cat: "content", words: /\b(description\w*|title\w*|tag\w*|caption\w*|copyright|text\w*|writing|hashtag\w*|copy)\b/i },
   { cat: "feature", words: /\b(add|want|would love|could you|suggest|feature|new|support|export|upload|auto|share|integration|spotify|soundcloud|instagram|tiktok|youtube|whatsapp|voice|reminder|timer)\b/i },

@@ -47,6 +47,9 @@
   the back end. Statuses: new → planned → done/dismissed (client shows them).
 - Guide content is data-driven (`src/lib/studio/guide.ts`) — keep the 6 steps
   in sync when screens/commands change.
+- `npm run inbox` (scripts/inbox.mts) reads suggestions from the local SQLite
+  DB — the developer's routing point in this workspace. Support
+  `--status=`, `--limit=`, `--json`, `--mark <id> <status>`.
 
 ## Commands
 - `npm run dev` · `npm run build` · `npm test` (vitest, 161 tests) · `npm run lint`

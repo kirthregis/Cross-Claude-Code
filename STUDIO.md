@@ -101,6 +101,20 @@ There's a **"Make EMY Studio better"** box at the bottom of the studio home:
   and her device shows the new status. Optionally you also get an **email per
   suggestion** with the AI plan (set `DEV_FEEDBACK_TO`).
 
+**Routing to your workspace:** on local/dev runs (this repo's own database),
+read and action everything right here:
+
+```bash
+npm run inbox                    # every suggestion, newest first
+npm run inbox -- --status=new    # only unreviewed ones
+npm run inbox -- --json          # machine-readable
+npm run inbox -- --mark <id> done   # flip a status; her device updates live
+```
+
+The developer loop: she sends a suggestion → it lands in the database →
+you run `npm run inbox`, pick it up, implement, mark it done → she sees
+"Done ✓" in the app.
+
 > Honest note: "the app improves itself" = the app captures, analyses and plans
 > every request and routes it to you; you ship the change, and she watches it
 > flip to Done. That's the loop — nothing writes code by itself.

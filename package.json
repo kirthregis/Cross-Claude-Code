@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "sweep": "tsx scripts/sweep.mts",
+    "inbox": "tsx scripts/inbox.mts",
     "seed": "tsx scripts/seed.mts",
     "pack": "tsx scripts/export-pack.mts",
     "standalone": "tsx scripts/build-standalone.mts",
