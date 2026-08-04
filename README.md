@@ -230,7 +230,7 @@ Also review:
 | `src/lib/notify.ts` | Telegram + webhook delivery |
 | `src/lib/outreach.ts` | Pitches, contact strategy, negotiation playbook |
 | `src/lib/contract.ts` | Contract, runsheet, invoice, press/IP pack |
-| `src/lib/db.ts` | SQLite persistence (swap for Postgres by replacing this file) |
+| `src/lib/storage/` | Storage layer — SQLite locally, Postgres in production (`DATABASE_URL`). Durable across Vercel redeploys. See `DEPLOY.md`. |
 
 Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA.
 
