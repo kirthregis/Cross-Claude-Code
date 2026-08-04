@@ -8,6 +8,8 @@
  */
 
 import type { RawLead } from "../types";
+import { parseRss } from "../rss";
+import { webSearchSource } from "./web-search";
 
 export interface Source {
   id: string;
@@ -100,19 +102,14 @@ export const eventCalendarSource: Source = {
         if (!res.ok) continue;
         const text = await res.text();
         if (text.trimStart().startsWith("<")) {
-          // Minimal RSS/Atom handling — no XML dependency needed.
-          const items = text.split(/<item>|<entry>/).slice(1);
-          for (const it of items) {
-            const pick = (tag: string) =>
-              it.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))?.[1]
-                ?.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
+          for (const it of parseRss(text)) {
             out.push({
               sourceKind: "event_calendar",
               sourceName: new URL(feed).hostname,
-              sourceUrl: pick("link"),
-              title: pick("title") ?? "Event listing",
-              body: pick("description") ?? pick("summary") ?? "",
-              postedAt: pick("pubDate") ? new Date(pick("pubDate")!).toISOString() : new Date().toISOString(),
+              sourceUrl: it.link,
+              title: it.title,
+              body: it.description ?? "",
+              postedAt: it.published,
             });
           }
         } else {
@@ -191,6 +188,7 @@ export const ALL_SOURCES: Source[] = [
   emailSource,
   eventCalendarSource,
   gigBoardSource,
+  webSearchSource,
 ];
 
 export function sourceStatus() {

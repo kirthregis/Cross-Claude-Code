@@ -104,6 +104,7 @@ Everything is env-driven; see `.env.example` and the in-app **/sources** page, w
 
 | Source | How |
 |---|---|
+| **Web scan** | FREE, no credentials. Actively searches the open web (Google News + your own feeds) for UAE entertainment/booking opportunities on every sweep. Customise via `WEB_SEARCH_QUERIES`, extend via `WEB_SEARCH_EXTRA_FEEDS`. See `ROADMAP.md`. |
 | WhatsApp groups | POST to `/api/ingest/whatsapp` from a WhatsApp Business webhook or Baileys bridge |
 | Booking inbox | Forward mail to `/api/ingest/email` (SendGrid Inbound Parse / Cloudflare Email Workers) |
 | Instagram | `IG_SCRAPER_URL` + `IG_WATCH_HANDLES` |
