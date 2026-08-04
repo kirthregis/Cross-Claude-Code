@@ -22,6 +22,10 @@ const TZ = process.env.TZ || 'Asia/Dubai';
 const PROFILE = process.env.CHROME_USER_DATA_DIR || 'C:\\Users\\kirth\\AppData\\Local\\Google\\Chrome\\User Data';
 const DB_FILE = process.env.NEXUS_DB || path.join(process.cwd(), 'nexus.db');
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+// Offline is the safe default. Set NEXUS_OFFLINE=0 only when internet use is intentional.
+const OFFLINE = process.env.NEXUS_OFFLINE !== '0';
+const LOCAL_MODEL = process.env.NEXUS_LOCAL_MODEL || '';
+const LOCAL_AI_URL = process.env.NEXUS_LOCAL_AI_URL || 'http://127.0.0.1:11434/api/generate';
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 const db = new Database(DB_FILE);
@@ -51,7 +55,7 @@ function setting(key, fallback = '') { const row = db.prepare('SELECT value FROM
 function setSetting(key, value) { db.prepare('INSERT INTO nexus_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(key, String(value)); }
 function publicFile(row) { return { id: row.id, name: row.name, mime: row.mime, size: row.size, created_at: row.created_at }; }
 
-app.get('/api/health', (_req, res) => json(res, { ok: true, port: PORT, timezone: TZ, gemini: Boolean(process.env.GEMINI_API_KEY), chrome: Boolean(browserContext) }));
+app.get('/api/health', (_req, res) => json(res, { ok: true, port: PORT, timezone: TZ, offline: OFFLINE, provider: OFFLINE ? 'offline' : 'gemini', chrome: Boolean(browserContext) }));
 app.get('/api/dashboard', (_req, res) => {
   const notes = db.prepare('SELECT id,title,body,created_at,updated_at FROM nexus_notes ORDER BY updated_at DESC LIMIT 6').all();
   const files = db.prepare('SELECT id,name,mime,size,created_at FROM nexus_files ORDER BY created_at DESC LIMIT 6').all();
@@ -65,7 +69,7 @@ app.delete('/api/notes/:id', (req, res) => json(res, { ok: db.prepare('DELETE FR
 app.get('/api/files', (_req, res) => json(res, db.prepare('SELECT id,name,mime,size,created_at FROM nexus_files ORDER BY created_at DESC').all()));
 app.post('/api/files', upload.single('file'), (req, res) => { if (!req.file) return json(res, { error: 'file is required' }, 400); const t = now(); const info = db.prepare('INSERT INTO nexus_files(name,mime,size,content,created_at) VALUES(?,?,?,?,?)').run(req.file.originalname, req.file.mimetype, req.file.size, req.file.buffer, t); json(res, { ...publicFile({ id: info.lastInsertRowid, name: req.file.originalname, mime: req.file.mimetype, size: req.file.size, created_at: t }) }, 201); });
 app.get('/api/files/:id/download', (req, res) => { const f = db.prepare('SELECT * FROM nexus_files WHERE id=?').get(req.params.id); if (!f) return res.sendStatus(404); res.type(f.mime || 'application/octet-stream').set('Content-Disposition', `attachment; filename="${String(f.name).replace(/["\r\n]/g, '')}"`).send(f.content); });
-app.get('/api/settings', (_req, res) => json(res, { timezone: TZ, chromeProfile: PROFILE, provider: setting('provider', 'gemini'), model: setting('model', GEMINI_MODEL), chromeConnected: Boolean(browserContext) }));
+app.get('/api/settings', (_req, res) => json(res, { timezone: TZ, chromeProfile: PROFILE, provider: setting('provider', OFFLINE ? 'offline' : 'gemini'), model: setting('model', OFFLINE ? (LOCAL_MODEL || 'offline-rules') : GEMINI_MODEL), chromeConnected: Boolean(browserContext) }));
 app.put('/api/settings', (req, res) => { for (const key of ['provider', 'model']) if (req.body[key] !== undefined) setSetting(key, req.body[key]); json(res, { ok: true }); });
 
 async function getChrome() {
@@ -98,13 +102,40 @@ const DANGEROUS_SHELL = /(^|[&|;])\s*(del|erase|format|rd|rmdir|rm|shutdown|rebo
 function runShell(command, timeout = 30000) { return new Promise((resolve) => { const child = exec(command, { windowsHide: false, timeout: Math.min(Number(timeout) || 30000, 120000), maxBuffer: 2 * 1024 * 1024, cwd: process.cwd(), shell: process.platform === 'win32' ? 'cmd.exe' : '/bin/sh' }, (error, stdout, stderr) => resolve({ ok: !error, code: error?.code ?? 0, stdout, stderr: stderr || (error ? error.message : '') })); }); }
 app.post('/api/shell', async (req, res) => { const command = String(req.body.command || '').trim(); if (!command) return json(res, { error: 'command is required' }, 400); if (DANGEROUS_SHELL.test(command) && process.env.NEXUS_ALLOW_DANGEROUS !== '1') return json(res, { error: 'Blocked potentially destructive command. Set NEXUS_ALLOW_DANGEROUS=1 to explicitly enable it.' }, 403); json(res, await runShell(command, req.body.timeout)); });
 
+function localPlan(prompt) {
+  const text = String(prompt).trim();
+  const steps = [];
+  const url = text.match(/https?:\/\/[^\s]+/i)?.[0]?.replace(/[),.]+$/, '');
+  if (url || /\b(open|go to|visit|navigate)\b/i.test(text)) {
+    steps.push({ kind: 'chrome', type: 'navigate', url: url || 'https://www.google.com' });
+  }
+  if (/screenshot|screen shot|capture/i.test(text)) steps.push({ kind: 'chrome', type: 'screenshot' });
+  const command = text.match(/(?:run|execute|shell command|command)\s*[:：]?\s*[\"']?(.+?)[\"']?$/i)?.[1];
+  if (command && !DANGEROUS_SHELL.test(command)) steps.push({ kind: 'shell', command: command.trim(), timeout: 30000 });
+  if (!steps.length) return { message: 'Offline mode is active. I can open URLs, take screenshots, and run safe local commands. Try: “open https://example.com” or “run node --version”.', steps: [] };
+  return { message: `Offline plan: ${steps.length} local step${steps.length === 1 ? '' : 's'}.`, steps };
+}
+async function askLocalModel(prompt, jsonMode = false) {
+  if (!LOCAL_MODEL) return null;
+  try {
+    const response = await fetch(LOCAL_AI_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model: LOCAL_MODEL, prompt, stream: false, format: jsonMode ? 'json' : undefined, options: { temperature: 0.2 } }) });
+    if (!response.ok) return null;
+    const data = await response.json(); return data.response || data.message?.content || null;
+  } catch { return null; }
+}
 async function askGemini(prompt) {
+  if (OFFLINE) return (await askLocalModel(prompt)) || `Offline mode is active. No internet request was made.\n\nLocal request received: ${String(prompt).slice(0, 500)}`;
   if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not configured');
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } }) });
   const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || `Gemini HTTP ${response.status}`); return data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
 }
 function parsePlan(text) { const match = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/); if (!match) throw new Error('Gemini returned no executable plan'); return JSON.parse(match[1]); }
 async function makeAgentPlan(prompt) {
+  if (OFFLINE) {
+    const localText = await askLocalModel(`You are an offline desktop automation planner. Return only valid JSON with {message,steps}. Allowed steps are chrome navigate/click/type/press/wait/back/screenshot and safe shell commands. Never delete data or request secrets. User task: ${prompt}`, true);
+    if (localText) { try { return parsePlan(localText); } catch {} }
+    return localPlan(prompt);
+  }
   const planText = await askGemini(`You are NexusCommand, a local desktop automation planner. Return ONLY valid JSON. Schema: {\"message\":\"short explanation\",\"steps\":[{\"kind\":\"chrome\",\"type\":\"navigate|click|type|press|wait|back|screenshot\",...}|{\"kind\":\"shell\",\"command\":\"...\",\"timeout\":30000}]}. Use CSS selectors. Never request passwords, tokens, payment actions, destructive commands, arbitrary JavaScript/evaluate, or downloading untrusted executables. User task: ${prompt}`);
   const plan = parsePlan(planText); if (!Array.isArray(plan.steps) || plan.steps.length > 20) throw new Error('Invalid or oversized agent plan');
   return plan;
@@ -125,7 +156,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewp
 <section id="notes"><h2>Notes</h2><div class="card"><input id="nt" placeholder="Title"><button class="voice" data-voice="nt">🎙</button><textarea id="nb" rows="5" placeholder="Write a note…"></textarea><button class="go" onclick="saveNote()">Save note</button></div><div id="notesList"></div></section>
 <section id="files"><h2>Files</h2><div class="card"><input type="file" id="upload"><button class="go" onclick="uploadFile()">Upload</button></div><div id="filesList"></div></section>
 <section id="browse"><h2>Browse</h2><div class="card"><p class="muted">Control the configured Chrome profile.</p><input id="url" placeholder="https://example.com"><button class="go" onclick="browse()">Open in Chrome</button><pre id="browseOut">Chrome is disconnected.</pre></div></section>
-<section id="ai-chat"><h2>AI Chat <span class="muted">· Gemini</span></h2><div class="card"><textarea id="chat" rows="5" placeholder="Ask Gemini anything…"></textarea><button class="voice" data-voice="chat">🎙</button><button class="go" onclick="chat()">Send</button><pre id="chatOut"></pre></div></section>
+<section id="ai-chat"><h2>AI Chat <span class="muted">· Offline</span></h2><div class="card"><textarea id="chat" rows="5" placeholder="Ask Gemini anything…"></textarea><button class="voice" data-voice="chat">🎙</button><button class="go" onclick="chat()">Send</button><pre id="chatOut"></pre></div></section>
 <section id="ai-agent"><h2>AI Agent <span class="muted">· Chrome + shell</span></h2><div class="card"><p class="muted">Describe a task. The agent will show and execute a short, bounded plan.</p><textarea id="agent" rows="5" placeholder="Example: open example.com in Chrome"></textarea><button class="voice" data-voice="agent">🎙</button><button class="go" onclick="runAgent()">Run task</button><pre id="agentOut"></pre></div></section>
 <section id="settings"><h2>Settings</h2><div class="card" id="settingsOut">Loading…</div></section></main></div><script>
 const NEXUS_TOKEN=${JSON.stringify(ACCESS_TOKEN)};
