@@ -56,15 +56,15 @@ npm run dev
 ```
 
 ### 3. Open it
-Go to **<http://localhost:3000>** in your browser.
+Go to **<http://localhost:3001>** in your browser.
 
 That's the dashboard. The pages are:
 
 | Page | What it's for |
 |---|---|
-| <http://localhost:3000> | All gigs, ranked. Paste a new one into the box at the top. |
-| <http://localhost:3000/profile> | **← this is "/profile"** — rates, EVG details, upload the PDFs |
-| <http://localhost:3000/sources> | Which feeds are switched on |
+| <http://localhost:3001> | All gigs, ranked. Paste a new one into the box at the top. |
+| <http://localhost:3001/profile> | **← this is "/profile"** — rates, EVG details, upload the PDFs |
+| <http://localhost:3001/sources> | Which feeds are switched on |
 
 **To upload the licence and bank statement:** go to `/profile`, top section
 says *"Import from documents"*, choose the two PDFs, click **Read files**,

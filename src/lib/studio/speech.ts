@@ -25,6 +25,8 @@ interface SpeechRecognitionCtor {
 }
 
 let recognition: SpeechRecognitionLike | null = null;
+let currentUtterance: SpeechSynthesisUtterance | null = null;
+let keepAliveTimer: ReturnType<typeof setInterval> | null = null;
 
 function recognitionCtor(): SpeechRecognitionCtor | null {
   if (typeof window === "undefined") return null;
@@ -87,17 +89,24 @@ export function startListening(handlers: {
 export function speak(text: string, enabled: boolean, lang = "en-US", gender: "male" | "female" | "auto" = "male"): void {
   if (!enabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
   try {
-    window.speechSynthesis.cancel();
+    const synth = window.speechSynthesis;
+    // Chrome/Windows quirk: calling cancel() while nothing is speaking can
+    // silently break every later utterance ("first reply speaks, rest are
+    // text-only"). Only cancel when something is actually speaking/paused,
+    // and resume() first (Chrome pauses synthesis silently after user clicks).
+    if (synth.speaking || synth.paused) synth.cancel();
+    synth.resume();
+
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang;
     u.rate = 1;
     u.pitch = 1.05;
-    const voices = window.speechSynthesis.getVoices();
+    const voices = synth.getVoices();
     // Nicer, more natural voices first; prefer the requested gender.
     const score = (v: SpeechSynthesisVoice): number => {
       let s = 0;
       if (/en[-_](US|GB|AU)/i.test(v.lang)) s += 10;
-      if (gender === "male" && /david|guy|male|christopher|james|daniel|george|ryan|mark|eric|alex|arthur|thomas|james/i.test(v.name)) s += 8;
+      if (gender === "male" && /david|guy|male|christopher|james|daniel|george|ryan|mark|eric|alex|arthur|thomas/i.test(v.name)) s += 8;
       if (gender === "female" && /zira|female|samantha|victoria|susan|hazel|aria|jenny|kate|michelle|libby/i.test(v.name)) s += 8;
       if (/natural|online|premium|enhanced|neural|google/i.test(v.name)) s += 4;
       if (/google/i.test(v.name) && /en[-_](US|GB|AU)/i.test(v.lang)) s += 2;
@@ -105,12 +114,43 @@ export function speak(text: string, enabled: boolean, lang = "en-US", gender: "m
       return s;
     };
     const ranked = [...voices].sort((a, b) => score(b) - score(a));
-    const preferred = ranked[0];
-    if (preferred) u.voice = preferred;
-    window.speechSynthesis.speak(u);
+    if (ranked[0]) u.voice = ranked[0];
+
+    // Chrome stops synthesis after ~15s unless resumed — keep it alive.
+    u.onstart = () => {
+      keepAliveTimer = setInterval(() => {
+        try {
+          window.speechSynthesis.resume();
+        } catch {
+          /* noop */
+        }
+      }, 10_000);
+    };
+    const clear = () => {
+      if (keepAliveTimer) {
+        clearInterval(keepAliveTimer);
+        keepAliveTimer = null;
+      }
+    };
+    u.onend = clear;
+    u.onerror = clear;
+
+    currentUtterance = u;
+    synth.speak(u);
   } catch {
     /* speech is best-effort */
   }
+}
+
+/** Stop any assistant speech (e.g. before a new one starts). */
+export function stopSpeaking(): void {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+  } catch {
+    /* noop */
+  }
+  currentUtterance = null;
 }
 
 export function notify(title: string, body: string): void {
