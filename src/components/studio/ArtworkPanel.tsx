@@ -111,7 +111,7 @@ export function ArtworkPanel({ project, onChanged }: { project: Project; onChang
         void saveArtwork(project.meta.id, d.dataUrl);
         onChanged();
         notify("Cover art ready", `Artwork for ${project.meta.name} is saved at 3000×3000.`);
-        speak(`Your cover art is ready.`, settings.soundOn);
+        speak(`Your cover art is ready.`, settings.soundOn, "en-US", settings.voiceGender);
       } else {
         upsertProject({ ...project, artwork: { source: d.source, prompt: d.prompt, templateId: d.templateId, width: d.width, height: d.height, sizeBytes: d.sizeBytes, generatedAt: Date.now(), dataUrl: d.dataUrl } });
         onChanged();
@@ -155,7 +155,7 @@ export function ArtworkPanel({ project, onChanged }: { project: Project; onChang
           3000,
         );
         finish({ ...full, source: "template", templateId }, false);
-        speak(`${t?.name ?? "Template"} cover rendered. Take a look and save it if you like it.`, settings.soundOn);
+        speak(`${t?.name ?? "Template"} cover rendered. Take a look and save it if you like it.`, settings.soundOn, "en-US", settings.voiceGender);
       } catch (e) {
         setError(`Template failed: ${e instanceof Error ? e.message : "unknown error"}`);
       } finally {

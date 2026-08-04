@@ -27,7 +27,7 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
     const m = buildRelease(project, settings);
     persist(m);
     notify("Release pack ready", `Title, description and tags for "${project.meta.name}" are written.`);
-    speak(`Your release pack is ready — title, description and tags are done.`, settings.soundOn);
+    speak(`Your release pack is ready — title, description and tags are done.`, settings.soundOn, "en-US", settings.voiceGender);
   }, [project, settings, persist]);
 
   const copy = useCallback(
@@ -46,7 +46,7 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
   const saveDraft = useCallback(() => {
     if (!meta) return;
     persist({ ...meta });
-    speak(`Release pack saved.`, settings.soundOn);
+    speak(`Release pack saved.`, settings.soundOn, "en-US", settings.voiceGender);
   }, [meta, persist, settings.soundOn]);
 
   const downloadTxt = useCallback(() => {

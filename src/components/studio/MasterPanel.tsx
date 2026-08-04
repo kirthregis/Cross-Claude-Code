@@ -126,7 +126,7 @@ export function MasterPanel({ project, onChanged }: { project: Project; onChange
       });
       onChanged();
       notify("Mastering done", `${project.meta.name} is mastered to ${out.outputLufs.toFixed(1)} LUFS. Export it when ready.`);
-      speak(`Mastering finished. ${project.meta.name} is now at ${out.outputLufs.toFixed(1)} LUFS.`, settings.soundOn);
+      speak(`Mastering finished. ${project.meta.name} is now at ${out.outputLufs.toFixed(1)} LUFS.`, settings.soundOn, "en-US", settings.voiceGender);
     } catch (e) {
       setRender({ phase: "error", message: e instanceof Error ? e.message : "Rendering failed." });
     }
