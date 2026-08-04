@@ -288,3 +288,52 @@ export async function sendMorningDigest(): Promise<{ sent: boolean; count: numbe
 export function isDigestTime(now: Date = new Date()): boolean {
   return dubaiHour(now) === 9;
 }
+
+/**
+ * Notify the owner (Kirth) about a suggestion Emy submitted. Reuses whatever
+ * alert channels are configured (WhatsApp, email, Telegram, webhook) so a new
+ * idea reaches you in real time, not just in the /admin/feedback inbox.
+ */
+export async function notifyOwner(subject: string, text: string): Promise<{ sent: string[] }> {
+  const sent: string[] = [];
+
+  const withLink = `${text}\n\nView all: ${env("APP_URL") ?? ""}/admin/feedback`.replace(/\n\n+/g, "\n\n");
+
+  if (whatsappConfigured()) {
+    const r = await sendWhatsApp(withLink);
+    if (r.ok) sent.push("whatsapp");
+  }
+  if (emailConfigured()) {
+    const r = await sendEmail(subject, withLink);
+    if (r.ok) sent.push("email");
+  }
+
+  // Telegram (if configured).
+  const token = env("TELEGRAM_BOT_TOKEN");
+  const chat = env("TELEGRAM_CHAT_ID");
+  if (token && chat) {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chat, text: withLink }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (res.ok) sent.push("telegram");
+    } catch { /* ignore */ }
+  }
+
+  const hook = env("ALERT_WEBHOOK_URL");
+  if (hook) {
+    try {
+      const res = await fetch(hook, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: withLink, subject, source: "feedback" }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (res.ok) sent.push("webhook");
+    } catch { /* ignore */ }
+  }
+
+  return { sent };
+}
