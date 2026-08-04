@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { addFeedback, listFeedback, setFeedbackStatus } from "@/lib/db";
+import { notifyOwner } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -55,13 +56,25 @@ export async function POST(req: Request) {
   // New suggestion.
   const parsed = SubmitBody.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
-  await addFeedback({
+  const item = {
     id: nanoid(12),
     createdAt: new Date().toISOString(),
     message: parsed.data.message.trim(),
     category: parsed.data.category,
     contact: parsed.data.contact?.trim() || undefined,
-    status: "new",
-  });
+    status: "new" as const,
+  };
+  await addFeedback(item);
+
+  // Route it to the owner in real time so it can be implemented.
+  const notifyText = [
+    `💡 New suggestion`,
+    ``,
+    item.message,
+    item.contact ? `\nFrom: ${item.contact}` : "",
+    item.category ? `\nCategory: ${item.category}` : "",
+  ].filter(Boolean).join("\n");
+  await notifyOwner(`New GigRadar suggestion`, notifyText).catch(() => {});
+
   return NextResponse.json({ ok: true }, { status: 201 });
 }
