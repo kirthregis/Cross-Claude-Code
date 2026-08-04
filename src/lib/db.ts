@@ -7,7 +7,7 @@
 
 import { getStorage, closeStorage } from "./storage";
 import type { Gig, DealStage } from "./types";
-import type { DeferredEntry } from "./storage/types";
+import type { DeferredEntry, Feedback } from "./storage/types";
 
 export { closeStorage as closeDb };
 
@@ -56,4 +56,16 @@ export async function recordSweep(found: number, newGigs: number, errors: string
 
 export async function stats() {
   return (await getStorage()).stats();
+}
+
+export async function addFeedback(f: Feedback): Promise<void> {
+  return (await getStorage()).addFeedback(f);
+}
+
+export async function listFeedback(): Promise<Feedback[]> {
+  return (await getStorage()).listFeedback();
+}
+
+export async function setFeedbackStatus(id: string, status: Feedback["status"]): Promise<boolean> {
+  return (await getStorage()).setFeedbackStatus(id, status);
 }
