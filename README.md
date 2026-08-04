@@ -14,7 +14,7 @@
 >
 > ### 🚀 Want the live app with phone alerts?
 > One click, no terminal:
-> [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkirthregis%2FCross-Claude-Code%2Ftree%2Farena%2F019fc128-cross-claude-code)
+> [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkirthregis%2FCross-Claude-Code%2Ftree%2Farena%2F019fcd29-cross-claude-code)
 >
 > Then see [START-HERE.md](START-HERE.md) for switching on WhatsApp + email.
 
