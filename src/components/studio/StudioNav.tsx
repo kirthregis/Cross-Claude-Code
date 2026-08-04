@@ -8,6 +8,7 @@ export function StudioNav() {
   const tabs = [
     { href: "/studio", label: "Studio" },
     { href: "/studio/library", label: "Library" },
+    { href: "/studio/epk", label: "EPK" },
     { href: "/studio/guide", label: "How to" },
     { href: "/studio/distribute", label: "Distribute" },
     { href: "/studio/settings", label: "Settings" },
