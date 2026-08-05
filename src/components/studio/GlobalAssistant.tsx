@@ -151,7 +151,7 @@ export function GlobalAssistant() {
         <div className="w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/95 shadow-2xl backdrop-blur">
           <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2.5">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-600 to-amber-500 text-sm">🎧</span>
+              <span className="brand-grad flex h-7 w-7 items-center justify-center rounded-full text-sm">🎧</span>
               <div>
                 <div className="text-xs font-bold text-white">Your assistant</div>
                 <div className="text-[10px] text-zinc-500">{listening ? "Listening…" : busy ? "Working…" : "On every page"}</div>
@@ -165,7 +165,7 @@ export function GlobalAssistant() {
                 Say or type what you need from anywhere:
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {QUICK.map((q) => (
-                    <button key={q} onClick={() => void send(q)} className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500/60 hover:text-fuchsia-300">
+                    <button key={q} onClick={() => void send(q)} className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300 brand-hover-border hover:brand-text">
                       {q}
                     </button>
                   ))}
@@ -195,7 +195,7 @@ export function GlobalAssistant() {
       )}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition active:scale-95 ${listening ? "animate-pulse bg-red-500 text-white" : "bg-gradient-to-br from-fuchsia-600 to-amber-500 text-white hover:from-fuchsia-500 hover:to-amber-400"}`}
+        className={`flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition active:scale-95 ${listening ? "animate-pulse bg-red-500 text-white" : "brand-grad text-white"}`}
         title="Talk to the assistant (works on every page)"
       >
         {listening ? "■" : "🎙"}

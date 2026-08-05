@@ -44,7 +44,7 @@ export default function DistributePage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="bg-gradient-to-r from-fuchsia-400 to-amber-300 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
             Get it out there — free
           </h1>
           <p className="mt-1 max-w-xl text-sm text-zinc-400">
@@ -61,13 +61,13 @@ export default function DistributePage() {
           <SectionLabel>{TAG_LABELS[tag]}</SectionLabel>
           <div className="mt-2 grid gap-2.5 sm:grid-cols-2">
             {SITES.filter((s) => s.tag === tag).map((s) => (
-              <a key={s.name} href={s.url} target="_blank" rel="noreferrer" className="group block rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 transition hover:border-fuchsia-500/50 hover:bg-zinc-900">
+              <a key={s.name} href={s.url} target="_blank" rel="noreferrer" className="group block rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 transition brand-hover-border hover:bg-zinc-900">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-bold text-zinc-100 group-hover:text-fuchsia-300">{s.name}</span>
                   <span className="shrink-0 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">{s.free}</span>
                 </div>
                 <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">{s.what}</p>
-                <div className="mt-2 text-[11px] font-semibold text-fuchsia-400 opacity-0 transition group-hover:opacity-100">Open site →</div>
+                <div className="brand-text mt-2 text-[11px] font-semibold opacity-0 transition group-hover:opacity-100">Open site →</div>
               </a>
             ))}
           </div>

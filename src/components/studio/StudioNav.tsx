@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "@/lib/studio/theme";
 
 export function StudioNav() {
   const path = usePathname();
+  const theme = useTheme();
   const tabs = [
     { href: "/studio", label: "Studio" },
     { href: "/studio/library", label: "Library" },
@@ -17,8 +19,10 @@ export function StudioNav() {
     <header className="sticky top-0 z-40 border-b border-zinc-800/80 bg-[#0a0a0f]/85 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
         <Link href="/studio" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-600 to-amber-500 text-sm font-black text-white">E</span>
-          <span className="hidden bg-gradient-to-r from-fuchsia-400 to-amber-300 bg-clip-text text-base font-extrabold tracking-tight text-transparent sm:block">
+          <span className="brand-grad flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg text-sm font-black text-white">
+          {theme.logoDataUrl ? <img src={theme.logoDataUrl} alt="Logo" className="h-full w-full object-cover" /> : "E"}
+        </span>
+          <span className="brand-text-grad hidden text-base font-extrabold tracking-tight sm:block">
             EMY STUDIO
           </span>
         </Link>

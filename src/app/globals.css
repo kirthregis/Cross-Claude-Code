@@ -2,14 +2,42 @@
 
 :root {
   color-scheme: dark;
+  /* Branding — overridden live by ThemeProvider from the user's Style &
+     Branding settings. */
+  --brand-1: #c026d3;
+  --brand-2: #f59e0b;
+  --app-bg: #0a0a0f;
+  --radius: 1rem;
+  --font-brand: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 body {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-brand);
+  background-color: var(--app-bg);
   /* Respect iPhone safe areas so the PWA doesn't hide behind the notch. */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+  transition: background-color 0.3s ease;
 }
+
+/* ── Brand utilities (driven by the user's theme) ─────────────────────── */
+.brand-grad { background-image: linear-gradient(135deg, var(--brand-1), var(--brand-2)); }
+.brand-grad:hover { filter: brightness(1.08); }
+.brand-text-grad {
+  background-image: linear-gradient(90deg, var(--brand-1), var(--brand-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.brand-text { color: var(--brand-1); }
+.brand-soft { background-color: color-mix(in srgb, var(--brand-1) 14%, transparent); }
+.brand-border { border-color: color-mix(in srgb, var(--brand-1) 55%, transparent); }
+.brand-hover-border { border-color: color-mix(in srgb, var(--brand-1) 28%, transparent); }
+.brand-hover-border:hover { border-color: color-mix(in srgb, var(--brand-1) 65%, transparent); }
+.brand-accent { accent-color: var(--brand-1); }
+.brand-ring { box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-1) 55%, transparent); }
+.brand-shadow { box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--brand-1) 45%, transparent); }
+.brand-radius { border-radius: var(--radius); }
 
 @keyframes pulse-ring {
   0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55); }

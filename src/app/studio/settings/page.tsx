@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, SectionLabel, Toggle } from "@/components/studio/ui";
 import { geminiChat } from "@/lib/studio/gemini";
 import { isGeminiConfigured } from "@/lib/studio/gemini";
@@ -8,6 +8,18 @@ import { FAL_MODELS, isFalConfigured } from "@/lib/studio/fal";
 import type { ProjectKind, StudioSettings } from "@/lib/studio/types";
 import { DEFAULT_SETTINGS } from "@/lib/studio/types";
 import { loadSettings, saveSettings } from "@/lib/studio/store";
+import {
+  BACKGROUND_OPTIONS,
+  DEFAULT_THEME,
+  FONT_OPTIONS,
+  RADIUS_OPTIONS,
+  THEME_PRESETS,
+  downscaleLogo,
+  resetTheme,
+  saveTheme,
+  useTheme,
+  type ThemeSettings,
+} from "@/lib/studio/theme";
 
 export default function StudioSettingsPage() {
   const [settings, setSettings] = useState<StudioSettings>(loadSettings());
@@ -100,6 +112,8 @@ export default function StudioSettingsPage() {
         <h1 className="text-2xl font-extrabold tracking-tight text-white">Settings</h1>
         {savedFlash && <span className="text-xs font-semibold text-emerald-300">✓ Saved on this device</span>}
       </div>
+
+      <StyleBrandingCard />
 
       <Card className="p-4 sm:p-5">
         <SectionLabel>Artist profile</SectionLabel>
@@ -340,6 +354,153 @@ export default function StudioSettingsPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+function StyleBrandingCard() {
+  const theme = useTheme();
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const patch = (p: Partial<ThemeSettings>) => saveTheme({ ...theme, ...p });
+
+  const onLogo = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const dataUrl = await downscaleLogo(file);
+      patch({ logoDataUrl: dataUrl });
+    } catch {
+      /* noop */
+    }
+  };
+
+  return (
+    <Card className="p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <SectionLabel>Style & branding — make it yours</SectionLabel>
+          <p className="mt-1 text-xs text-zinc-500">Colors, font, background, corners and logo — applied live to the whole app, stored on this device, no code.</p>
+        </div>
+        <Button variant="ghost" onClick={() => resetTheme()}>Reset to default</Button>
+      </div>
+
+      {/* presets */}
+      <div className="mt-3">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Preset themes</span>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {THEME_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => saveTheme({ ...theme, primary: p.primary, accent: p.accent, background: p.background })}
+              className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                theme.primary === p.primary ? "border-fuchsia-500/70 bg-zinc-800 text-white" : "border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-zinc-500"
+              }`}
+              style={{ borderLeft: `4px solid ${p.primary}` }}
+            >
+              <span className="h-3 w-3 rounded-full" style={{ background: `linear-gradient(135deg, ${p.primary}, ${p.accent})` }} />
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* custom colors */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <label className="block">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Primary color</span>
+          <div className="mt-1 flex items-center gap-2">
+            <input type="color" value={theme.primary} onChange={(e) => patch({ primary: e.target.value })} className="h-9 w-12 cursor-pointer rounded-lg border border-zinc-700 bg-zinc-950" />
+            <input value={theme.primary} onChange={(e) => patch({ primary: e.target.value })} className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-200" />
+          </div>
+        </label>
+        <label className="block">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Accent color</span>
+          <div className="mt-1 flex items-center gap-2">
+            <input type="color" value={theme.accent} onChange={(e) => patch({ accent: e.target.value })} className="h-9 w-12 cursor-pointer rounded-lg border border-zinc-700 bg-zinc-950" />
+            <input value={theme.accent} onChange={(e) => patch({ accent: e.target.value })} className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-200" />
+          </div>
+        </label>
+        <label className="block">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Background</span>
+          <div className="mt-1 flex items-center gap-2">
+            <input type="color" value={theme.background} onChange={(e) => patch({ background: e.target.value })} className="h-9 w-12 cursor-pointer rounded-lg border border-zinc-700 bg-zinc-950" />
+            <input value={theme.background} onChange={(e) => patch({ background: e.target.value })} className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-200" />
+          </div>
+        </label>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {BACKGROUND_OPTIONS.map((b) => (
+          <button
+            key={b.id}
+            onClick={() => patch({ background: b.value })}
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+              theme.background === b.value ? "border-zinc-500 bg-zinc-800 text-white" : "border-zinc-700 bg-zinc-950 text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            <span className="h-2.5 w-2.5 rounded-full border border-white/20" style={{ background: b.value }} />
+            {b.label}
+          </button>
+        ))}
+      </div>
+
+      {/* font + radius */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Font</span>
+          <select value={theme.font} onChange={(e) => patch({ font: e.target.value as ThemeSettings["font"] })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none">
+            {FONT_OPTIONS.map((f) => (
+              <option key={f.id} value={f.id}>{f.label}</option>
+            ))}
+          </select>
+        </label>
+        <div className="block">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Corners</span>
+          <div className="mt-1 flex gap-1.5">
+            {RADIUS_OPTIONS.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => patch({ radius: r.id })}
+                className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                  theme.radius === r.id ? "border-fuchsia-500/70 bg-zinc-800 text-white" : "border-zinc-700 bg-zinc-950 text-zinc-400"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* logo */}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => void onLogo(e.target.files?.[0])} />
+        <div className="brand-grad flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl text-xl font-black text-white shadow-lg">
+          {theme.logoDataUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={theme.logoDataUrl} alt="Logo" className="h-full w-full object-cover" />
+          ) : (
+            "E"
+          )}
+        </div>
+        <div>
+          <div className="text-xs font-semibold text-zinc-300">{theme.logoDataUrl ? "Custom logo" : "Default 'E' mark"}</div>
+          <div className="mt-1 flex gap-2">
+            <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => logoInputRef.current?.click()}>⬆ Upload logo</Button>
+            {theme.logoDataUrl && <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => patch({ logoDataUrl: null })}>Remove</Button>}
+          </div>
+        </div>
+      </div>
+
+      {/* live preview */}
+      <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Live preview</span>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="brand-grad rounded-xl px-4 py-2 text-sm font-bold text-white brand-shadow">Primary button</div>
+          <div className="brand-text-grad text-lg font-extrabold">Headline in brand</div>
+          <div className="brand-soft brand-border rounded-xl px-3 py-1.5 text-xs text-zinc-200">Highlight chip</div>
+        </div>
+      </div>
+    </Card>
   );
 }
 

@@ -187,7 +187,7 @@ export default function LibraryPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="bg-gradient-to-r from-fuchsia-400 to-amber-300 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
             Music library
           </h1>
           <p className="mt-1 max-w-xl text-sm text-zinc-400">
