@@ -38,6 +38,8 @@ function concat(a: Uint8Array<ArrayBuffer>, b: Uint8Array<ArrayBuffer>): Uint8Ar
   return out;
 }
 
+import { quantize } from "./dsp";
+
 /** Build a "LIST/INFO" chunk from tags. Returns an empty buffer if no tags. */
 function infoChunk(tags: WavTags): Uint8Array<ArrayBuffer> {
   const ids = [
@@ -98,15 +100,14 @@ export function encodeWav(
 
   for (let i = 0; i < numSamples; i++) {
     for (let c = 0; c < numChannels; c++) {
-      let s = channels[c][i];
-      if (!Number.isFinite(s)) s = 0;
-      s = Math.max(-1, Math.min(1, s));
       const offset = (i * numChannels + c) * bytesPerSample;
       if (bitsPerSample === 16) {
-        ddv.setInt16(offset, Math.round(s * scale), true);
+        // TPDF dither before 16-bit quantization (hides quantization noise).
+        const v = quantize(channels[c][i], scale, 16);
+        ddv.setInt16(offset, v, true);
       } else {
         // 24-bit: write 3 bytes little-endian (setInt32 would overflow at the tail)
-        const v = Math.round(s * scale) & 0xffffff;
+        const v = quantize(channels[c][i], scale, 24);
         data[offset] = v & 0xff;
         data[offset + 1] = (v >> 8) & 0xff;
         data[offset + 2] = (v >> 16) & 0xff;
@@ -120,7 +121,9 @@ export function encodeWav(
   const header = new Uint8Array(new ArrayBuffer(12));
   const hdv = new DataView(header.buffer);
   header.set(fourCC("RIFF"), 0);
-  hdv.setUint32(4, 36 + bodyWithData.length, true);
+  // RIFF size = total file length − 8. (Old code added bodyWithData.length
+  // twice — overstated the size by 24–32 bytes when INFO tags were present.)
+  hdv.setUint32(4, 4 + bodyWithData.length, true);
   header.set(fourCC("WAVE"), 8);
 
   return concat(header, bodyWithData).buffer;

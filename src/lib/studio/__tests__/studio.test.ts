@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyBiquad, biquadHighPass, biquadHighShelf, biquadLowShelf, biquadPeaking, formatBytes, formatDuration, loudnessFromWindows, loudnessWindows, measureLoudness, resampleLinear, softClipCurve } from "../dsp";
+import { applyBiquad, biquadHighPass, biquadHighShelf, biquadLowShelf, biquadPeaking, computeMakeupGain, formatBytes, formatDuration, loudnessFromWindows, loudnessWindows, measureLoudness, resampleLinear, softClipCurve } from "../dsp";
 import { buildDescription, buildFileName, buildRelease, buildTags, buildTitle, checksSummary, runComplianceChecks, youtubeHandoff } from "../release";
 import { replyForIntent, routeCommand, summarizeProject } from "../assistant";
 import { createProject } from "../store";
@@ -258,5 +258,92 @@ describe("assistant", () => {
   it("fallback with key routes to Gemini", () => {
     const d = replyForIntent("fallback", { project: undefined, projectCount: 0, hasGemini: true });
     expect(d.reply).toContain("Gemini");
+  });
+});
+
+// ── Deep-review regression tests ────────────────────────────────────────────
+
+function riffSize(dv: DataView): number {
+  return dv.getUint32(4, true);
+}
+
+describe("wav integrity (deep review)", () => {
+  it("RIFF size field equals file size minus 8, with and without tags", () => {
+    const x = new Float32Array(500);
+    for (let i = 0; i < 500; i++) x[i] = Math.sin(i / 20) * 0.4;
+    for (const tags of [undefined, { title: "T", artist: "A", genre: "G", album: "Al", comment: "C" }]) {
+      const buf = encodeWav([x, x], 48000, 16, tags as never);
+      const dv = new DataView(buf);
+      expect(riffSize(dv)).toBe(buf.byteLength - 8);
+      // data chunk present with exact size (walk chunks — LIST may precede it)
+      const data = findChunk(dv, "data");
+      expect(data).not.toBeNull();
+      expect(data!.size).toBe(500 * 2 * 2);
+    }
+  });
+
+  it("24-bit export writes byte-wise without RangeError for many samples", () => {
+    const x = new Float32Array(2049); // odd length exercises the tail
+    for (let i = 0; i < x.length; i++) x[i] = Math.sin(i / 30) * 0.9;
+    const buf = encodeWav([x], 48000, 24, { title: "T" });
+    const dv = new DataView(buf);
+    expect(dv.getUint16(34, true)).toBe(24);
+    const data = findChunk(dv, "data");
+    expect(data!.size).toBe(x.length * 3);
+    expect(riffSize(dv)).toBe(buf.byteLength - 8);
+  });
+
+  it("16-bit TPDF dither turns a near-silent signal into varying samples", () => {
+    const x = new Float32Array(2000).fill(0.00001); // ~ -100 dBFS
+    const buf = encodeWav([x], 48000, 16);
+    const dv = new DataView(buf);
+    const vals = new Set<number>();
+    for (let i = 0; i < 100; i++) vals.add(dv.getInt16(44 + i * 2, true));
+    expect(vals.size).toBeGreaterThan(1); // dithered, not digital zeros
+  });
+
+  it("24-bit export is NOT dithered (values deterministic)", () => {
+    const x = new Float32Array(200).fill(0.5);
+    const buf = encodeWav([x], 48000, 24);
+    const dv = new DataView(buf);
+    const first = dv.getUint8(44);
+    const same = (() => { for (let i = 0; i < 50; i++) if (dv.getUint8(44 + i * 3) !== first) return false; return true; })();
+    expect(same).toBe(true);
+  });
+});
+
+describe("computeMakeupGain (deep review)", () => {
+  it("hits the target when headroom allows", () => {
+    // plenty of peak headroom (-20 dBTP) so the loudness target wins
+    expect(computeMakeupGain({ integratedLufs: -20, truePeakDb: -20 }, -14, -1)).toBeCloseTo(6, 6);
+  });
+  it("never pushes true peak past the ceiling", () => {
+    const g = computeMakeupGain({ integratedLufs: -20, truePeakDb: -2 }, -14, -1);
+    expect(-2 + g).toBeLessThanOrEqual(-1);
+    expect(g).toBeCloseTo(1, 6);
+  });
+  it("returns 0 for silence and clamps extreme gain", () => {
+    expect(computeMakeupGain({ integratedLufs: NaN, truePeakDb: -Infinity }, -14, -1)).toBe(0);
+    expect(computeMakeupGain({ integratedLufs: -60, truePeakDb: -30 }, -14, -1)).toBeLessThanOrEqual(12);
+  });
+});
+
+describe("loudness measurement accuracy (deep review)", () => {
+  it("is linear: halving amplitude drops exactly ~6.02 LUFS", () => {
+    const sr = 48000;
+    const n = sr * 5;
+    const sine = (amp: number) => {
+      const x = new Float32Array(n);
+      for (let i = 0; i < n; i++) x[i] = Math.sin((i * 440 * Math.PI * 2) / sr) * amp;
+      return x;
+    };
+    const a = measureLoudness(sine(1), sr).integratedLufs;
+    const b = measureLoudness(sine(0.5), sr).integratedLufs;
+    const c = measureLoudness(sine(0.1), sr).integratedLufs;
+    expect(Math.abs((a - b) - 6.02)).toBeLessThan(0.1);
+    expect(Math.abs((b - c) - 14.0)).toBeLessThan(0.1);
+    // Absolute sanity: full-scale 440Hz sine ≈ -3.8 LUFS ± 0.5
+    expect(a).toBeGreaterThan(-4.5);
+    expect(a).toBeLessThan(-3.0);
   });
 });

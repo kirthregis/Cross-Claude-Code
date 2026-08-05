@@ -73,7 +73,7 @@ npm run dev                    # http://localhost:3001
 `npm run seed` gives you a populated dashboard immediately so you can see scoring, pricing and contract generation working before wiring up a single real source.
 
 ```bash
-npm test          # 161 tests (incl. EMY Studio DSP, release, assistant, feedback)
+npm test          # 169 tests (incl. EMY Studio DSP, release, assistant, feedback)
 npm run build
 npm run sweep     # run one ingest sweep from the CLI
 npm run inbox     # read artist suggestions from the local DB
@@ -265,7 +265,7 @@ Next.js 15 · TypeScript · Tailwind 4 · SQLite · Vitest. Installable as a PWA
 
 ## Tests
 
-161 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
+169 tests covering budget/date/contact extraction, dedupe, the full pricing model, scoring and alert tiers, and document generation — including regression tests for two bugs found by running the real pipeline:
 
 - a gig happening **tonight** was read as already expired, suppressing the highest-leverage gigs of all
 - pitches **underquoted a budget the client had already stated**, handing money back

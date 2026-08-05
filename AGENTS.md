@@ -52,7 +52,7 @@
   `--status=`, `--limit=`, `--json`, `--mark <id> <status>`.
 
 ## Commands
-- `npm run dev` · `npm run build` · `npm test` (vitest, 161 tests) · `npm run lint`
+- `npm run dev` · `npm run build` · `npm test` (vitest, 169 tests) · `npm run lint`
 - `npm run seed` — realistic Dubai sample leads into SQLite
 - `npm run sweep` — one ingest sweep from the CLI
 
