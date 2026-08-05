@@ -38,7 +38,7 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
 
   // --- Money
   const q = quote({
-    venueTier: g.venueTier,
+    venueTier: g.venueTier ?? "unknown",
     eventDate: g.eventDate,
     setLengthMins: g.setLengthMins ?? 120,
     slot: g.slot ?? "unknown",
