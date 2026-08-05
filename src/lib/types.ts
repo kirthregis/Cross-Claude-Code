@@ -18,7 +18,7 @@ export interface Gig {
   contractUrl?: string;
   notes?: string;
   slot?: "warmup" | "peak" | "closing" | "allnight" | "unknown";
-  contacts?: { name: string; role?: string; phone?: string; email?: string; instagram?: string; }[];
+  contacts?: Contact[];
 }
 export interface RawLead {
   sourceKind: Gig["sourceKind"];
