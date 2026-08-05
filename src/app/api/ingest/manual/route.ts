@@ -1,26 +1,46 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { processLeads } from "@/lib/ingest";
+import { z } from "zod";
+
+export const dynamic = "force-dynamic";
 
 const Body = z.object({
-  title: z.string().default("Manual lead"),
+  title: z.string().min(1),
   text: z.string().min(1),
-  sourceName: z.string().default("Manual entry"),
+  sourceName: z.string().optional().default("manual"),
   sourceUrl: z.string().optional(),
 });
 
-/** Paste-a-lead: Emy sees something in a story or a chat and drops it in. */
 export async function POST(req: Request) {
+  const key = process.env.INGEST_KEY;
+  if (key && req.headers.get("x-ingest-key") !== key) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   const parsed = Body.safeParse(await req.json());
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues },
+      { status: 400 }
+    );
+  }
+
   const { title, text, sourceName, sourceUrl } = parsed.data;
+
   const r = await processLeads([{
-    sourceKind: "manual", sourceName, sourceUrl, title, body: text,
+    sourceKind: "gig_board",
+    sourceName: sourceName ?? "manual",
+    sourceUrl,
+    title,
+    body: text,
     postedAt: new Date().toISOString(),
   }]);
+
   return NextResponse.json({
-    newGigs: r.newGigs, alerted: r.alerted,
-    gigId: r.gigs[0]?.id ?? null,
-    duplicate: r.newGigs === 0,
+    ok: true,
+    found: r.found,
+    newGigs: r.newGigs,
+    alerted: r.alerted,
+    errors: r.errors,
   });
 }
