@@ -38,8 +38,8 @@ export function deriveTerms(g: Gig, overrides: Partial<DealTerms> = {}): DealTer
     loadInTime: overrides.loadInTime ?? "22:00",
     clientLegalName: overrides.clientLegalName ?? g.venueName ?? "[CLIENT LEGAL NAME]",
     clientAddress: overrides.clientAddress ?? "[CLIENT REGISTERED ADDRESS]",
-    venueAddress: overrides.venueAddress ?? [g.venueName, g.area, "Dubai, UAE"].filter(Boolean).join(", "),
-    exclusivityKm: overrides.exclusivityKm ?? (g.exclusivity ? activeProfile().contractDefaults.defaultExclusivityKm : 0),
+    venueAddress: overrides.venueAddress ?? [g.venueName, "Dubai", "Dubai, UAE"].filter(Boolean).join(", "),
+    exclusivityKm: overrides.exclusivityKm ?? (false ? activeProfile().contractDefaults.defaultExclusivityKm : 0),
   };
 }
 
