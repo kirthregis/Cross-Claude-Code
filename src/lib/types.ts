@@ -68,3 +68,24 @@ export interface Contact {
   instagram?: string;
   decisionPower?: number;
 }
+export interface PriceInputs {
+  venueTier: VenueTier;
+  setLengthMins: number;
+  slot: "warmup" | "peak" | "closing" | "allnight" | "unknown";
+  eventDate?: string;
+  exclusivity?: boolean;
+  travelRequired?: boolean;
+  recurring?: boolean;
+  budgetStatedAed?: number;
+  ramadan?: boolean;
+}
+
+export interface PriceQuote {
+  currency: string;
+  askAed: number;
+  targetAed: number;
+  walkAwayAed: number;
+  confidence: "low" | "medium" | "high";
+  breakdown: { label: string; effect: string; value: number }[];
+  rationale: string[];
+}
