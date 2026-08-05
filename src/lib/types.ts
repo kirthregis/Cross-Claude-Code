@@ -17,6 +17,8 @@ export interface Gig {
   commissionAed?: number;
   contractUrl?: string;
   notes?: string;
+  slot?: "warmup" | "peak" | "closing" | "allnight";
+  contacts?: { name: string; role?: string; phone?: string; email?: string; instagram?: string; }[];
 }
 export interface RawLead {
   sourceKind: Gig["sourceKind"];
