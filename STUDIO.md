@@ -45,12 +45,26 @@ stored on the device, her Gemini key stays on the device.
 - **Cover engine choice**: the Artwork tab shows Gemini vs fal.ai as two clear
   options with connection status. fal.ai runs through her API key — the cover
   generates without ever logging into the fal.ai website.
-- **EPK tab** (`/studio/epk`): her real identity (Tunisian-born, Qatar-raised;
-  EVG) with editable bio, highlights, press quotes, socials, tech rider,
-  management, portrait upload, and Print → PDF / Copy full EPK export.
+- **EPK tab** (`/studio/epk`): she uploads her own press kit — EPK file
+  (PDF/text/image) + portrait photo — stored on-device, view/download/replace
+  anytime, plus optional quick notes. Her real EPK is the file she uploads
+  (nothing hardcoded).
 - **Identity in artwork**: a "Desert Gold" template (crescent over dunes) and
   the AI cover prompt weaves in her heritage (Tunisia → Qatar, desert gold,
   geometric North African patterns).
+
+## Style & Branding — make it hers
+
+Settings → **Style & branding** lets her re-skin the whole app with no code:
+- **Preset themes** (Midnight, Desert Gold, Rose, Emerald, Ocean, Violet,
+  Sunset, Mono) or fully **custom colors** — brand gradient (primary →
+  accent), background (custom + 8 dark presets).
+- **Font**: Inter, Poppins, Montserrat, Space Grotesk, Playfair, system or
+  mono — Google Fonts load when online, fall back gracefully offline.
+- **Corners**: sharp / soft / pill. **Logo**: upload her own (replaces the
+  "E" mark in the nav), remove anytime. **Live preview** + reset to default.
+- Applied instantly app-wide via CSS variables (buttons, nav, headings, mic,
+  cards, sliders) and stored on-device.
 
 ## Music library, DJ-controller audio & one-tap sharing
 

@@ -24,9 +24,9 @@ export const GUIDE_STEPS: GuideStep[] = [
   },
   {
     n: 1,
-    title: "Keep your EPK fresh",
-    short: "Bio, highlights, press quotes, links — edit & export",
-    detail: "The EPK tab holds her professional profile (Tunisian-born, Qatar-raised, EVG) — edit the bio, highlights, press quotes, socials and tech rider, upload the portrait, then Print → Save as PDF or copy the full text for any venue or label.",
+    title: "Upload her EPK",
+    short: "Her press kit + portrait, stored here",
+    detail: "The EPK tab holds her press kit — she uploads her own EPK file (PDF/text/image) and portrait photo, stored on this device, with view/download/replace anytime and optional quick notes. Her real EPK is the file she uploads, not text baked into the app.",
     icon: "📇",
     command: "“Open my EPK”",
   },

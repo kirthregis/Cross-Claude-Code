@@ -11,7 +11,7 @@ export default function GuidePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="bg-gradient-to-r from-fuchsia-400 to-amber-300 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
             How to use EMY Studio
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-zinc-400">

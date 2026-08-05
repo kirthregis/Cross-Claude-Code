@@ -42,7 +42,7 @@ export function StudioGuide({
   const start = () => onCreateProject("Afro House Mix", "mix");
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900 via-zinc-900/80 to-fuchsia-950/30">
+    <div className="overflow-hidden rounded-2xl border brand-border bg-gradient-to-br from-zinc-900 via-zinc-900/80 to-zinc-950">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/70 px-4 py-3 sm:px-5">
         <div className="flex items-center gap-2.5">
           <span className="text-xl">👋</span>
@@ -55,7 +55,7 @@ export function StudioGuide({
           <Button onClick={start} className="!px-3 !py-2 text-xs">
             + Start a project
           </Button>
-          <Link href="/studio/guide" className="rounded-xl border border-zinc-700 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-fuchsia-500/60 hover:text-fuchsia-300">
+          <Link href="/studio/guide" className="brand-hover-border hover:brand-text rounded-xl border border-zinc-700 px-3 py-2 text-xs font-semibold text-zinc-300 transition">
             Full guide
           </Link>
           <button
@@ -80,9 +80,9 @@ export function StudioGuide({
           <Link
             key={s.n}
             href={`/studio/guide#step-${s.n}`}
-            className="group flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-3 text-left transition hover:border-fuchsia-500/50 hover:bg-zinc-900"
+            className="group flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-3 text-left transition brand-hover-border hover:bg-zinc-900"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-600/30 to-amber-500/30 text-base">
+            <span className="brand-soft flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base">
               {s.icon}
             </span>
             <span className="min-w-0">
@@ -91,7 +91,7 @@ export function StudioGuide({
               </span>
               <span className="mt-0.5 block text-[11px] leading-relaxed text-zinc-500">{s.short}</span>
               {s.command && (
-                <span className="mt-1 inline-block rounded-full border border-zinc-700 bg-zinc-900 px-2 py-0.5 font-mono text-[10px] text-fuchsia-300/90">
+                <span className="brand-text mt-1 inline-block rounded-full border border-zinc-700 bg-zinc-900 px-2 py-0.5 font-mono text-[10px]">
                   {s.command}
                 </span>
               )}

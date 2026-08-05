@@ -31,7 +31,7 @@ export function Button({
 }) {
   const styles: Record<string, string> = {
     primary:
-      "bg-gradient-to-r from-fuchsia-600 to-amber-500 text-white shadow-lg shadow-fuchsia-900/30 hover:from-fuchsia-500 hover:to-amber-400 active:scale-[0.98]",
+      "brand-grad text-white shadow-lg brand-shadow active:scale-[0.98]",
     ghost: "border border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 hover:border-zinc-600",
     subtle: "bg-zinc-800/80 text-zinc-200 hover:bg-zinc-700",
     danger: "border border-red-900 bg-red-950/40 text-red-300 hover:bg-red-900/40",
@@ -78,7 +78,7 @@ export function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-700 accent-fuchsia-500"
+        className="brand-accent h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-700"
       />
     </label>
   );
@@ -92,7 +92,7 @@ export function Toggle({ label, checked, onChange }: { label: string; checked: b
       className="flex w-full items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2.5 text-left"
     >
       <span className="text-sm text-zinc-300">{label}</span>
-      <span className={`relative h-5 w-9 shrink-0 rounded-full transition ${checked ? "bg-fuchsia-500" : "bg-zinc-700"}`}>
+      <span className="relative h-5 w-9 shrink-0 rounded-full bg-zinc-700 transition" style={checked ? { backgroundColor: "var(--brand-1)" } : undefined}>
         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${checked ? "left-[18px]" : "left-0.5"}`} />
       </span>
     </button>

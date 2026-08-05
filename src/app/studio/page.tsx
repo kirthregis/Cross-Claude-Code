@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AssistantPanel } from "@/components/studio/AssistantPanel";
 import { ProjectCard } from "@/components/studio/ProjectCard";
 import { StudioGuide } from "@/components/studio/StudioGuide";
@@ -10,13 +10,17 @@ import { FeedbackBox } from "@/components/studio/FeedbackBox";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
 import type { ProjectKind } from "@/lib/studio/types";
 import { createProject, deleteProject, loadSettings, saveSettings, useProjects } from "@/lib/studio/store";
-import { loadEpk } from "@/lib/studio/epk-store";
+import { getEpkPortraitDataUrl } from "@/lib/studio/epk-store";
 
 export default function StudioHome() {
   const router = useRouter();
   const projects = useProjects();
   const settings = loadSettings();
   const [showForm, setShowForm] = useState(false);
+  const [epkPortrait, setEpkPortrait] = useState<string | null>(null);
+  useEffect(() => {
+    void getEpkPortraitDataUrl().then((u) => setEpkPortrait(u));
+  }, []);
   const [name, setName] = useState("");
   const [kind, setKind] = useState<ProjectKind>(settings.defaultKind);
   const [genre, setGenre] = useState(settings.defaultGenre);
@@ -32,7 +36,7 @@ export default function StudioHome() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="bg-gradient-to-r from-fuchsia-400 to-amber-300 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
             Your studio, one place
           </h1>
           <p className="mt-1 max-w-xl text-sm text-zinc-400">
@@ -45,24 +49,21 @@ export default function StudioHome() {
       {/* identity strip */}
       <Link
         href="/studio/epk"
-        className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 transition hover:border-fuchsia-500/50"
+        className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 transition brand-hover-border"
       >
         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-zinc-700 bg-zinc-900">
-          {(() => {
-            const epk = loadEpk();
-            return epk.photoDataUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={epk.photoDataUrl} alt={epk.stageName} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-lg">🎤</div>
-            );
-          })()}
+          {epkPortrait ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={epkPortrait} alt="Portrait" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-lg">🎤</div>
+          )}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-zinc-100">{loadEpk().stageName} — {loadEpk().origin}</div>
-          <div className="truncate text-xs text-zinc-500">{loadEpk().tagline}</div>
+          <div className="text-sm font-bold text-zinc-100">{settings.artistName}</div>
+          <div className="truncate text-xs text-zinc-500">Press kit — upload, view, download</div>
         </div>
-        <span className="shrink-0 text-xs font-semibold text-fuchsia-400">EPK →</span>
+        <span className="brand-text shrink-0 text-xs font-semibold">EPK →</span>
       </Link>
 
       <StudioGuide onCreateProject={(n, k) => makeProject(n, k)} /> 
@@ -153,12 +154,12 @@ export default function StudioHome() {
               }
               router.push(`/studio/p/${projects[0].meta.id}?tab=${f.tab}`);
             }}
-            className="group rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4 text-left transition hover:border-fuchsia-500/60 hover:bg-zinc-900"
+            className="group rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4 text-left transition brand-hover-border hover:bg-zinc-900"
           >
             <div className="text-2xl">{f.icon}</div>
             <div className="mt-2 text-sm font-semibold text-zinc-200 group-hover:text-fuchsia-300">{f.title}</div>
             <div className="mt-1 text-xs leading-relaxed text-zinc-500">{f.text}</div>
-            <div className="mt-2 text-[11px] font-semibold text-fuchsia-400 opacity-0 transition group-hover:opacity-100">
+            <div className="brand-text mt-2 text-[11px] font-semibold opacity-0 transition group-hover:opacity-100">
               {projects.length === 0 ? "Create a project to start →" : "Open in your latest project →"}
             </div>
           </button>
@@ -176,7 +177,7 @@ export default function StudioHome() {
             <div className="text-xs text-zinc-500">Top free sites to push mixes & tracks: Spotify/Apple distribution, SoundCloud/Mixcloud, 1001Tracklists, label submissions.</div>
           </div>
         </div>
-        <span className="shrink-0 text-fuchsia-400">Open →</span>
+        <span className="brand-text shrink-0">Open →</span>
       </Link>
 
       <FeedbackBox />
@@ -192,7 +193,7 @@ export default function StudioHome() {
             <div className="text-xs text-zinc-500">Find every gig in the Gulf, get priced and pitched automatically, generate contracts and invoices.</div>
           </div>
         </div>
-        <span className="shrink-0 text-fuchsia-400">Open →</span>
+        <span className="brand-text shrink-0">Open →</span>
       </Link>
     </div>
   );

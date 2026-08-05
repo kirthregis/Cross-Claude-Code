@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PwaRegister } from "@/components/PwaRegister";
 import { GlobalAssistant } from "@/components/studio/GlobalAssistant";
+import { ThemeProvider } from "@/components/studio/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "EMY Studio — DJ Emy",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <PwaRegister />
         <GlobalAssistant />
+        <ThemeProvider />
       </body>
     </html>
   );

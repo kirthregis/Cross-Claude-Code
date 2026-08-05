@@ -184,10 +184,10 @@ export function AssistantPanel({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-600 to-amber-500 text-lg ${listening ? "animate-pulse" : ""}`}>
+              <div className={`brand-grad flex h-10 w-10 items-center justify-center rounded-full text-lg ${listening ? "animate-pulse" : ""}`}>
                 {busy ? "…" : "🎧"}
               </div>
-              {listening && <span className="absolute -inset-1 -z-10 animate-ping rounded-full bg-fuchsia-500/40" />}
+              {listening && <span className="absolute -inset-1 -z-10 animate-ping rounded-full" style={{ background: "color-mix(in srgb, var(--brand-1) 40%, transparent)" }} />}
             </div>
             <div>
               <div className="text-sm font-bold">Your Studio Assistant</div>
@@ -210,7 +210,7 @@ export function AssistantPanel({
             Hi — I&apos;m your engineer + designer + release manager in one. Tell me what you need and I&apos;ll set it up:
             <div className="mt-2 flex flex-wrap gap-1.5">
               {QUICK_COMMANDS.map((q) => (
-                <button key={q} onClick={() => void send(q)} className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-[12px] text-zinc-300 transition hover:border-fuchsia-500/60 hover:text-fuchsia-300">
+                <button key={q} onClick={() => void send(q)} className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-[12px] text-zinc-300 transition brand-hover-border hover:brand-text">
                   {q}
                 </button>
               ))}
@@ -222,7 +222,7 @@ export function AssistantPanel({
             <div
               className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
                 m.role === "user"
-                  ? "rounded-br-sm bg-gradient-to-r from-fuchsia-600/80 to-fuchsia-500/80 text-white"
+                  ? "rounded-br-sm text-white brand-soft"
                   : "rounded-bl-sm border border-zinc-800 bg-zinc-800/70 text-zinc-200"
               }`}
             >
