@@ -7,20 +7,31 @@ registerProfileLoader();
 
 export const dynamic = "force-dynamic";
 
-/** What's currently held for the morning digest. */
 export async function GET() {
   const pending = pendingDeferred();
   return NextResponse.json({
     count: pending.length,
-    gigs: pending.map((p) => ({ id: p.gig.id, venue: p.gig.venueName, score: p.gig.score, queuedAt: p.queuedAt })),
+    queued: pending.map((p) => ({
+      id: p.id,
+      gigId: p.gigId,
+      queuedAt: p.createdAt,
+    })),
   });
 }
 
-/** Force-send the digest now (also fires automatically at 09:00 Dubai). */
-export async function POST(req: Request) {
-  const key = process.env.CRON_KEY;
-  if (key && req.headers.get("x-cron-key") !== key) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export async function POST() {
+  try {
+    const result = await sendMorningDigest();
+    return NextResponse.json({
+      ok: true,
+      sent: result.sent,
+      count: result.count,
+      at: new Date().toISOString(),
+    });
+  } catch (e) {
+    return NextResponse.json(
+      { error: String(e) },
+      { status: 500 }
+    );
   }
-  return NextResponse.json(await sendMorningDigest());
 }
