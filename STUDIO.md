@@ -331,7 +331,7 @@ ready"** in Settings. The key never touches the browser.
 npm install
 cp .env.example .env.local    # developer: set GEMINI_API_KEY / FAL_KEY / RESEND_*
 npm run dev                   # open http://localhost:3001/studio
-npm test                      # 161 tests, incl. the studio suite
+npm test                      # 169 tests, incl. the studio suite
 npm run build
 ```
 

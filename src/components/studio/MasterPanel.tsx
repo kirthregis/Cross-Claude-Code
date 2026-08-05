@@ -80,6 +80,7 @@ export function MasterPanel({ project, onChanged }: { project: Project; onChange
     (next: MasterParams) => {
       setParams(next);
       setPresetId(null);
+      player.setMakeupGain(0); // stale gain — re-render before trusting preview
       if (audio) player.load(audio.buffer, next);
       upsertProject({ ...project, masterParams: next });
       onChanged();
@@ -107,6 +108,7 @@ export function MasterPanel({ project, onChanged }: { project: Project; onChange
       });
       setOutcome(out);
       setRender({ phase: "done" });
+      player.setMakeupGain(out.gainAppliedDb); // preview == export
       const exportName = buildFileName(project, settings, 24);
       upsertProject({
         ...project,

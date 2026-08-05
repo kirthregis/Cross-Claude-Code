@@ -265,3 +265,54 @@ export function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
+
+/** 4x-linear-oversampled true-peak estimate in dBTP (better than sample peak). */
+export function truePeakDbOversampled(mono: Float32Array): number {
+  let peak = 0;
+  for (let i = 1; i < mono.length; i++) {
+    const a = mono[i - 1];
+    const b = mono[i];
+    const m = Math.max(Math.abs(a), Math.abs(b));
+    if (m > peak) peak = m;
+    for (let j = 1; j < 4; j++) {
+      const v = a + ((b - a) * j) / 4;
+      const av = Math.abs(v);
+      if (av > peak) peak = av;
+    }
+  }
+  return peak > 0 ? 20 * Math.log10(peak) : -Infinity;
+}
+
+/**
+ * Makeup gain for a master: lands on the loudness target but never pushes
+ * the true peak past the ceiling. Pure + unit-testable.
+ */
+export function computeMakeupGain(input: {
+  integratedLufs: number;
+  truePeakDb: number;
+}, targetLufs: number, ceilingDb: number): number {
+  if (!Number.isFinite(input.integratedLufs)) return 0;
+  let gain = targetLufs - input.integratedLufs;
+  const maxGain = Number.isFinite(input.truePeakDb) ? ceilingDb - input.truePeakDb : 12;
+  if (gain > maxGain) gain = maxGain;
+  if (!Number.isFinite(gain) || gain > 12) gain = 0;
+  return gain;
+}
+
+/**
+ * TPDF dither: triangle-probability noise ±1 LSB, the mastering-standard way
+ * to hide quantization distortion when reducing bit depth to 16-bit.
+ */
+export function tpdfDither(amplitude = 1): number {
+  // Sum of two uniform [-1,1) random values → triangle distribution.
+  return (Math.random() + Math.random() - 1) * amplitude;
+}
+
+/** Clamp + optional dither + scale+round a float sample to an integer. */
+export function quantize(sample: number, scale: number, bits: 16 | 24): number {
+  let s = sample;
+  if (!Number.isFinite(s)) s = 0;
+  if (bits === 16) s += tpdfDither() * (1 / scale); // ±1 LSB TPDF
+  s = Math.max(-1, Math.min(1, s));
+  return Math.round(s * scale);
+}

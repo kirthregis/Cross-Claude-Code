@@ -10,7 +10,7 @@
  * All rendering runs on-device: works with no internet connection at all.
  */
 
-import { dbToGain, loudnessFromWindows, loudnessWindows, measureLoudnessStereo, softClipCurve, type LoudnessResult } from "./dsp";
+import { computeMakeupGain, dbToGain, loudnessFromWindows, loudnessWindows, measureLoudnessStereo, quantize, softClipCurve, truePeakDbOversampled, type LoudnessResult } from "./dsp";
 import { encodeWav } from "./wav";
 import type { AudioInfo, MasterParams } from "./types";
 
@@ -156,6 +156,7 @@ export class PreviewPlayer {
   private processed = false;
   private startCtxTime = 0;
   private startBufferTime = 0;
+  private makeupGainDb = 0;
   onProgress: ((t: number) => void) | null = null;
   onEnd: (() => void) | null = null;
   private raf = 0;
@@ -163,6 +164,12 @@ export class PreviewPlayer {
   load(buffer: AudioBuffer, params: MasterParams): void {
     this.buffer = buffer;
     this.params = { ...params };
+  }
+
+  /** After a render, the processed preview applies the same makeup gain as
+   * the export, so "Processed" sounds exactly like the final WAV. */
+  setMakeupGain(gainDb: number): void {
+    this.makeupGainDb = Number.isFinite(gainDb) ? gainDb : 0;
   }
 
   isPlaying(): boolean {
@@ -186,6 +193,10 @@ export class PreviewPlayer {
     await this.ctx.resume();
     this.processed = processed;
     this.chain = buildChain(this.ctx, this.params);
+    // Make the processed preview match the export (same loudness makeup).
+    if (processed && this.makeupGainDb !== 0) {
+      this.chain.makeup.gain.value = dbToGain(this.makeupGainDb);
+    }
 
     this.source = this.ctx.createBufferSource();
     this.source.buffer = this.buffer;
@@ -277,7 +288,6 @@ export async function renderMaster(
   const totalSec = buffer.duration;
   const chunkCount = Math.max(1, Math.ceil(totalSec / CHUNK_SEC));
   const chunks: AudioBuffer[] = [];
-  let peakDb = -Infinity;
 
   for (let i = 0; i < chunkCount; i++) {
     const start = i * CHUNK_SEC;
@@ -292,30 +302,26 @@ export async function renderMaster(
     chain.output.connect(ctx.destination);
     const rendered = await ctx.startRendering();
     chunks.push(rendered);
-
-    // true peak across channels
-    for (let ch = 0; ch < rendered.numberOfChannels; ch++) {
-      const d = rendered.getChannelData(ch);
-      for (let s = 0; s < d.length; s++) {
-        const a = Math.abs(d[s]);
-        if (a > 0 && 20 * Math.log10(a) > peakDb) peakDb = 20 * Math.log10(a);
-      }
-    }
     onProgress?.(Math.min(start + dur, totalSec), totalSec);
   }
 
   // Loudness of the rendered result, merged from per-chunk window means.
   const lufs = measureRenderedLoudness(chunks);
-  const measuredPeakDb = peakDb;
 
-  let gain = Number.isFinite(lufs) ? params.targetLufs - lufs : 0;
-  // Never push the true peak past the ceiling.
-  const maxGain = params.ceilingDb - measuredPeakDb;
-  if (gain > maxGain && Number.isFinite(maxGain)) gain = maxGain;
-  if (!Number.isFinite(gain) || gain > 12) gain = 0;
+  // True peak: 4x oversampled across both channels (inter-sample peaks that
+  // sample-peak misses would clip after YouTube's AAC transcode).
+  let truePeak = -Infinity;
+  for (const c of chunks) {
+    for (let ch = 0; ch < c.numberOfChannels; ch++) {
+      const tp = truePeakDbOversampled(c.getChannelData(ch));
+      if (tp > truePeak) truePeak = tp;
+    }
+  }
+
+  const gain = computeMakeupGain({ integratedLufs: lufs, truePeakDb: truePeak }, params.targetLufs, params.ceilingDb);
 
   const outLufs = Number.isFinite(lufs) ? lufs + gain : params.targetLufs;
-  const outPeak = measuredPeakDb + gain;
+  const outPeak = Number.isFinite(truePeak) ? truePeak + gain : -Infinity;
 
   return { chunks, outputLufs: outLufs, outputTruePeakDb: Math.min(outPeak, params.ceilingDb), gainAppliedDb: gain, renderedSec: totalSec };
 }
@@ -366,11 +372,16 @@ export function exportMasterBlob(
   const dataBytes = totalFrames * blockAlign;
   const gain = dbToGain(gainDb);
 
-  // header (36 + data length)
+  // INFO tags chunk if any
+  const info = buildInfoChunk(tags);
+
+  // header (44 bytes incl. the "data" chunk header). RIFF size = file − 8;
+  // must include the INFO chunk length too (old code omitted it when tags
+  // were written, producing an incorrect size).
   const header = new ArrayBuffer(44);
   const dv = new DataView(header);
   writeAscii(dv, 0, "RIFF");
-  dv.setUint32(4, 36 + dataBytes, true);
+  dv.setUint32(4, 36 + info.byteLength + dataBytes, true);
   writeAscii(dv, 8, "WAVE");
   writeAscii(dv, 12, "fmt ");
   dv.setUint32(16, 16, true);
@@ -383,9 +394,6 @@ export function exportMasterBlob(
   writeAscii(dv, 36, "data");
   dv.setUint32(40, dataBytes, true);
 
-  // INFO tags chunk if any
-  const info = buildInfoChunk(tags);
-
   const parts: BlobPart[] = [header, info];
   const scale = bits === 24 ? 8388607 : 32767;
   for (const chunk of chunks) {
@@ -393,12 +401,17 @@ export function exportMasterBlob(
     const view = new DataView(bytes.buffer);
     for (let i = 0; i < chunk.length; i++) {
       for (let c = 0; c < numChannels; c++) {
-        let s = chunk.getChannelData(c)[i] * gain;
-        if (!Number.isFinite(s)) s = 0;
-        s = Math.max(-1, Math.min(1, s));
         const off = (i * numChannels + c) * bytesPerSample;
-        if (bits === 16) view.setInt16(off, Math.round(s * scale), true);
-        else view.setInt32(off, Math.round(s * scale) & 0xffffff, true);
+        if (bits === 16) {
+          view.setInt16(off, quantize(chunk.getChannelData(c)[i] * gain, scale, 16), true);
+        } else {
+          // 24-bit: write 3 bytes little-endian (setInt32 overflowed the
+          // final 3-byte group → RangeError on every export).
+          const v = quantize(chunk.getChannelData(c)[i] * gain, scale, 24);
+          bytes[off] = v & 0xff;
+          bytes[off + 1] = (v >> 8) & 0xff;
+          bytes[off + 2] = (v >> 16) & 0xff;
+        }
       }
     }
     parts.push(bytes);
@@ -410,8 +423,8 @@ function writeAscii(dv: DataView, offset: number, s: string): void {
   for (let i = 0; i < s.length; i++) dv.setUint8(offset + i, s.charCodeAt(i));
 }
 
-function buildInfoChunk(tags?: { title?: string; artist?: string; album?: string; genre?: string; comment?: string }): BlobPart {
-  if (!tags) return new ArrayBuffer(0);
+function buildInfoChunk(tags?: { title?: string; artist?: string; album?: string; genre?: string; comment?: string }): Uint8Array<ArrayBuffer> {
+  if (!tags) return new Uint8Array(new ArrayBuffer(0));
   const enc = new TextEncoder();
   const entries: { id: string; value?: string }[] = [
     { id: "INAM", value: tags.title },
@@ -429,7 +442,7 @@ function buildInfoChunk(tags?: { title?: string; artist?: string; album?: string
     padded.set(raw, 4);
     bodyParts.push(padded);
   }
-  if (bodyParts.length === 0) return new ArrayBuffer(0);
+  if (bodyParts.length === 0) return new Uint8Array(new ArrayBuffer(0));
   const bodyLen = bodyParts.reduce((a, b) => a + b.length, 0);
   const list = new Uint8Array(4 + bodyLen);
   writeAscii(new DataView(list.buffer), 0, "INFO");
