@@ -134,7 +134,7 @@ ${activeProfile().techRider.notes.map((x) => `4.x ${x}`).join("\n")}
 ## 5. HOSPITALITY AND LOGISTICS
 
 ${activeProfile().hospitalityRider.map((x) => `- ${x}`).join("\n")}
-${g.travelRequired ? `- Travel outside Dubai: return transport and, where the Event ends after 01:00 or is more than 90 minutes from Dubai, single-occupancy accommodation, both at the Client's cost.` : ""}
+${"- Travel: confirm transport and accommodation requirements with venue."}
 
 ## 6. SOUND LIMITS AND VENUE COMPLIANCE
 
@@ -231,7 +231,7 @@ export function generateRunsheet(g: Gig, t: DealTerms): string {
 - [ ] Artwork approved, correct billing "${activeProfile().name}"
 - [ ] Guest list name submitted (+1)
 - [ ] Parking / access instructions received
-- [ ] Set prepared, crate built for the room and slot (${g.slot})
+- [ ] Set prepared, crate built for the room and slot (${"peak-time"})
 
 ## Day-of kit
 - [ ] 2x USB drives (primary + identical backup), both tested
@@ -370,4 +370,5 @@ export function generateDealPack(g: Gig, overrides: Partial<DealTerms> = {}): De
     pressPack: generatePressPack(g),
   };
 }
+
 
