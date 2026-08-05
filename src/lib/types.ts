@@ -1,7 +1,5 @@
 export type GigStage = "new" | "contacted" | "negotiating" | "confirmed" | "paid" | "archived";
-
-export type VenueTier = "superclub" | "beach_club" | "festival" | "brand_activation" | "hotel" | "private" | "other";
-
+export type VenueTier = "superclub" | "beach_club" | "festival" | "brand_activation" | "hotel" | "private" | "private_event" | "hotel_lounge" | "bar_restaurant" | "unknown" | "other";
 export interface Gig {
   id: string;
   sourceKind: "instagram" | "whatsapp" | "email" | "event_calendar" | "gig_board";
@@ -20,7 +18,6 @@ export interface Gig {
   contractUrl?: string;
   notes?: string;
 }
-
 export interface RawLead {
   sourceKind: Gig["sourceKind"];
   sourceName: string;
@@ -30,7 +27,6 @@ export interface RawLead {
   body: string;
   postedAt: string;
 }
-
 export interface RevenueStats {
   totalEarned: number;
   totalCommission: number;
