@@ -19,6 +19,16 @@ export interface Gig {
   notes?: string;
   slot?: "warmup" | "peak" | "closing" | "allnight" | "unknown";
   contacts?: Contact[];
+  fingerprint?: string;
+  eventDate?: string;
+  discoveredAt?: string;
+  venueName?: string;
+  venueArea?: string;
+  exclusivity?: boolean;
+  travelRequired?: boolean;
+  genresWanted?: string[];
+  setLengthMins?: number;
+  budgetStatedAed?: number;
 }
 export interface RawLead {
   sourceKind: Gig["sourceKind"];
