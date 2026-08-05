@@ -203,7 +203,7 @@ export const DJ_EMY: ArtistProfile = {
     beach_club: 7000,
     unknown: 6000,
     hotel_lounge: 5000,
-    bar_restaurant: 3000,
+    bar_restaurant: 3000, hotel: 6000, private: 8000, other: 5000,
   },
   /** Above the "professional event DJ" entry point (3,500) less haggling room. */
   hardFloorAed: 3000,

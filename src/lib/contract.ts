@@ -31,8 +31,8 @@ const money = (n: number) => `AED ${n.toLocaleString()}`;
 export function deriveTerms(g: Gig, overrides: Partial<DealTerms> = {}): DealTerms {
   const q = quoteFor(g);
   return {
-    agreedFeeAed: overrides.agreedFeeAed ?? g.budgetStatedAed ?? q.targetAed,
-    eventDate: overrides.eventDate ?? g.eventDate ?? "TBC",
+    agreedFeeAed: overrides.agreedFeeAed ?? g.feeAed ?? q.fee,
+    eventDate: overrides.eventDate ?? "TBC",
     setStart: overrides.setStart ?? "23:00",
     setEnd: overrides.setEnd ?? "01:00",
     loadInTime: overrides.loadInTime ?? "22:00",
