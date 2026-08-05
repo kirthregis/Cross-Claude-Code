@@ -1,8 +1,21 @@
 import { NextResponse } from "next/server";
+import { uaeSourcesAsLeads } from "@/lib/sources/uae";
+
 export const dynamic = "force-dynamic";
+
 export async function GET() {
-  return NextResponse.json({ 
-    message: "If you see this, the route is working perfectly. The error is in the imports.",
-    time: new Date().toISOString()
-  });
+  try {
+    const leads = uaeSourcesAsLeads();
+    return NextResponse.json({ 
+      ok: true,
+      found: leads.length,
+      message: `Found ${leads.length} UAE venues`,
+      time: new Date().toISOString()
+    });
+  } catch (e) {
+    return NextResponse.json({ 
+      ok: false, 
+      error: String(e) 
+    });
+  }
 }
