@@ -1,0 +1,1791 @@
+﻿"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ArtworkResult, Project } from "@/lib/studio/types";
+import {
+  ARTWORK_TEMPLATES,
+  buildArtPrompt,
+  downloadDataUrl,
+  loadImageFromDataUrl,
+  renderTemplateCover,
+  squareCropToJpeg,
+} from "@/lib/studio/artwork";
+import { geminiImage, isGeminiConfigured } from "@/lib/studio/gemini";
+import { falImage, isFalConfigured, FAL_MODELS } from "@/lib/studio/fal";
+import { getServerAiStatus, serverImage } from "@/lib/studio/server-ai";
+import { formatBytes } from "@/lib/studio/dsp";
+import { notify, speak } from "@/lib/studio/speech";
+import { loadArtwork, loadSettings, saveArtwork, saveSettings, upsertProject } from "@/lib/studio/store";
+import { Button, Card, SectionLabel } from "./ui";
+
+interface Draft {
+  dataUrl: string;
+  sizeBytes: number;
+  width: number;
+  height: number;
+  source: "ai" | "template";
+  templateId?: string;
+  prompt?: string;
+}
+
+export function ArtworkPanel({ project, onChanged }: { project: Project; onChanged: () => void }) {
+  const settings = loadSettings();
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [saved, setSaved] = useState<Draft | null>(null);
+  const [prompt, setPrompt] = useState(() => buildArtPrompt(project.meta, settings));
+  const [generating, setGenerating] = useState<"ai" | string | null>(null); // "ai" or template id
+  const [error, setError] = useState<string | null>(null);
+  const [templatePreviews, setTemplatePreviews] = useState<Record<string, string>>({});
+  const previewsStarted = useRef(false);
+
+  const hasGemini = isGeminiConfigured(settings);
+  const hasFal = isFalConfigured(settings);
+  const [serverAi, setServerAi] = useState<{ serverGemini: boolean; serverFal: boolean } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void getServerAiStatus().then((s) => {
+      if (alive) setServerAi(s);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const provider: "gemini" | "fal" = settings.imageProvider;
+  const providerReady =
+    provider === "gemini" ? hasGemini || !!serverAi?.serverGemini : hasFal || !!serverAi?.serverFal;
+  const falModelLabel = FAL_MODELS.find((m) => m.id === settings.falModel)?.label ?? settings.falModel;
+
+  const setProvider = useCallback(
+    (p: "gemini" | "fal") => {
+      saveSettings({ ...settings, imageProvider: p });
+      setError(null);
+    },
+    [settings],
+  );
+
+  // restore persisted artwork (IndexedDB)
+  useEffect(() => {
+    let alive = true;
+    void loadArtwork(project.meta.id).then((dataUrl) => {
+      if (!alive || !dataUrl) return;
+      const d: Draft = { dataUrl, sizeBytes: Math.round((dataUrl.length * 3) / 4), width: 3000, height: 3000, source: "template" };
+      setSaved(d);
+      setDraft(d);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [project.meta.id]);
+
+  // tiny template previews for the picker
+  useEffect(() => {
+    if (previewsStarted.current) return;
+    previewsStarted.current = true;
+    for (const t of ARTWORK_TEMPLATES) {
+      renderTemplateCover({ templateId: t.id, title: "Afro", subtitle: "DJ EMY" }, 420).then((r) => {
+        setTemplatePreviews((m) => ({ ...m, [t.id]: r.dataUrl }));
+      });
+    }
+  }, []);
+
+  const finish = useCallback(
+    (d: Draft, markDone: boolean) => {
+      setDraft(d);
+      if (markDone) {
+        setSaved(d);
+        const art: ArtworkResult = {
+          source: d.source,
+          prompt: d.prompt,
+          templateId: d.templateId,
+          width: d.width,
+          height: d.height,
+          sizeBytes: d.sizeBytes,
+          generatedAt: Date.now(),
+          dataUrl: d.dataUrl,
+        };
+        upsertProject({
+          ...project,
+          artwork: art,
+          meta: { ...project.meta, artworkDone: true, stage: project.meta.stage === "master" || project.meta.stage === "draft" ? "art" : project.meta.stage },
+        });
+        void saveArtwork(project.meta.id, d.dataUrl);
+        onChanged();
+        notify("Cover art ready", `Artwork for ${project.meta.name} is saved at 3000Ã—3000.`);
+        speak(`Your cover art is ready.`, settings.soundOn, "en-US", settings.voiceGender);
+      } else {
+        upsertProject({ ...project, artwork: { source: d.source, prompt: d.prompt, templateId: d.templateId, width: d.width, height: d.height, sizeBytes: d.sizeBytes, generatedAt: Date.now(), dataUrl: d.dataUrl } });
+        onChanged();
+      }
+    },
+    [project, settings.soundOn, onChanged],
+  );
+
+  const generateAI = useCallback(async () => {
+    setError(null);
+    setGenerating("ai");
+    try {
+      const provider = settings.imageProvider;
+      const server = await getServerAiStatus();
+      const useServer = provider === "fal" ? server.serverFal : server.serverGemini;
+      const img = useServer
+        ? await serverImage(prompt, provider, provider === "fal" ? settings.falModel : undefined)
+        : provider === "fal"
+          ? await falImage({ key: settings.falKey, model: settings.falModel, prompt })
+          : await geminiImage({ key: settings.geminiKey, model: settings.geminiImageModel, prompt });
+      const el = await loadImageFromDataUrl(img.dataUrl);
+      const cropped = await squareCropToJpeg(el, 3000, 0.92);
+      finish({ ...cropped, source: "ai", prompt }, false);
+    } catch (e) {
+      setError(
+        `AI generation failed (${settings.imageProvider === "fal" ? "fal.ai" : "Gemini"}): ${e instanceof Error ? e.message : "unknown error"}`,
+      );
+    } finally {
+      setGenerating(null);
+    }
+  }, [settings, prompt, finish]);
+
+  const generateTemplate = useCallback(
+    async (templateId: string) => {
+      setError(null);
+      setGenerating(templateId);
+      try {
+        const t = ARTWORK_TEMPLATES.find((x) => x.id === templateId);
+        const full = await renderTemplateCover(
+          { templateId, title: project.meta.name || "Afro House Mix", subtitle: settings.artistName || "DJ EMY" },
+          3000,
+        );
+        finish({ ...full, source: "template", templateId }, false);
+        speak(`${t?.name ?? "Template"} cover rendered. Take a look and save it if you like it.`, settings.soundOn, "en-US", settings.voiceGender);
+      } catch (e) {
+        setError(`Template failed: ${e instanceof Error ? e.message : "unknown error"}`);
+      } finally {
+        setGenerating(null);
+      }
+    },
+    [project.meta.name, settings.artistName, settings.soundOn, finish],
+  );
+
+  const preview = draft ?? saved;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        {/* preview */}
+        <Card className="p-4">
+          <SectionLabel>Cover preview Â· 3000Ã—3000</SectionLabel>
+          <div className="mt-3 overflow-hidden rounded-xl border border-zinc-700">
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview.dataUrl} alt="Cover art" className="aspect-square w-full object-cover" />
+            ) : (
+              <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 bg-zinc-950 text-center">
+                <div className="text-4xl">ðŸŽ¨</div>
+                <div className="px-6 text-xs text-zinc-500">Your cover will appear here â€” generate with AI or pick a template.</div>
+              </div>
+            )}
+          </div>
+          {preview && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-zinc-500">
+              <span>{preview.width}Ã—{preview.height}</span>
+              <span>{formatBytes(preview.sizeBytes)}</span>
+              <span className="text-zinc-400">{preview.source === "ai" ? "AI generated" : "Template"}</span>
+            </div>
+          )}
+          {preview && (
+            <div className="mt-3 flex flex-col gap-2">
+              {saved?.dataUrl !== preview.dataUrl && (
+                <Button onClick={() => finish(preview, true)}>âœ“ Save & use this cover</Button>
+              )}
+              {saved?.dataUrl === preview.dataUrl && <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-center text-xs text-emerald-300">âœ“ This is the cover on file</div>}
+              <div className="flex gap-2">
+                <Button variant="ghost" className="flex-1 !px-2" onClick={() => downloadDataUrl(preview.dataUrl, `${project.meta.name.replace(/\s+/g, "_")}_cover_3000x3000.jpg`)}>
+                  â¬‡ JPEG
+                </Button>
+                <Button variant="ghost" className="flex-1 !px-2" onClick={() => downloadDataUrl(preview.dataUrl.replace("image/jpeg", "image/png"), `${project.meta.name.replace(/\s+/g, "_")}_cover.png`)}>
+                  â¬‡ PNG
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        <div className="space-y-4">
+          {/* AI */}
+          <Card className="p-4 sm:p-5">
+            <SectionLabel>AI cover design â€” choose the engine</SectionLabel>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {(["gemini", "fal"] as const).map((p) => {
+                const ready = p === "gemini" ? hasGemini || !!serverAi?.serverGemini : hasFal || !!serverAi?.serverFal;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setProvider(p)}
+                    className={`rounded-xl border p-3 text-left transition ${
+                      provider === p ? "border-fuchsia-500 bg-fuchsia-500/10" : "border-zinc-700 bg-zinc-950/50 hover:border-zinc-500"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-zinc-100">{p === "gemini" ? "Gemini" : "fal.ai"}</span>
+                      <span className={`h-2.5 w-2.5 rounded-full ${ready ? "bg-emerald-400" : "bg-zinc-600"}`} title={ready ? "Connected" : "Not connected yet"} />
+                    </div>
+                    <div className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+                      {p === "gemini"
+                        ? "Free tier Â· great all-round covers"
+                        : "Flux / Recraft / Ideogram Â· best typography & design"}
+                    </div>
+                    <div className={`mt-1.5 text-[10px] font-semibold ${ready ? "text-emerald-300" : "text-amber-300"}`}>
+                      {ready ? "âœ“ Ready to generate" : p === "fal" ? "Key needed (Settings)" : "Key needed (Settings)"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-zinc-500">
+              Describe the vibe and I&apos;ll design a print-quality cover. The prompt is pre-filled from your project â€” tweak it and press Generate.
+            </p>
+            {provider === "fal" && (
+              <div className="mt-2 rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px] leading-relaxed text-zinc-500">
+                fal.ai runs <span className="text-zinc-300">directly through her API key</span> (set once in Settings) â€” the cover generates without ever opening or logging into the fal.ai website. Engine: <span className="font-semibold text-zinc-300">{falModelLabel}</span> Â· pay-per-image Â· switch models in Settings.
+              </div>
+            )}
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={4}
+              className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-xs leading-relaxed text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+            />
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Button onClick={() => void generateAI()} disabled={generating !== null || !providerReady}>
+                {generating === "ai" ? "Designingâ€¦" : "âœ¨ Generate cover"}
+              </Button>
+              <button onClick={() => setPrompt(buildArtPrompt(project.meta, settings))} className="text-xs text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline">
+                reset prompt
+              </button>
+              {!providerReady && (
+                <span className="text-[11px] text-amber-300">
+                  {provider === "gemini" ? "Add a free Gemini key in Settings" : "Add your fal.ai key in Settings (free credits on signup)"}
+                </span>
+              )}
+            </div>
+          </Card>
+
+          {/* templates */}
+          <Card className="p-4 sm:p-5">
+            <SectionLabel>Offline templates Â· work with no internet</SectionLabel>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+              {ARTWORK_TEMPLATES.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => void generateTemplate(t.id)}
+                  disabled={generating !== null}
+                  className="group overflow-hidden rounded-xl border border-zinc-800 text-left transition hover:border-fuchsia-500/70 disabled:opacity-50"
+                  title={t.blurb}
+                >
+                  <div className="aspect-square w-full bg-zinc-950">
+                    {templatePreviews[t.id] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={templatePreviews[t.id]} alt={t.name} className="h-full w-full object-cover transition group-hover:scale-105" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-zinc-600">â€¦</div>
+                    )}
+                  </div>
+                  <div className="bg-zinc-900 px-2 py-1.5 text-[11px] font-medium text-zinc-300">
+                    {generating === t.id ? "Renderingâ€¦" : t.name}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</div>}
+    </div>
+  );
+}
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { AssistantDecision, ChatTurn, Project, ProjectKind } from "@/lib/studio/types";
+import { routeCommand, replyForIntent } from "@/lib/studio/assistant";
+import { isGeminiConfigured, geminiChat } from "@/lib/studio/gemini";
+import { getServerAiStatus, serverTextChat } from "@/lib/studio/server-ai";
+import { speak, speechSupported, startListening } from "@/lib/studio/speech";
+import { loadSettings, upsertProject } from "@/lib/studio/store";
+import { Button, Card } from "./ui";
+
+const QUICK_COMMANDS = ["Create a new mix project", "Master my mix", "Make the cover art", "Build the release pack", "Is it ready?", "What's left to do?"];
+
+function systemPrompt(project?: Project): string {
+  const ctx = project
+    ? `\nCurrently open project: "${project.meta.name}" (${project.meta.kind}, ${project.meta.genre}). ` +
+      `Audio ${project.audio ? `loaded (${project.audio.fileName}, ${Math.floor(project.audio.durationSec / 60)}m)` : "not loaded"}. ` +
+      `Mastering ${project.meta.mastered ? "done" : "pending"}. Artwork ${project.meta.artworkDone ? "done" : "pending"}. Release ${project.meta.releaseDone ? "done" : "pending"}.`
+    : "";
+  return (
+    `You are the assistant inside DJ EMY's personal music production studio (she is a professional Afro House DJ in Dubai who releases mixes and tracks on YouTube, Instagram and record labels). ` +
+    `Be warm, concise and practical. You know the platform rules cold: loudness target -14 LUFS (YouTube/Spotify), 48 kHz sample rate, cover art 3000x3000, ` +
+    `YouTube title max 100 chars, description max 5000 chars, tags max 500 chars total. ` +
+    `When she asks to do something in the studio (master, cover art, release pack, check), tell her exactly which tab to open. Keep replies under 120 words.` +
+    ctx
+  );
+}
+
+export function AssistantPanel({
+  project,
+  onNavigate,
+  onCreateProject,
+}: {
+  project?: Project;
+  onNavigate: (path: string) => void;
+  onCreateProject?: (name: string, kind: ProjectKind) => void;
+}) {
+  const [messages, setMessages] = useState<ChatTurn[]>([]);
+  const [input, setInput] = useState("");
+  const [listening, setListening] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [voiceOk, setVoiceOk] = useState(false);
+  const settings = loadSettings();
+  const stopListenRef = useRef<(() => void) | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Detect speech support after mount so server and client HTML agree
+    // (a window-dependent initial value caused a hydration mismatch).
+    setVoiceOk(speechSupported());
+  }, []);
+
+  useEffect(() => {
+    if (project) setMessages(project.chatHistory ?? []);
+    else setMessages([]);
+  }, [project]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages.length]);
+
+  const pushUser = useCallback(
+    (text: string, intent?: string) => {
+      const turn: ChatTurn = { role: "user", text, at: Date.now(), intent };
+      setMessages((m) => [...m, turn]);
+      return turn;
+    },
+    [],
+  );
+
+  const pushAssistant = useCallback(
+    (text: string, intent?: string) => {
+      const turn: ChatTurn = { role: "assistant", text, at: Date.now(), intent };
+      setMessages((m) => {
+        const next = [...m, turn];
+        if (project) {
+          upsertProject({ ...project, chatHistory: next.slice(-40) });
+        }
+        return next;
+      });
+      speak(text, settings.soundOn, "en-US", settings.voiceGender);
+      return turn;
+    },
+    [project, settings.soundOn],
+  );
+
+  const handleDecision = useCallback(
+    (d: AssistantDecision) => {
+      if (d.action?.type === "navigate") {
+        onNavigate(d.action.to);
+      } else if (d.action?.type === "createProject") {
+        onCreateProject?.(d.action.name, d.action.kind);
+      }
+    },
+    [onNavigate, onCreateProject],
+  );
+
+  const send = useCallback(
+    async (raw: string) => {
+      const text = raw.trim();
+      if (!text || busy) return;
+      setBusy(true);
+      setInput("");
+      const intent = routeCommand(text);
+
+      // "create a project called X" â†’ create directly
+      if (intent === "create_project" && onCreateProject) {
+        const m = text.match(/(?:called|named|for)\s+["']?([^"']+?)["']?\s*$/i);
+        if (m && m[1]) {
+          const name = m[1].replace(/\.$/, "").trim();
+          const kind: ProjectKind = /\b(track|song|single|release)\b/i.test(text) ? "track" : "mix";
+          pushUser(text, intent);
+          pushAssistant(`Done â€” created "${name}" (${kind}). Opening it now.`, intent);
+          onCreateProject(name, kind);
+          return;
+        }
+      }
+
+      pushUser(text, intent);
+      const hasGemini = isGeminiConfigured(settings);
+      const serverAi = await getServerAiStatus();
+      const canUseAi = hasGemini || serverAi.serverGemini;
+      const decision = replyForIntent(intent, {
+        project,
+        projectCount: 0,
+        hasGemini: canUseAi,
+      });
+
+      if (decision.intent === "fallback" && canUseAi) {
+        try {
+          const history = [...messages, { role: "user" as const, text, at: Date.now() }]
+            .slice(-8)
+            .map((t) => ({ role: t.role === "assistant" ? ("model" as const) : ("user" as const), parts: [{ text: t.text }] }));
+          const resText = serverAi.serverGemini
+            ? await serverTextChat(systemPrompt(project), history)
+            : (await geminiChat({
+                key: settings.geminiKey,
+                model: settings.geminiTextModel,
+                system: systemPrompt(project),
+                messages: history,
+              })).text;
+          pushAssistant(resText, "gemini");
+        } catch (e) {
+          pushAssistant(`The AI hit a snag: ${e instanceof Error ? e.message : "unknown error"}. Try a command like "master my mix" instead.`, "fallback");
+        }
+      } else {
+        pushAssistant(decision.reply, decision.intent);
+        handleDecision(decision);
+      }
+      setBusy(false);
+    },
+    [busy, messages, project, settings, pushUser, pushAssistant, handleDecision, onCreateProject],
+  );
+
+  const toggleVoice = useCallback(() => {
+    if (listening) {
+      stopListenRef.current?.();
+      setListening(false);
+      return;
+    }
+    const stop = startListening({
+      onResult: (t) => {
+        void send(t);
+      },
+      onEnd: () => setListening(false),
+      onError: (e) => {
+        setListening(false);
+        pushAssistant(`I couldn't hear that (${e}) â€” you can type below instead.`);
+      },
+    });
+    if (stop) {
+      stopListenRef.current = stop;
+      setListening(true);
+    } else {
+      pushAssistant("Voice isn't available in this browser â€” the text box below works exactly the same.");
+    }
+  }, [listening, send, pushAssistant]);
+
+  useEffect(() => () => stopListenRef.current?.(), []);
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="border-b border-zinc-800 px-4 py-3 sm:px-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className={`brand-grad flex h-10 w-10 items-center justify-center rounded-full text-lg ${listening ? "animate-pulse" : ""}`}>
+                {busy ? "â€¦" : "ðŸŽ§"}
+              </div>
+              {listening && <span className="absolute -inset-1 -z-10 animate-ping rounded-full" style={{ background: "color-mix(in srgb, var(--brand-1) 40%, transparent)" }} />}
+            </div>
+            <div>
+              <div className="text-sm font-bold">Your Studio Assistant</div>
+              <div className="text-[11px] text-zinc-500">
+                {listening ? "Listeningâ€¦" : busy ? "Workingâ€¦" : voiceOk ? "Say â€œmaster my mixâ€ or type below" : "Type below â€” voice needs Chrome/Safari"}
+              </div>
+            </div>
+          </div>
+          {voiceOk && (
+            <Button variant={listening ? "danger" : "ghost"} onClick={toggleVoice} className="!px-3">
+              {listening ? "â–  Stop" : "ðŸŽ™ Talk"}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div ref={scrollRef} className="max-h-72 space-y-2.5 overflow-y-auto px-4 py-4 sm:px-5">
+        {messages.length === 0 && (
+          <div className="text-[13px] leading-relaxed text-zinc-500">
+            Hi â€” I&apos;m your engineer + designer + release manager in one. Tell me what you need and I&apos;ll set it up:
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {QUICK_COMMANDS.map((q) => (
+                <button key={q} onClick={() => void send(q)} className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-[12px] text-zinc-300 transition brand-hover-border hover:brand-text">
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div
+              className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
+                m.role === "user"
+                  ? "rounded-br-sm text-white brand-soft"
+                  : "rounded-bl-sm border border-zinc-800 bg-zinc-800/70 text-zinc-200"
+              }`}
+            >
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {busy && (
+          <div className="flex items-center gap-1.5 pl-1 text-zinc-500">
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fuchsia-400" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fuchsia-400 [animation-delay:120ms]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fuchsia-400 [animation-delay:240ms]" />
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-zinc-800 p-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void send(input);
+          }}
+          className="flex gap-2"
+        >
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={listening ? "Listeningâ€¦" : "e.g. Master my mix, then make a cover for it"}
+            className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none"
+          />
+          <Button type="submit" disabled={!input.trim() || busy}>
+            Send
+          </Button>
+        </form>
+      </div>
+    </Card>
+  );
+}
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import type { Project, ReleaseCheck } from "@/lib/studio/types";
+import { checksSummary, runComplianceChecks } from "@/lib/studio/release";
+import { formatBytes } from "@/lib/studio/dsp";
+import { speak } from "@/lib/studio/speech";
+import { loadArtwork, loadSettings } from "@/lib/studio/store";
+import { Button, Card, SectionLabel, StatusBadge, Stepper } from "./ui";
+
+type Platform = "youtube" | "instagram" | "label";
+
+export function CheckPanel({ project }: { project: Project }) {
+  const settings = loadSettings();
+  const [platform, setPlatform] = useState<Platform>("youtube");
+  const [checks, setChecks] = useState<ReleaseCheck[] | null>(null);
+  const [artworkDims, setArtworkDims] = useState<{ width: number; height: number; bytes: number } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void loadArtwork(project.meta.id).then((dataUrl) => {
+      if (!alive) return;
+      if (dataUrl) {
+        const img = new Image();
+        img.onload = () => {
+          if (alive) setArtworkDims({ width: img.naturalWidth, height: img.naturalHeight, bytes: Math.round((dataUrl.length * 3) / 4) });
+        };
+        img.src = dataUrl;
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [project.meta.id]);
+
+  const run = useCallback(
+    (pl: Platform = platform) => {
+      const list = runComplianceChecks(
+        {
+          audio: project.audio,
+          master: project.master,
+          artworkSize: artworkDims ?? undefined,
+          release: project.release,
+        },
+        pl,
+      );
+      setChecks(list);
+      const s = checksSummary(list);
+      const phrase = s.fail === 0 ? (s.warn > 0 ? "mostly ready â€” a couple of warnings" : "fully ready to upload") : `${s.fail} thing${s.fail === 1 ? "" : "s"} still need${s.fail === 1 ? "s" : ""} attention`;
+      speak(`Release check complete: ${phrase}.`, settings.soundOn, "en-US", settings.voiceGender);
+    },
+    [project, artworkDims, platform, settings.soundOn],
+  );
+
+  useEffect(() => {
+    if (project.audio || project.master || project.artwork || project.release) {
+      const list = runComplianceChecks(
+        {
+          audio: project.audio,
+          master: project.master,
+          artworkSize: artworkDims ?? undefined,
+          release: project.release,
+        },
+        platform,
+      );
+      setChecks(list);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.audio, project.master, project.release, artworkDims, platform]);
+
+  const stage = project.meta.mastered && project.meta.artworkDone && project.meta.releaseDone ? 3 : project.meta.releaseDone ? 2 : project.meta.artworkDone ? 1 : project.meta.mastered ? 0 : -1;
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <SectionLabel>Release readiness</SectionLabel>
+            <p className="mt-1 text-xs text-zinc-500">The same checklist a record label or YouTube&apos;s review would run. Fix anything in red and re-check.</p>
+          </div>
+          <div className="flex gap-1.5">
+            {(["youtube", "instagram", "label"] as Platform[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => {
+                  setPlatform(p);
+                  run(p);
+                }}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition ${
+                  platform === p ? "bg-fuchsia-500/20 text-fuchsia-300 ring-1 ring-fuchsia-500/50" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                }`}
+              >
+                {p === "label" ? "Record label" : p}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {stage >= 0 && (
+          <div className="mt-4 overflow-x-auto pb-1">
+            <Stepper steps={["Master", "Artwork", "Release", "Check"]} current={stage} />
+          </div>
+        )}
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button onClick={() => run()}>ðŸ” Run check</Button>
+          {checks && (
+            <span className="text-xs text-zinc-500">
+              <span className="font-semibold text-emerald-300">{checksSummary(checks).pass} pass</span> Â· <span className="font-semibold text-amber-300">{checksSummary(checks).warn} warn</span> Â·{" "}
+              <span className="font-semibold text-red-300">{checksSummary(checks).fail} fail</span>
+            </span>
+          )}
+        </div>
+      </Card>
+
+      {checks && (
+        <Card className="divide-y divide-zinc-800/70 p-0">
+          {checks.map((c) => (
+            <div key={c.id} className="flex items-start gap-3 px-4 py-3">
+              <div className="pt-0.5">
+                <StatusBadge status={c.status} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-zinc-200">{c.label}</div>
+                <div className="mt-0.5 text-xs leading-relaxed text-zinc-500">{c.detail}</div>
+                {c.fix && <div className="mt-1 text-xs text-fuchsia-300/90">â†’ {c.fix}</div>}
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {!checks && (
+        <Card className="p-6 text-center text-xs text-zinc-500">
+          {project.audio || project.master || project.artwork || project.release ? "Press â€œRun checkâ€ to see the report." : "Nothing to check yet â€” import audio, master it, make artwork and generate the release pack first."}
+        </Card>
+      )}
+
+      {artworkDims && (
+        <p className="text-[11px] text-zinc-600">
+          Cover on file: {artworkDims.width}Ã—{artworkDims.height} Â· {formatBytes(artworkDims.bytes)}
+        </p>
+      )}
+      {!artworkDims && project.meta.artworkDone && <p className="text-[11px] text-zinc-600">Cover on file: 3000Ã—3000 (from project)</p>}
+    </div>
+  );
+}
+"use client";
+
+import { useCallback, useState } from "react";
+import type { Project, ReleaseMeta } from "@/lib/studio/types";
+import { buildRelease, buildTitle, youtubeHandoff } from "@/lib/studio/release";
+import { notify, speak } from "@/lib/studio/speech";
+import { loadSettings, upsertProject } from "@/lib/studio/store";
+import { Button, Card, SectionLabel } from "./ui";
+
+export function ReleasePanel({ project, onChanged }: { project: Project; onChanged: () => void }) {
+  const settings = loadSettings();
+  const [meta, setMeta] = useState<ReleaseMeta | null>(project.release ?? null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+
+  const persist = useCallback(
+    (m: ReleaseMeta) => {
+      setMeta(m);
+      setDirty(false);
+      upsertProject({ ...project, release: m, meta: { ...project.meta, releaseDone: true, stage: project.meta.stage === "art" || project.meta.stage === "master" || project.meta.stage === "draft" ? "release" : project.meta.stage } });
+      onChanged();
+    },
+    [project, onChanged],
+  );
+
+  const generate = useCallback(() => {
+    const m = buildRelease(project, settings);
+    persist(m);
+    notify("Release pack ready", `Title, description and tags for "${project.meta.name}" are written.`);
+    speak(`Your release pack is ready â€” title, description and tags are done.`, settings.soundOn, "en-US", settings.voiceGender);
+  }, [project, settings, persist]);
+
+  const copy = useCallback(
+    async (label: string, text: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopied(label);
+        setTimeout(() => setCopied(null), 1500);
+      } catch {
+        /* clipboard may be blocked */
+      }
+    },
+    [],
+  );
+
+  const saveDraft = useCallback(() => {
+    if (!meta) return;
+    persist({ ...meta });
+    speak(`Release pack saved.`, settings.soundOn, "en-US", settings.voiceGender);
+  }, [meta, persist, settings.soundOn]);
+
+  const downloadTxt = useCallback(() => {
+    if (!meta) return;
+    const txt = [
+      `${meta.title}`,
+      `=================`,
+      `DESCRIPTION`,
+      `=================`,
+      meta.description,
+      ``,
+      `TAGS`,
+      `=================`,
+      meta.tags.join(" "),
+      ``,
+      `SETTINGS`,
+      `=================`,
+      `Category: ${meta.category}`,
+      `Made for kids: ${meta.madeForKids}`,
+      `Visibility: ${meta.visibility}`,
+      ``,
+      `FILE`,
+      `=================`,
+      `Master WAV (48 kHz): ${meta.fileName}`,
+      `Cover: ${project.meta.name.replace(/\s+/g, "_")}_cover_3000x3000.jpg`,
+    ].join("\n");
+    const blob = new Blob([txt], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${project.meta.name.replace(/\s+/g, "_")}_release_notes.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [meta, project.meta.name]);
+
+  if (!meta) {
+    return (
+      <Card className="flex min-h-[240px] flex-col items-center justify-center gap-4 p-8 text-center">
+        <div className="text-4xl">ðŸ“¦</div>
+        <div>
+          <div className="text-sm font-semibold">Release pack not generated yet</div>
+          <div className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-zinc-500">
+            One tap writes the YouTube title, description, hashtags, tags and file names â€” matching how your channel already publishes, with the exact platform limits baked in.
+          </div>
+        </div>
+        <Button onClick={generate}>âœ¨ Generate release pack</Button>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <SectionLabel>Title Â· YouTube max 100 chars</SectionLabel>
+          <button onClick={() => setMeta({ ...meta, title: buildTitle(project, settings.artistName) })} className="text-[11px] text-zinc-500 hover:text-fuchsia-300">
+            regenerate
+          </button>
+        </div>
+        <input
+          value={meta.title}
+          onChange={(e) => {
+            setMeta({ ...meta, title: e.target.value });
+            setDirty(true);
+          }}
+          className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm font-semibold text-zinc-100 focus:border-fuchsia-500 focus:outline-none"
+        />
+        <div className={`mt-1 text-right font-mono text-[11px] ${meta.title.length > 100 ? "text-red-400" : "text-zinc-600"}`}>{meta.title.length}/100</div>
+
+        <div className="mt-4 flex items-center justify-between">
+          <SectionLabel>Description Â· YouTube max 5000 chars</SectionLabel>
+          <span className={`font-mono text-[11px] ${meta.description.length > 5000 ? "text-red-400" : "text-zinc-600"}`}>{meta.description.length}/5000</span>
+        </div>
+        <textarea
+          value={meta.description}
+          onChange={(e) => {
+            setMeta({ ...meta, description: e.target.value });
+            setDirty(true);
+          }}
+          rows={10}
+          className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-[13px] leading-relaxed text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+        />
+
+        <div className="mt-4">
+          <SectionLabel>Tags</SectionLabel>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {meta.tags.map((t, i) => (
+              <span key={t} className="flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-[12px] text-zinc-300">
+                {t}
+                <button onClick={() => setMeta({ ...meta, tags: meta.tags.filter((_, j) => j !== i) })} className="text-zinc-600 hover:text-red-400">
+                  Ã—
+                </button>
+              </span>
+            ))}
+            <input
+              placeholder="+ add tag"
+              className="w-24 rounded-full border border-dashed border-zinc-700 bg-transparent px-2.5 py-1 text-[12px] text-zinc-300 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                  const v = e.currentTarget.value.trim();
+                  e.preventDefault();
+                  setMeta({ ...meta, tags: [...meta.tags, v.startsWith("#") ? v : `#${v}`].slice(0, 20) });
+                  e.currentTarget.value = "";
+                }
+              }}
+            />
+          </div>
+          <div className="mt-1 font-mono text-[11px] text-zinc-600">{meta.tags.join(" ").length}/500 chars</div>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Category</span>
+            <select value={meta.category} onChange={(e) => setMeta({ ...meta, category: e.target.value as ReleaseMeta["category"] })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
+              <option>Music</option>
+              <option>Entertainment</option>
+              <option>People & Blogs</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Made for kids</span>
+            <select value={meta.madeForKids} onChange={(e) => setMeta({ ...meta, madeForKids: e.target.value as ReleaseMeta["madeForKids"] })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Visibility</span>
+            <select value={meta.visibility} onChange={(e) => setMeta({ ...meta, visibility: e.target.value as ReleaseMeta["visibility"] })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
+              <option value="public">Public</option>
+              <option value="unlisted">Unlisted</option>
+              <option value="private">Private</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          {dirty && (
+            <Button onClick={saveDraft} variant="primary">
+              ðŸ’¾ Save pack
+            </Button>
+          )}
+          <Button variant="ghost" onClick={() => void copy("title", meta.title)}>
+            {copied === "title" ? "âœ“ Copied" : "Copy title"}
+          </Button>
+          <Button variant="ghost" onClick={() => void copy("desc", meta.description)}>
+            {copied === "desc" ? "âœ“ Copied" : "Copy description"}
+          </Button>
+          <Button variant="ghost" onClick={() => void copy("all", youtubeHandoff(meta))}>
+            {copied === "all" ? "âœ“ Copied" : "Copy all for upload"}
+          </Button>
+          <Button variant="ghost" onClick={downloadTxt}>â¬‡ Release notes (.txt)</Button>
+          <a
+            href="https://studio.youtube.com"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500"
+          >
+            â–¶ Open YouTube Studio
+          </a>
+        </div>
+        <div className="mt-5 border-t border-zinc-800/70 pt-4">
+          <SectionLabel>Share it â€” one tap opens the platform</SectionLabel>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[
+              { name: "YouTube", url: "https://studio.youtube.com", icon: "â–¶ï¸", note: "Upload with the pack above" },
+              { name: "Instagram", url: "https://instagram.com", icon: "ðŸ“¸", note: "Reels: cover + mastered audio" },
+              { name: "TikTok", url: "https://tiktok.com", icon: "ðŸŽµ", note: "Promo clip + link to the mix" },
+              { name: "Snapchat", url: "https://snapchat.com", icon: "ðŸ‘»", note: "Quick story tease" },
+              { name: "Threads", url: "https://threads.net", icon: "ðŸ§µ", note: "Announce + link" },
+            ].map((s) => (
+              <a
+                key={s.name}
+                href={s.url}
+                target="_blank"
+                rel="noreferrer"
+                title={s.note}
+                className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-semibold text-zinc-200 transition hover:border-fuchsia-500/60 hover:text-fuchsia-300"
+              >
+                <span>{s.icon}</span> {s.name}
+              </a>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">
+            Handoff flow: export the master WAV (Master tab) â†’ download the cover (Artwork tab) â†’ open YouTube Studio â†’ paste title + description + tags â†’ upload the WAV and cover. Everything is already in the right format, so upload just works.
+          </p>
+        </div>
+      </Card>
+    </div>
+  );
+}
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { AssistantPanel } from "@/components/studio/AssistantPanel";
+import { ProjectCard } from "@/components/studio/ProjectCard";
+import { StudioGuide } from "@/components/studio/StudioGuide";
+import { FeedbackBox } from "@/components/studio/FeedbackBox";
+import { Button, Card, SectionLabel } from "@/components/studio/ui";
+import type { ProjectKind } from "@/lib/studio/types";
+import { createProject, deleteProject, loadSettings, saveSettings, useProjects } from "@/lib/studio/store";
+import { getEpkPortraitDataUrl } from "@/lib/studio/epk-store";
+
+export default function StudioHome() {
+  const router = useRouter();
+  const projects = useProjects();
+  const settings = loadSettings();
+  const [showForm, setShowForm] = useState(false);
+  const [epkPortrait, setEpkPortrait] = useState<string | null>(null);
+  useEffect(() => {
+    void getEpkPortraitDataUrl().then((u) => setEpkPortrait(u));
+  }, []);
+  const [name, setName] = useState("");
+  const [kind, setKind] = useState<ProjectKind>(settings.defaultKind);
+  const [genre, setGenre] = useState(settings.defaultGenre);
+  const [mood, setMood] = useState("Deep, energetic, hypnotic");
+
+  const makeProject = (projectName: string, k: ProjectKind = kind, g = genre, m = mood) => {
+    const p = createProject({ name: projectName, kind: k, genre: g, mood: m });
+    saveSettings({ ...settings, defaultKind: k, defaultGenre: g });
+    router.push(`/studio/p/${p.meta.id}?tab=assistant`);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
+            Your studio, one place
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-zinc-400">
+            Master the mix, design the cover, package the release, pass the platform checks â€” no engineer, no designer, no hours of grunt work. Offline or online.
+          </p>
+        </div>
+        <Button onClick={() => setShowForm((v) => !v)}>{showForm ? "Cancel" : "+ New project"}</Button>
+      </div>
+
+      {/* identity strip */}
+      <Link
+        href="/studio/epk"
+        className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 transition brand-hover-border"
+      >
+        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-zinc-700 bg-zinc-900">
+          {epkPortrait ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={epkPortrait} alt="Portrait" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-lg">ðŸŽ¤</div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold text-zinc-100">{settings.artistName}</div>
+          <div className="truncate text-xs text-zinc-500">Press kit â€” upload, view, download</div>
+        </div>
+        <span className="brand-text shrink-0 text-xs font-semibold">EPK â†’</span>
+      </Link>
+
+      <StudioGuide onCreateProject={(n, k) => makeProject(n, k)} /> 
+
+      {showForm && (
+        <Card className="p-4 sm:p-5">
+          <SectionLabel>New project</SectionLabel>
+          <form
+            className="mt-3 grid gap-3 sm:grid-cols-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!name.trim()) return;
+              makeProject(name.trim());
+            }}
+          >
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Project name â€” e.g. Afro House Mix 2026"
+              className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none sm:col-span-2"
+            />
+            <div className="flex gap-2">
+              {(["mix", "track"] as ProjectKind[]).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setKind(k)}
+                  className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold capitalize ${
+                    kind === k ? "border-fuchsia-500 bg-fuchsia-500/10 text-fuchsia-300" : "border-zinc-700 bg-zinc-950 text-zinc-400"
+                  }`}
+                >
+                  {k === "mix" ? "ðŸŽ§ DJ Mix" : "ðŸŽµ Track"}
+                </button>
+              ))}
+            </div>
+            <input value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="Genre â€” e.g. Afro House" className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none" />
+            <input value={mood} onChange={(e) => setMood(e.target.value)} placeholder="Mood for the cover â€” e.g. golden sunset, deep and hypnotic" className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none sm:col-span-2" />
+            <Button type="submit" disabled={!name.trim()} className="sm:col-span-2">
+              Create project
+            </Button>
+          </form>
+        </Card>
+      )}
+
+      <AssistantPanel
+        onNavigate={router.push}
+        onCreateProject={(n, k) => makeProject(n, k)}
+      />
+
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <SectionLabel>Projects</SectionLabel>
+          <span className="text-[11px] text-zinc-600">{projects.length} total</span>
+        </div>
+        {projects.length === 0 ? (
+          <Card className="flex flex-col items-center gap-2 p-8 text-center">
+            <div className="text-3xl">ðŸ’¿</div>
+            <div className="text-sm font-semibold text-zinc-300">No projects yet</div>
+            <p className="max-w-sm text-xs text-zinc-500">
+              Create a project, drop in your mix, and the studio takes it from raw file to upload-ready release.
+            </p>
+            <Button className="mt-2" onClick={() => setShowForm(true)}>
+              + Start a project
+            </Button>
+          </Card>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((p) => (
+              <ProjectCard key={p.meta.id} project={p} onDelete={(id) => { deleteProject(id); }} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[
+          { icon: "ðŸŽš", title: "Master in-browser", text: "EQ, compression, limiting and loudness to -14 LUFS â€” on the device, no internet needed.", tab: "master" as const },
+          { icon: "ðŸŽ¨", title: "Cover art in seconds", text: "AI-designed covers (Gemini or fal.ai) or offline templates, exported at 3000Ã—3000.", tab: "artwork" as const },
+          { icon: "ðŸ“¦", title: "Release-ready", text: "Title, description, tags, checks â€” formatted so YouTube and labels accept it first time.", tab: "release" as const },
+        ].map((f) => (
+          <button
+            key={f.title}
+            onClick={() => {
+              if (projects.length === 0) {
+                setShowForm(true);
+                return;
+              }
+              router.push(`/studio/p/${projects[0].meta.id}?tab=${f.tab}`);
+            }}
+            className="group rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4 text-left transition brand-hover-border hover:bg-zinc-900"
+          >
+            <div className="text-2xl">{f.icon}</div>
+            <div className="mt-2 text-sm font-semibold text-zinc-200 group-hover:text-fuchsia-300">{f.title}</div>
+            <div className="mt-1 text-xs leading-relaxed text-zinc-500">{f.text}</div>
+            <div className="brand-text mt-2 text-[11px] font-semibold opacity-0 transition group-hover:opacity-100">
+              {projects.length === 0 ? "Create a project to start â†’" : "Open in your latest project â†’"}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <Link
+        href="/studio/distribute"
+        className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900/70 to-zinc-900/30 px-4 py-3.5 transition hover:border-fuchsia-500/50"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">ðŸ“¤</span>
+          <div>
+            <div className="text-sm font-bold text-zinc-100">Get it out there â€” free</div>
+            <div className="text-xs text-zinc-500">Top free sites to push mixes & tracks: Spotify/Apple distribution, SoundCloud/Mixcloud, 1001Tracklists, label submissions.</div>
+          </div>
+        </div>
+        <span className="brand-text shrink-0">Open â†’</span>
+      </Link>
+
+      <FeedbackBox />
+
+      <Link
+        href="/"
+        className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900/70 to-zinc-900/30 px-4 py-3.5 transition hover:border-fuchsia-500/50"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">ðŸ’¼</span>
+          <div>
+            <div className="text-sm font-bold text-zinc-100">GigRadar â€” bookings, pitches & contracts</div>
+            <div className="text-xs text-zinc-500">Find every gig in the Gulf, get priced and pitched automatically, generate contracts and invoices.</div>
+          </div>
+        </div>
+        <span className="brand-text shrink-0">Open â†’</span>
+      </Link>
+    </div>
+  );
+}
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Button, Card, SectionLabel } from "@/components/studio/ui";
+import {
+  deleteLibraryTrack,
+  getLibraryBlob,
+  importDirectory,
+  isDirectoryPickerAvailable,
+  listLibraryTracks,
+  saveLibraryTrack,
+  type LibraryTrack,
+} from "@/lib/studio/library-store";
+import { formatBytes, formatDuration } from "@/lib/studio/dsp";
+import { loadSettings } from "@/lib/studio/store";
+
+interface FreeSource {
+  name: string;
+  url: string;
+  what: string;
+  tag: string;
+}
+
+const FREE_SOURCES: FreeSource[] = [
+  { name: "Internet Archive â€” Netlabels", url: "https://archive.org/details/netlabels", what: "Thousands of free, studio-quality electronic/CC albums â€” FLAC/WAV downloads, no account.", tag: "Studio quality CC" },
+  { name: "Free Music Archive", url: "https://freemusicarchive.org", what: "Curated Creative Commons music, download-enabled, browsable by genre.", tag: "Creative Commons" },
+  { name: "Bandcamp (free / pay-what-you-want)", url: "https://bandcamp.com/tag/electronic?sort=date", what: "Many artists set $0 or free download â€” search 'free download' tags for promo tracks.", tag: "Free downloads" },
+  { name: "SoundCloud (downloads on)", url: "https://soundcloud.com", what: "Filter playlists for tracks with the download button enabled â€” artists share free promos.", tag: "Free downloads" },
+  { name: "Hypeddit", url: "https://hypeddit.com", what: "The DJ promo hub â€” producers give free downloads (often for a follow/like).", tag: "DJ promos" },
+  { name: "LabelRadar", url: "https://labelradar.com", what: "Labels give free promo tracks to DJs who submit/join â€” the free route into label catalogues.", tag: "DJ promos" },
+  { name: "Jamendo", url: "https://www.jamendo.com", what: "Free-licensed music, download in MP3/WAV.", tag: "Creative Commons" },
+  { name: "ccMixter", url: "http://ccmixter.org", what: "CC remix/electronic community â€” every track downloadable.", tag: "Creative Commons" },
+];
+
+interface ArchiveDoc {
+  identifier: string;
+  title?: string;
+  creator?: string[];
+  downloads?: number;
+}
+
+export default function LibraryPage() {
+  const settings = loadSettings();
+  const [tracks, setTracks] = useState<LibraryTrack[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [nowPlaying, setNowPlaying] = useState<LibraryTrack | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const urlRef = useRef<string | null>(null);
+
+  // Archive.org search
+  const [query, setQuery] = useState("afro house");
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState<ArchiveDoc[] | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    void listLibraryTracks().then((t) => {
+      setTracks(t);
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(load, [load]);
+
+  useEffect(() => {
+    return () => {
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    };
+  }, []);
+
+  const playTrack = useCallback(
+    async (t: LibraryTrack) => {
+      const blob = await getLibraryBlob(t.id);
+      if (!blob) return;
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      const url = URL.createObjectURL(blob);
+      urlRef.current = url;
+      const audio = audioRef.current;
+      if (!audio) return;
+      audio.src = url;
+      // Route to chosen output (e.g. DJ controller sound card).
+      if (settings.audioOutputDevice && "setSinkId" in audio) {
+        try {
+          await (audio as HTMLAudioElement & { setSinkId: (id: string) => Promise<void> }).setSinkId(settings.audioOutputDevice);
+        } catch {
+          /* fall back to default */
+        }
+      }
+      setNowPlaying(t);
+      setProgress(0);
+      await audio.play().catch(() => setPlaying(false));
+      setPlaying(true);
+    },
+    [settings.audioOutputDevice],
+  );
+
+  const togglePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      void audio.play().catch(() => setPlaying(false));
+      setPlaying(true);
+    } else {
+      audio.pause();
+      setPlaying(false);
+    }
+  }, []);
+
+  const onFiles = useCallback(async (files: FileList | File[]) => {
+    setImporting(true);
+    setImportMsg(null);
+    let count = 0;
+    for (const f of Array.from(files)) {
+      if (/audio\//i.test(f.type) || /\.(mp3|wav|m4a|flac|aac|aiff?|ogg|opus)$/i.test(f.name)) {
+        await saveLibraryTrack(f);
+        count++;
+      }
+    }
+    setImportMsg(count ? `Added ${count} track${count === 1 ? "" : "s"} to your library.` : "No audio files found.");
+    setImporting(false);
+    load();
+  }, [load]);
+
+  const addFolder = useCallback(async () => {
+    if (!isDirectoryPickerAvailable()) {
+      setImportMsg("Folder import needs Chrome or Edge on a desktop. Use â€œAdd filesâ€ instead.");
+      return;
+    }
+    setImporting(true);
+    setImportMsg(null);
+    try {
+      const n = await importDirectory();
+      setImportMsg(n ? `Added ${n} track${n === 1 ? "" : "s"} from the folder.` : "No audio files in that folder.");
+    } catch {
+      setImportMsg("Folder import cancelled.");
+    }
+    setImporting(false);
+    load();
+  }, [load]);
+
+  const removeTrack = useCallback(
+    (id: string) => {
+      void deleteLibraryTrack(id).then(() => {
+        if (nowPlaying?.id === id) {
+          audioRef.current?.pause();
+          setNowPlaying(null);
+        }
+        load();
+      });
+    },
+    [load, nowPlaying],
+  );
+
+  const searchArchive = useCallback(async () => {
+    setSearching(true);
+    setSearchError(null);
+    setResults(null);
+    try {
+      const q = `collection:netlabels AND ${query.trim() || "*:*"}`;
+      const url =
+        "https://archive.org/advancedsearch.php?q=" +
+        encodeURIComponent(q) +
+        "&fl[]=identifier&fl[]=title&fl[]=creator&fl[]=downloads&rows=12&output=json&sort[]=downloads+desc";
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Archive.org returned ${res.status}`);
+      const j = await res.json();
+      const docs = (j?.response?.docs ?? []) as ArchiveDoc[];
+      setResults(docs);
+    } catch (e) {
+      setSearchError(e instanceof Error ? e.message : "Search failed â€” check your internet.");
+    } finally {
+      setSearching(false);
+    }
+  }, [query]);
+
+  useEffect(() => {
+    if (results === null) void searchArchive();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
+            Music library
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-zinc-400">
+            Your tracks, on this device, playing through whatever audio output you choose â€” including her DJ controller&apos;s sound card. Plus the free, legal places to pull studio-quality music into it.
+          </p>
+        </div>
+        <Link href="/studio" className="text-xs text-zinc-500 hover:text-zinc-300">â† Back to studio</Link>
+      </div>
+
+      {/* import */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <SectionLabel>Your library</SectionLabel>
+            <p className="mt-1 text-xs text-zinc-500">{tracks.length} track{tracks.length === 1 ? "" : "s"} Â· stored on this device only</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <input type="file" accept="audio/*" multiple className="hidden" id="lib-files" onChange={(e) => e.target.files && void onFiles(e.target.files)} />
+            <Button variant="ghost" onClick={() => document.getElementById("lib-files")?.click()} disabled={importing}>
+              + Add files
+            </Button>
+            {isDirectoryPickerAvailable() && (
+              <Button onClick={() => void addFolder()} disabled={importing}>
+                ðŸ“ Add a folder
+              </Button>
+            )}
+          </div>
+        </div>
+        {importMsg && <div className="mt-2 text-xs text-emerald-300">{importMsg}</div>}
+
+        {tracks.length === 0 && !loading ? (
+          <div className="mt-4 rounded-xl border border-dashed border-zinc-700 p-6 text-center text-xs text-zinc-500">
+            Nothing here yet â€” add the tracks and folders she already owns, then play them right here (pick her controller as the output in Settings for that route).
+          </div>
+        ) : (
+          <div className="mt-3 max-h-72 space-y-1 overflow-y-auto">
+            {tracks.map((t) => (
+              <div key={t.id} className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2 ${nowPlaying?.id === t.id ? "border-fuchsia-500/60 bg-fuchsia-500/10" : "border-zinc-800 bg-zinc-950/50"}`}>
+                <button className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => void playTrack(t)}>
+                  <span className="text-lg">{nowPlaying?.id === t.id && playing ? "â¸" : "â–¶"}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13px] font-semibold text-zinc-200">{t.name}</span>
+                    <span className="block font-mono text-[10px] text-zinc-600">
+                      {t.durationSec ? formatDuration(t.durationSec) : "â€”"} Â· {formatBytes(t.sizeBytes)}
+                    </span>
+                  </span>
+                </button>
+                <button onClick={() => void removeTrack(t.id)} className="shrink-0 text-xs text-zinc-600 hover:text-red-400" title="Remove">âœ•</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* player */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex items-center gap-3">
+          <button onClick={togglePlay} disabled={!nowPlaying} className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-600 to-amber-500 text-lg text-white disabled:opacity-30">
+            {playing ? "â¸" : "â–¶"}
+          </button>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-zinc-200">{nowPlaying ? nowPlaying.name : "Nothing playing"}</div>
+            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+              <div className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 to-amber-400" style={{ width: `${progress * 100}%` }} />
+            </div>
+          </div>
+          <span className="font-mono text-[11px] text-zinc-500">
+            {nowPlaying && nowPlaying.durationSec ? formatDuration(progress * nowPlaying.durationSec) : ""}
+          </span>
+        </div>
+        <audio
+          ref={audioRef}
+          className="hidden"
+          onTimeUpdate={(e) => {
+            const el = e.currentTarget;
+            setProgress(el.duration ? el.currentTime / el.duration : 0);
+          }}
+          onEnded={() => {
+            setPlaying(false);
+            setProgress(0);
+          }}
+        />
+        <p className="mt-3 text-[11px] text-zinc-600">
+          Output: {settings.audioOutputDevice ? "your chosen device (see Settings â†’ Audio output â€” pick the DDJ to hear it through the controller)" : "default speakers (Settings â†’ Audio output to route to the controller)"}
+        </p>
+      </Card>
+
+      {/* free sources */}
+      <Card className="p-4 sm:p-5">
+        <SectionLabel>Free studio-quality music â€” legal sources</SectionLabel>
+        <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+          These give her thousands of downloadable, studio-quality tracks for free â€” Creative Commons collections, pay-what-you-want releases, and DJ promos from labels and producers (the industry&apos;s free route for DJs).
+        </p>
+        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+          {FREE_SOURCES.map((s) => (
+            <a key={s.name} href={s.url} target="_blank" rel="noreferrer" className="group block rounded-xl border border-zinc-800 bg-zinc-950/50 p-3 transition hover:border-fuchsia-500/50">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[13px] font-bold text-zinc-100 group-hover:text-fuchsia-300">{s.name}</span>
+                <span className="shrink-0 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">{s.tag}</span>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-500">{s.what}</p>
+            </a>
+          ))}
+        </div>
+
+        {/* archive.org netlabel search */}
+        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Search free netlabel releases (Archive.org, no account)</div>
+          <form
+            className="mt-2 flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void searchArchive();
+            }}
+          >
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. afro house, deep house, technoâ€¦"
+              className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none"
+            />
+            <Button type="submit" disabled={searching}>{searching ? "Searchingâ€¦" : "Search free music"}</Button>
+          </form>
+          {searchError && <div className="mt-2 text-xs text-red-300">{searchError}</div>}
+          {results && (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {results.map((r) => (
+                <a key={r.identifier} href={`https://archive.org/details/${r.identifier}`} target="_blank" rel="noreferrer" className="block rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 transition hover:border-fuchsia-500/50">
+                  <div className="truncate text-[13px] font-semibold text-zinc-200">{r.title || r.identifier}</div>
+                  <div className="mt-0.5 flex items-center justify-between text-[11px] text-zinc-600">
+                    <span className="truncate">{r.creator?.[0] ?? "Various"}</span>
+                    <span>{(r.downloads ?? 0).toLocaleString()} dl Â· open â†’</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
+          One honest note: free downloads of the latest commercial tracks don&apos;t legally exist â€” that&apos;s what record pools and stores charge for, and no ripping tools are built into this app. The sources above are the real free world: CC collections, free promos, and label giveaways, which add up to thousands of legitimate tracks.
+        </p>
+      </Card>
+    </div>
+  );
+}
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Button, Card, SectionLabel } from "@/components/studio/ui";
+import {
+  getEpkBlob,
+  getEpkPortraitDataUrl,
+  getEpkState,
+  loadEpkNotes,
+  removeEpkFile,
+  saveEpkFile,
+  saveEpkNotes,
+  type EpkFileInfo,
+} from "@/lib/studio/epk-store";
+import { formatBytes } from "@/lib/studio/dsp";
+
+export default function EpkPage() {
+  const [pdf, setPdf] = useState<EpkFileInfo | null>(null);
+  const [portrait, setPortrait] = useState<EpkFileInfo | null>(null);
+  const [portraitUrl, setPortraitUrl] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string>("");
+  const [savedFlash, setSavedFlash] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const refresh = useCallback(async () => {
+    const state = await getEpkState();
+    setPdf(state.pdf);
+    setPortrait(state.portrait);
+    setNotes(state.notes);
+    const url = await getEpkPortraitDataUrl();
+    setPortraitUrl(url);
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const onUploadPdf = useCallback(async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const state = await saveEpkFile(file, "pdf");
+      setPdf(state.pdf);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1500);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  const onUploadPortrait = useCallback(async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const state = await saveEpkFile(file, "portrait");
+      setPortrait(state.portrait);
+      const url = await getEpkPortraitDataUrl();
+      setPortraitUrl(url);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1500);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  const removePdf = useCallback(async () => {
+    await removeEpkFile("pdf");
+    setPdf(null);
+  }, []);
+
+  const removePortrait = useCallback(async () => {
+    await removeEpkFile("portrait");
+    setPortrait(null);
+    setPortraitUrl(null);
+  }, []);
+
+  const openPdf = useCallback(async () => {
+    const blob = await getEpkBlob("pdf");
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }, []);
+
+  const downloadPdf = useCallback(async () => {
+    const blob = await getEpkBlob("pdf");
+    if (!blob || !pdf) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = pdf.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }, [pdf]);
+
+  const saveNotes = useCallback(() => {
+    saveEpkNotes(notes);
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1500);
+  }, [notes]);
+
+  const copyNotes = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(notes);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* noop */
+    }
+  }, [notes]);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
+            EPK â€” press kit
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-zinc-400">
+            Upload her own press kit here â€” the PDF, the portrait, and any quick notes. It&apos;s stored on this device, ready to view or download any time.
+          </p>
+        </div>
+        {savedFlash && <span className="text-xs font-semibold text-emerald-300">âœ“ Saved</span>}
+        <Link href="/studio" className="text-xs text-zinc-500 hover:text-zinc-300">â† Back to studio</Link>
+      </div>
+
+      {/* EPK file */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <SectionLabel>Her EPK file</SectionLabel>
+            <p className="mt-1 text-xs text-zinc-500">PDF, text or image â€” the latest press kit she sends to venues and labels.</p>
+          </div>
+          <input ref={pdfInputRef} type="file" accept=".pdf,.txt,.md,.doc,.docx,image/*" className="hidden" onChange={(e) => void onUploadPdf(e.target.files?.[0])} />
+          <Button onClick={() => pdfInputRef.current?.click()} disabled={busy}>{pdf ? "Replace EPK" : "â¬† Upload EPK"}</Button>
+        </div>
+
+        {pdf ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2.5">
+            <div className="min-w-0">
+              <div className="truncate text-[13px] font-semibold text-zinc-200">ðŸ“„ {pdf.name}</div>
+              <div className="font-mono text-[10px] text-zinc-600">{formatBytes(pdf.sizeBytes)} Â· {new Date(pdf.addedAt).toLocaleDateString()}</div>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => void openPdf()}>View</Button>
+              <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => void downloadPdf()}>â¬‡ Download</Button>
+              <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => void removePdf()}>Remove</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-3 rounded-xl border border-dashed border-zinc-700 p-6 text-center text-xs text-zinc-500">
+            No EPK uploaded yet â€” tap â€œUpload EPKâ€ and pick her press kit file.
+          </div>
+        )}
+      </Card>
+
+      {/* portrait */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <SectionLabel>Portrait photo</SectionLabel>
+            <p className="mt-1 text-xs text-zinc-500">The photo that goes with the press kit (e.g. portrait_black.png).</p>
+          </div>
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => void onUploadPortrait(e.target.files?.[0])} />
+          <Button variant="ghost" onClick={() => photoInputRef.current?.click()} disabled={busy}>{portrait ? "Replace photo" : "â¬† Upload portrait"}</Button>
+        </div>
+        <div className="mt-3 flex items-center gap-4">
+          <div className="h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950">
+            {portraitUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={portraitUrl} alt="Portrait" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-2xl">ðŸŽ¤</div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1 text-xs text-zinc-500">
+            {portrait ? (
+              <div>
+                <div className="truncate font-semibold text-zinc-300">{portrait.name}</div>
+                <div className="font-mono text-[10px] text-zinc-600">{formatBytes(portrait.sizeBytes)}</div>
+                <button onClick={() => void removePortrait()} className="mt-1 text-xs text-zinc-600 hover:text-red-400">Remove photo</button>
+              </div>
+            ) : (
+              "No portrait uploaded yet."
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* notes */}
+      <Card className="p-4 sm:p-5">
+        <SectionLabel>Quick notes (optional)</SectionLabel>
+        <p className="mt-1 text-xs text-zinc-500">Anything handy to have next to the EPK â€” a bio snippet, links, or the text from a PDF you&apos;d rather paste than upload.</p>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={6}
+          placeholder="Paste or type notes hereâ€¦"
+          className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-[13px] leading-relaxed text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
+        />
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Button onClick={saveNotes}>ðŸ’¾ Save notes</Button>
+          <Button variant="ghost" onClick={() => void copyNotes()}>{copied ? "âœ“ Copied" : "Copy notes"}</Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+"use client";
+
+import Link from "next/link";
+import { Card, SectionLabel } from "@/components/studio/ui";
+
+interface Site {
+  name: string;
+  url: string;
+  what: string;
+  free: string;
+  tag: "stores" | "mixes" | "labels" | "social";
+}
+
+const SITES: Site[] = [
+  // Get on the stores for free
+  { name: "RouteNote", url: "https://routenote.com", what: "Free distribution to Spotify, Apple Music, TikTok, YouTube Music + 20 more stores. You keep 85% of royalties (free tier), 100% on paid.", free: "Free", tag: "stores" },
+  { name: "FreshTunes", url: "https://freshtunes.com", what: "Near-100% royalties, releases live within ~48 hours. Great for getting a track out fast.", free: "Free", tag: "stores" },
+  { name: "ONErpm", url: "https://onerpm.com", what: "Free distribution with a royalty commission; strong on artist marketing support.", free: "Free", tag: "stores" },
+  { name: "UnitedMasters", url: "https://unitedmasters.com", what: "Free DEBUT tier: 90% royalties to 50+ stores incl. Spotify & Apple, plus brand-partnership deals.", free: "Free tier", tag: "stores" },
+  { name: "SoundOn (TikTok)", url: "https://soundon.global", what: "ByteDance's distributor â€” deep TikTok integration, 100% royalties in year one.", free: "Free", tag: "stores" },
+  // Host the mixes
+  { name: "SoundCloud", url: "https://soundcloud.com", what: "The biggest DJ community â€” upload mixes & tracks. Free tier (3h of uploads) or Next Pro for unlimited.", free: "Free tier", tag: "mixes" },
+  { name: "Mixcloud", url: "https://mixcloud.com", what: "Built for DJ sets â€” licensed for mixes, so no copyright takedowns. Free = 10 uploads, rotate as needed.", free: "Free tier", tag: "mixes" },
+  { name: "HearThis.at", url: "https://hearthis.at", what: "100 free uploads, free live streaming, DJ-friendly community.", free: "Free", tag: "mixes" },
+  { name: "1001Tracklists", url: "https://1001tracklists.com", what: "The DJ mix database â€” post your tracklist + mix, it's how DJs and fans discover sets.", free: "Free", tag: "mixes" },
+  // Get signed / submitted
+  { name: "LabelRadar", url: "https://labelradar.com", what: "The free route into electronic labels â€” submit tracks to real labels (Afro House, Tech, House) with feedback.", free: "Free", tag: "labels" },
+  // Socials
+  { name: "YouTube", url: "https://studio.youtube.com", what: "Her main home â€” upload with the handoff pack from the Release tab.", free: "Free", tag: "social" },
+  { name: "Instagram", url: "https://instagram.com", what: "Reels with the artwork + mastered audio, link to the full mix.", free: "Free", tag: "social" },
+];
+
+const TAG_LABELS: Record<Site["tag"], string> = {
+  stores: "Get on Spotify & Apple Music (free)",
+  mixes: "Host your DJ mixes (free)",
+  labels: "Submit to record labels (free)",
+  social: "Post & promote (free)",
+};
+
+const TAG_ORDER: Site["tag"][] = ["stores", "mixes", "labels", "social"];
+
+export default function DistributePage() {
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
+            Get it out there â€” free
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-zinc-400">
+            The top free places DJs and producers push music, checked for 2026. Everything the studio exports (48 kHz WAV, -14 LUFS, 3000Ã—3000 cover, title & tags) is exactly what these sites want â€” no reformatting.
+          </p>
+        </div>
+        <Link href="/studio" className="text-xs text-zinc-500 hover:text-zinc-300">
+          â† Back to studio
+        </Link>
+      </div>
+
+      {TAG_ORDER.map((tag) => (
+        <div key={tag}>
+          <SectionLabel>{TAG_LABELS[tag]}</SectionLabel>
+          <div className="mt-2 grid gap-2.5 sm:grid-cols-2">
+            {SITES.filter((s) => s.tag === tag).map((s) => (
+              <a key={s.name} href={s.url} target="_blank" rel="noreferrer" className="group block rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 transition brand-hover-border hover:bg-zinc-900">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-zinc-100 group-hover:text-fuchsia-300">{s.name}</span>
+                  <span className="shrink-0 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">{s.free}</span>
+                </div>
+                <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">{s.what}</p>
+                <div className="brand-text mt-2 text-[11px] font-semibold opacity-0 transition group-hover:opacity-100">Open site â†’</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <Card className="p-4 sm:p-5">
+        <SectionLabel>A release ritual that works</SectionLabel>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-[13px] leading-relaxed text-zinc-400">
+          <li>Finish in the studio â†’ export the 24-bit WAV + 3000Ã—3000 cover from the Release tab.</li>
+          <li>Push the mix to <strong className="text-zinc-200">YouTube</strong> (handoff pack does the formatting) and <strong className="text-zinc-200">Mixcloud / SoundCloud</strong> for the DJ crowd â€” post the tracklist on <strong className="text-zinc-200">1001Tracklists</strong>.</li>
+          <li>For the track version, send it to the stores free via <strong className="text-zinc-200">RouteNote</strong> or <strong className="text-zinc-200">FreshTunes</strong> (Spotify, Apple, TikTok, everywhere), and submit to Afro House / Tech labels on <strong className="text-zinc-200">LabelRadar</strong>.</li>
+          <li>Cut a Reel with the cover + mastered audio for Instagram and TikTok, linking to the YouTube mix.</li>
+        </ol>
+      </Card>
+    </div>
+  );
+}
