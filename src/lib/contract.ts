@@ -88,7 +88,7 @@ The Client engages the Artist to perform a DJ set on the terms below.
 | Date | ${dateStr} |
 | Load-in / soundcheck | ${t.loadInTime} |
 | Performance time | ${t.setStart} – ${t.setEnd} |
-| Set length | ${g.setLengthMins ? `${(g.setLengthMins / 60).toFixed(1)} hours` : "2 hours"} |
+| Set length | "2 hours" |
 | Format | ${activeProfile().genres.join(", ")} |
 
 ## 2. FEE AND PAYMENT
@@ -370,3 +370,4 @@ export function generateDealPack(g: Gig, overrides: Partial<DealTerms> = {}): De
     pressPack: generatePressPack(g),
   };
 }
+
