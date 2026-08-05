@@ -1,7 +1,7 @@
-/**
+﻿/**
  * Fit scoring: is this gig worth pushing to her phone right now?
  *
- * Score 0-100. The alert tier decides HOW loud the notification is —
+ * Score 0-100. The alert tier decides HOW loud the notification is â€”
  * she should never be woken at 3am for a 1,500 AED weeknight bar slot.
  */
 
@@ -25,7 +25,7 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
   const reasons: string[] = [];
 
   // --- Genre fit
-  const wants = g.genresWanted;
+  const wants = g.genresWanted ?? [];
   const primary = wants.filter((x) => activeProfile().genres.includes(x));
   const secondary = wants.filter((x) => activeProfile().secondaryGenres.includes(x));
   const blocked = wants.filter((x) => activeProfile().wontPlay.includes(x));
@@ -33,7 +33,7 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
   else if (secondary.length) { score += 8; reasons.push(`Secondary genre: ${secondary.join(", ")}`); }
   if (blocked.length && !primary.length) {
     score -= 35;
-    reasons.push(`Wants ${blocked.join(", ")} — outside her sound`);
+    reasons.push(`Wants ${blocked.join(", ")} â€” outside her sound`);
   }
 
   // --- Money
@@ -52,7 +52,7 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
     else if (g.budgetStatedAed >= q.targetAed) { score += 14; reasons.push(`Budget beats target (AED ${q.targetAed.toLocaleString()})`); }
     else if (g.budgetStatedAed < q.walkAwayAed) { score -= 30; reasons.push(`Budget below walk-away of AED ${q.walkAwayAed.toLocaleString()}`); }
   } else {
-    reasons.push("No budget stated — fee to be established in first reply");
+    reasons.push("No budget stated â€” fee to be established in first reply");
   }
 
   // --- Venue quality
@@ -64,13 +64,13 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
   if (tierBoost[g.venueTier] >= 14) reasons.push(`High-value venue type: ${g.venueTier.replace(/_/g, " ")}`);
 
   // --- Career value
-  if (g.recurring) { score += 12; reasons.push("Residency — recurring guaranteed income"); }
+  if (g.recurring) { score += 12; reasons.push("Residency â€” recurring guaranteed income"); }
   if (g.travelRequired) { score -= 4; reasons.push("Requires travel outside Dubai"); }
 
   // --- Contactability: a gig she can't reach anyone about is worthless
   const bestContact = Math.max(0, ...g.contacts.map((c) => c.decisionPower));
   if (bestContact >= 70) { score += 10; reasons.push("Direct phone/WhatsApp for decision-maker"); }
-  else if (bestContact === 0) { score -= 12; reasons.push("No contact details found — needs manual research"); }
+  else if (bestContact === 0) { score -= 12; reasons.push("No contact details found â€” needs manual research"); }
 
   // --- Urgency
   let urgent = false;
@@ -78,13 +78,13 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
   if (g.eventDate) {
     daysOut = daysUntil(g.eventDate);
     if (daysOut < 0) { score -= 60; reasons.push("Event date has passed"); }
-    else if (daysOut <= 3) { score += 12; urgent = true; reasons.push(`Event in ${Math.max(0, Math.round(daysOut))} day(s) — first to reply usually wins`); }
+    else if (daysOut <= 3) { score += 12; urgent = true; reasons.push(`Event in ${Math.max(0, Math.round(daysOut))} day(s) â€” first to reply usually wins`); }
     else if (daysOut <= 10) { score += 6; }
   }
   // Fresh posts are winnable; a 2-day-old promoter post is probably filled.
   const ageHrs = (Date.now() - new Date(g.postedAt).getTime()) / 3_600_000;
   if (ageHrs <= 1) score += 8;
-  else if (ageHrs > 48) { score -= 10; reasons.push("Posted over 48h ago — likely already filled"); }
+  else if (ageHrs > 48) { score -= 10; reasons.push("Posted over 48h ago â€” likely already filled"); }
 
   score = Math.max(0, Math.min(100, Math.round(score)));
 
@@ -101,7 +101,7 @@ export function scoreGig(g: Omit<Gig, "id" | "score" | "stage">): Scored {
   const when = g.eventDate
     ? new Date(g.eventDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
     : "date TBC";
-  const headline = `${g.venueName ?? g.sourceName} · ${when} · ${money}${urgent ? " · MOVE NOW" : ""}`;
+  const headline = `${g.venueName ?? g.sourceName} Â· ${when} Â· ${money}${urgent ? " Â· MOVE NOW" : ""}`;
 
   return { score, tier, reasons, headline };
 }
