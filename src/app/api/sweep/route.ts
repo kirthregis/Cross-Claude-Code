@@ -1,15 +1,27 @@
 import { NextResponse } from "next/server";
-import { runAllSources } from "@/lib/sources";
-import { recordSweep } from "@/lib/db";
+import { uaeSourcesAsLeads } from "@/lib/sources/uae";
+import { fetchUaeJobs } from "@/lib/sources/uae-jobs";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const result = await runAllSources();
-    recordSweep(result.found, result.inserted, result.errors);
-    return NextResponse.json({ ok: true, ...result });
+    const uaeLeads = uaeSourcesAsLeads();
+    let jobLeads: unknown[] = [];
+    try {
+      jobLeads = await fetchUaeJobs();
+    } catch {}
+
+    const allLeads = [...uaeLeads, ...jobLeads];
+
+    return NextResponse.json({
+      ok: true,
+      found: allLeads.length,
+      leads: allLeads,
+      message: `Found ${allLeads.length} gig opportunities across UAE sources`,
+      scannedAt: new Date().toISOString()
+    });
   } catch (e) {
-    return NextResponse.json({ ok: false, error: String(e) });
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
   }
 }
