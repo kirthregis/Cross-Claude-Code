@@ -1,5 +1,17 @@
 ﻿export type GigStage = "new" | "contacted" | "negotiating" | "confirmed" | "paid" | "archived";
+
 export type VenueTier = "superclub" | "beach_club" | "festival" | "brand_activation" | "hotel" | "private" | "private_event" | "hotel_lounge" | "bar_restaurant" | "unknown" | "other";
+
+export interface Contact {
+  name?: string;
+  role?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  instagram?: string;
+  decisionPower?: number;
+}
+
 export interface Gig {
   id: string;
   sourceKind: "instagram" | "whatsapp" | "email" | "event_calendar" | "gig_board";
@@ -22,26 +34,16 @@ export interface Gig {
   fingerprint?: string;
   eventDate?: string;
   discoveredAt?: string;
-  venueName?: string;
-  venueArea?: string;
-  exclusivity?: boolean;
-  travelRequired?: boolean;
-  genresWanted?: string[];
-  setLengthMins?: number;
-  budgetStatedAed?: number;
   area?: string;
-  fingerprint?: string;
-  eventDate?: string;
-  discoveredAt?: string;
   venueArea?: string;
   exclusivity?: boolean;
   travelRequired?: boolean;
   recurring?: boolean;
   genresWanted?: string[];
   setLengthMins?: number;
-  slot?: "warmup" | "peak" | "closing" | "allnight" | "unknown";
-  contacts?: Contact[];
+  budgetStatedAed?: number;
 }
+
 export interface RawLead {
   sourceKind: Gig["sourceKind"];
   sourceName: string;
@@ -51,6 +53,7 @@ export interface RawLead {
   body: string;
   postedAt: string;
 }
+
 export interface RevenueStats {
   totalEarned: number;
   totalCommission: number;
@@ -59,15 +62,6 @@ export interface RevenueStats {
   gigCount: number;
 }
 
-export interface Contact {
-  name?: string;
-  role?: string;
-  phone?: string;
-  whatsapp?: string;
-  email?: string;
-  instagram?: string;
-  decisionPower?: number;
-}
 export interface PriceInputs {
   venueTier: VenueTier;
   setLengthMins: number;
