@@ -1,40 +1,37 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
-import { fontStack, googleFontHref, radiusValue, useTheme } from "@/lib/studio/theme";
+import { useTheme, fontStack, googleFontHref, radiusValue } from "@/lib/studio/theme";
 
-/**
- * Applies the user's Style & Branding choices as CSS variables on <html>,
- * plus the chosen Google Font (loaded once, cached) and the background.
- * Mounted once in the root layout; re-runs when the theme changes.
- */
 export function ThemeProvider() {
   const theme = useTheme();
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const root = document.documentElement;
-    root.style.setProperty("--brand-1", theme.primary);
-    root.style.setProperty("--brand-2", theme.accent);
-    root.style.setProperty("--app-bg", theme.background);
-    root.style.setProperty("--radius", radiusValue(theme.radius));
-    root.style.setProperty("--font-brand", fontStack(theme.font));
-    document.body.style.backgroundColor = theme.background;
+    root.style.setProperty("--brand-primary", theme.primary);
+    root.style.setProperty("--brand-accent", theme.accent);
+    root.style.setProperty("--brand-bg", theme.background);
+    root.style.setProperty("--brand-font", fontStack(theme.font));
+    root.style.setProperty("--brand-radius", radiusValue(theme.radius));
+    document.body.style.background = theme.background;
 
-    // theme-color for mobile browser chrome
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", theme.background);
-  }, [theme]);
-
-  useEffect(() => {
+    const existing = document.getElementById("google-font-link");
     const href = googleFontHref(theme.font);
-    if (!href) return;
-    if (document.querySelector(`link[data-brand-font="${theme.font}"]`)) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = href;
-    link.dataset.brandFont = theme.font;
-    document.head.appendChild(link);
-  }, [theme.font]);
+    if (href) {
+      if (existing) {
+        existing.setAttribute("href", href);
+      } else {
+        const link = document.createElement("link");
+        link.id = "google-font-link";
+        link.rel = "stylesheet";
+        link.href = href;
+        document.head.appendChild(link);
+      }
+    } else if (existing) {
+      existing.remove();
+    }
+  }, [theme]);
 
   return null;
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, SectionLabel, Toggle } from "@/components/studio/ui";
@@ -110,7 +110,7 @@ export default function StudioSettingsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-extrabold tracking-tight text-white">Settings</h1>
-        {savedFlash && <span className="text-xs font-semibold text-emerald-300">✓ Saved on this device</span>}
+        {savedFlash && <span className="text-xs font-semibold text-emerald-300">âœ“ Saved on this device</span>}
       </div>
 
       <StyleBrandingCard />
@@ -141,9 +141,9 @@ export default function StudioSettingsPage() {
 
       <Card className="p-4 sm:p-5">
         <div className="flex items-center justify-between">
-          <SectionLabel>AI — chat (Gemini)</SectionLabel>
+          <SectionLabel>AI â€” chat (Gemini)</SectionLabel>
           {serverAi?.serverGemini ? (
-            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Configured by the developer ✓</span>
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Configured by the developer âœ“</span>
           ) : isGeminiConfigured(settings) ? (
             <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Connected (this device)</span>
           ) : (
@@ -151,7 +151,7 @@ export default function StudioSettingsPage() {
           )}
         </div>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-          The developer sets <span className="font-mono text-zinc-300">GEMINI_API_KEY</span> in the app&apos;s environment once — then open questions and copywriting just work everywhere with nothing to enter.
+          The developer sets <span className="font-mono text-zinc-300">GEMINI_API_KEY</span> in the app&apos;s environment once â€” then open questions and copywriting just work everywhere with nothing to enter.
           For a personal local setup, paste a free key here instead (get one at{" "}
           <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="text-fuchsia-400 hover:underline">
             aistudio.google.com/apikey
@@ -166,7 +166,7 @@ export default function StudioSettingsPage() {
                 type={showKey ? "text" : "password"}
                 value={settings.geminiKey}
                 onChange={(e) => update({ geminiKey: e.target.value })}
-                placeholder="AIza…"
+                placeholder="AIzaâ€¦"
                 className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none"
               />
               <Button variant="ghost" className="!px-3" onClick={() => setShowKey((v) => !v)}>
@@ -181,21 +181,21 @@ export default function StudioSettingsPage() {
         </div>
         <div className="mt-3 flex items-center gap-2">
           <Button variant="ghost" onClick={() => void testGemini()} disabled={testing || !settings.geminiKey.trim()}>
-            {testing ? "Testing…" : "Test connection"}
+            {testing ? "Testingâ€¦" : "Test connection"}
           </Button>
           {testResult && (
             <span className={`text-xs ${testResult.ok ? "text-emerald-300" : "text-red-300"}`}>
-              {testResult.ok ? `✓ Gemini says: ${testResult.text}` : `✗ ${testResult.text}`}
+              {testResult.ok ? `âœ“ Gemini says: ${testResult.text}` : `âœ— ${testResult.text}`}
             </span>
           )}
         </div>
       </Card>
 
       <Card className="p-4 sm:p-5">
-        <SectionLabel>Image generation — choose the engine</SectionLabel>
+        <SectionLabel>Image generation â€” choose the engine</SectionLabel>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500">
           Cover art can be made by <span className="text-zinc-300">Gemini</span> (free tier) or{" "}
-          <span className="text-zinc-300">fal.ai</span> (top open models like Flux, Recraft and Ideogram — pay-per-image, free credits on signup at{" "}
+          <span className="text-zinc-300">fal.ai</span> (top open models like Flux, Recraft and Ideogram â€” pay-per-image, free credits on signup at{" "}
           <a href="https://fal.ai" target="_blank" rel="noreferrer" className="text-fuchsia-400 hover:underline">
             fal.ai
           </a>
@@ -204,7 +204,7 @@ export default function StudioSettingsPage() {
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {serverAi?.serverFal && (
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 sm:col-span-2">
-              ✓ fal.ai is pre-configured on the server (<span className="font-mono">FAL_KEY</span> set) — AI covers work with nothing to enter here.
+              âœ“ fal.ai is pre-configured on the server (<span className="font-mono">FAL_KEY</span> set) â€” AI covers work with nothing to enter here.
             </div>
           )}
           <label className="block">
@@ -214,8 +214,8 @@ export default function StudioSettingsPage() {
               onChange={(e) => update({ imageProvider: e.target.value as "gemini" | "fal" })}
               className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
             >
-              <option value="gemini">Gemini — free tier</option>
-              <option value="fal">fal.ai — Flux / Recraft / Ideogram</option>
+              <option value="gemini">Gemini â€” free tier</option>
+              <option value="fal">fal.ai â€” Flux / Recraft / Ideogram</option>
             </select>
           </label>
           <label className="block">
@@ -250,12 +250,12 @@ export default function StudioSettingsPage() {
               </Button>
             </div>
             <span className="mt-1 block text-[11px] text-zinc-600">
-              Find it at fal.ai → Settings → Keys. Or the developer sets <span className="font-mono">FAL_KEY</span> in the app environment and it works everywhere with nothing to enter.
+              Find it at fal.ai â†’ Settings â†’ Keys. Or the developer sets <span className="font-mono">FAL_KEY</span> in the app environment and it works everywhere with nothing to enter.
             </span>
           </label>
           <div className="flex items-end pb-1">
             <span className="text-[11px] text-zinc-500">
-              You can also switch engine per-project in the Artwork tab — the choice here is just the default.
+              You can also switch engine per-project in the Artwork tab â€” the choice here is just the default.
             </span>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function StudioSettingsPage() {
       <Card className="p-4 sm:p-5">
         <SectionLabel>Audio output</SectionLabel>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-          Route the studio&apos;s playback (library + master A/B preview) to a specific device — like the DDJ&apos;s sound card — instead of the laptop speakers. Pick the device, then play from the Library or Master tab.
+          Route the studio&apos;s playback (library + master A/B preview) to a specific device â€” like the DDJ&apos;s sound card â€” instead of the laptop speakers. Pick the device, then play from the Library or Master tab.
         </p>
         <div className="mt-3">
           <label className="block">
@@ -275,11 +275,11 @@ export default function StudioSettingsPage() {
               className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
             >
               <option value="">Default speakers / headphones</option>
-              <option value="__ddj__">🎚 DDJ-800 / controller (auto-detect)</option>
+              <option value="__ddj__">ðŸŽš DDJ-800 / controller (auto-detect)</option>
             </select>
           </label>
           <AudioDevicePicker current={settings.audioOutputDevice} onPick={(id, label) => { update({ audioOutputDevice: id }); setAudioDeviceLabel(label); }} />
-          {audioDeviceLabel && <p className="mt-2 text-[11px] text-zinc-500">Currently: {audioDeviceLabel} — output is set.</p>}
+          {audioDeviceLabel && <p className="mt-2 text-[11px] text-zinc-500">Currently: {audioDeviceLabel} â€” output is set.</p>}
           <p className="mt-2 text-[11px] text-zinc-600">
             For the DDJ to be the sound card: plug it in via USB, pick its device name below, and Chrome/Edge will play through it. Full deck mixing (jog wheels) still needs Rekordbox.
           </p>
@@ -307,10 +307,10 @@ export default function StudioSettingsPage() {
           {settings.emailPing && (
             <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-400">
               {emailStatus === null
-                ? "Checking email setup…"
+                ? "Checking email setupâ€¦"
                 : emailStatus.configured
-                  ? `✓ Email pings will go to ${emailStatus.to}`
-                  : "Email isn't wired up yet — add RESEND_API_KEY + STUDIO_NOTIFY_TO in .env.local (or Vercel env) to turn it on. The in-app ping & phone notification work right now."}
+                  ? `âœ“ Email pings will go to ${emailStatus.to}`
+                  : "Email isn't wired up yet â€” add RESEND_API_KEY + STUDIO_NOTIFY_TO in .env.local (or Vercel env) to turn it on. The in-app ping & phone notification work right now."}
             </div>
           )}
         </div>
@@ -318,9 +318,9 @@ export default function StudioSettingsPage() {
           <SectionLabel>Install as an app</SectionLabel>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Button onClick={() => void install()} disabled={!installEvt}>
-              📲 Install EMY Studio on this device
+              ðŸ“² Install EMY Studio on this device
             </Button>
-            <span className="text-xs text-zinc-500">Adds it to her home screen like a real app — offline capable, gets notifications.</span>
+            <span className="text-xs text-zinc-500">Adds it to her home screen like a real app â€” offline capable, gets notifications.</span>
           </div>
         </div>
       </Card>
@@ -328,10 +328,10 @@ export default function StudioSettingsPage() {
       {serverAi?.adminConfigured ? (
         <Card className="p-4 sm:p-5">
           <SectionLabel>Developer</SectionLabel>
-          <p className="mt-1 text-xs text-zinc-500">View artist improvement suggestions and the AI implementation plans — everything she sends lands here.</p>
+          <p className="mt-1 text-xs text-zinc-500">View artist improvement suggestions and the AI implementation plans â€” everything she sends lands here.</p>
           <div className="mt-3">
             <a href="/studio/admin" className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-fuchsia-500/60 hover:text-fuchsia-300">
-              🔧 Open the suggestion back end
+              ðŸ”§ Open the suggestion back end
             </a>
           </div>
         </Card>
@@ -377,8 +377,8 @@ function StyleBrandingCard() {
     <Card className="p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <SectionLabel>Style & branding — make it yours</SectionLabel>
-          <p className="mt-1 text-xs text-zinc-500">Colors, font, background, corners and logo — applied live to the whole app, stored on this device, no code.</p>
+          <SectionLabel>Style & branding â€” make it yours</SectionLabel>
+          <p className="mt-1 text-xs text-zinc-500">Colors, font, background, corners and logo â€” applied live to the whole app, stored on this device, no code.</p>
         </div>
         <Button variant="ghost" onClick={() => resetTheme()}>Reset to default</Button>
       </div>
@@ -485,7 +485,7 @@ function StyleBrandingCard() {
         <div>
           <div className="text-xs font-semibold text-zinc-300">{theme.logoDataUrl ? "Custom logo" : "Default 'E' mark"}</div>
           <div className="mt-1 flex gap-2">
-            <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => logoInputRef.current?.click()}>⬆ Upload logo</Button>
+            <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => logoInputRef.current?.click()}>â¬† Upload logo</Button>
             {theme.logoDataUrl && <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => patch({ logoDataUrl: null })}>Remove</Button>}
           </div>
         </div>
@@ -511,7 +511,7 @@ function AudioDevicePicker({ current, onPick }: { current: string; onPick: (id: 
 
   const load = () => {
     if (!navigator.mediaDevices?.enumerateDevices) {
-      setError("This browser can't list output devices — use Chrome or Edge.");
+      setError("This browser can't list output devices â€” use Chrome or Edge.");
       setLoaded(true);
       return;
     }
@@ -520,14 +520,14 @@ function AudioDevicePicker({ current, onPick }: { current: string; onPick: (id: 
       setDevices(outs);
       setLoaded(true);
     }).catch(() => {
-      setError("Couldn't list devices — click again after interacting with the page.");
+      setError("Couldn't list devices â€” click again after interacting with the page.");
       setLoaded(true);
     });
   };
 
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2">
-      <Button variant="ghost" onClick={load}>{loaded ? "↻ Refresh devices" : "Detect devices"}</Button>
+      <Button variant="ghost" onClick={load}>{loaded ? "â†» Refresh devices" : "Detect devices"}</Button>
       {devices.length > 0 && (
         <select
           value={current && current !== "__ddj__" ? current : ""}
