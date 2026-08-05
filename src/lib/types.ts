@@ -38,9 +38,11 @@ export interface RevenueStats {
 }
 
 export interface Contact {
-  name: string;
+  name?: string;
   role?: string;
   phone?: string;
+  whatsapp?: string;
   email?: string;
   instagram?: string;
+  decisionPower?: number;
 }
