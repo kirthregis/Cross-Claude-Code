@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server";
-import { sweep } from "@/lib/ingest";
+import { runAllSources } from "@/lib/sources";
+import { recordSweep } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
 
-/** Cron target. Call every 60s: GET /api/sweep with header x-cron-key. */
-export async function GET(req: Request) {
-  const key = process.env.CRON_KEY;
-  if (key && req.headers.get("x-cron-key") !== key) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export async function GET() {
+  try {
+    const result = await runAllSources();
+    recordSweep(result.found, result.inserted, result.errors);
+    return NextResponse.json({ ok: true, ...result });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: String(e) });
   }
-  const r = await sweep();
-  return NextResponse.json({
-    found: r.found, newGigs: r.newGigs, alerted: r.alerted,
-    digested: r.digested ?? 0,
-    errors: r.errors, at: new Date().toISOString(),
-  });
 }
