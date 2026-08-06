@@ -1,11 +1,23 @@
-/**
- * EMY Studio — shared types.
- * All data here is plain JSON so projects survive localStorage/IndexedDB and
- * could later be synced to a server. Nothing depends on the DOM.
- */
-
-export type ProjectKind = "mix" | "track";
+﻿export type ProjectKind = "mix" | "track";
 export type ProjectStage = "draft" | "master" | "art" | "release" | "done";
+
+export interface Collaborator {
+  id: string;
+  name: string;
+  role: string;
+  splitPct: number;
+  email: string;
+  wallet: string;
+}
+
+export interface SmartLinks {
+  spotify: string;
+  appleMusic: string;
+  youtube: string;
+  soundcloud: string;
+  tidal: string;
+  bandcamp: string;
+}
 
 export interface ProjectMeta {
   id: string;
@@ -16,32 +28,20 @@ export interface ProjectMeta {
   createdAt: number;
   updatedAt: number;
   stage: ProjectStage;
-  /** True once a master has been rendered and exported. */
   mastered: boolean;
-  /** True once artwork has been generated/exported. */
   artworkDone: boolean;
-  /** True once the release pack was generated. */
   releaseDone: boolean;
 }
 
 export interface MasterParams {
-  /** Integrated loudness target in LUFS (YouTube/Spotify -14, Apple -16). */
   targetLufs: number;
-  /** Low shelf gain @ 90 Hz, dB, -6..+6 */
   lowGainDb: number;
-  /** Peaking gain @ 1 kHz, dB, -4..+4 */
   midGainDb: number;
-  /** High shelf gain @ 8 kHz, dB, -6..+6 */
   highGainDb: number;
-  /** 30 Hz rumble high-pass on/off. */
   rumbleFilter: boolean;
-  /** Compressor threshold dBFS, -40..0 */
   compThreshold: number;
-  /** Compressor ratio, 1..8 */
   compRatio: number;
-  /** Soft-knee limiter drive 0..1 (0 = off). */
   limiterDrive: number;
-  /** True-peak ceiling dBFS, -3..0, default -1. */
   ceilingDb: number;
 }
 
@@ -58,40 +58,10 @@ export const DEFAULT_MASTER_PARAMS: MasterParams = {
 };
 
 export const MASTER_PRESETS: Record<string, { label: string; params: MasterParams }> = {
-  youtube: {
-    label: "YouTube / Spotify (-14 LUFS)",
-    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14 },
-  },
-  apple: {
-    label: "Apple Music (-16 LUFS)",
-    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -16 },
-  },
-  club: {
-    label: "Club / Label (-9 LUFS, loud)",
-    params: {
-      ...DEFAULT_MASTER_PARAMS,
-      targetLufs: -9,
-      compThreshold: -18,
-      compRatio: 3,
-      limiterDrive: 0.8,
-      ceilingDb: -0.6,
-    },
-  },
-  gentle: {
-    label: "Gentle (normalize only)",
-    params: {
-      ...DEFAULT_MASTER_PARAMS,
-      targetLufs: -14,
-      lowGainDb: 0,
-      midGainDb: 0,
-      highGainDb: 0,
-      rumbleFilter: true,
-      compThreshold: -24,
-      compRatio: 1.4,
-      limiterDrive: 0.35,
-      ceilingDb: -1.5,
-    },
-  },
+  youtube: { label: "YouTube / Spotify (-14 LUFS)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14 } },
+  apple: { label: "Apple Music (-16 LUFS)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -16 } },
+  club: { label: "Club / Label (-9 LUFS, loud)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -9, compThreshold: -18, compRatio: 3, limiterDrive: 0.8, ceilingDb: -0.6 } },
+  gentle: { label: "Gentle (normalize only)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14, compThreshold: -24, compRatio: 1.4, limiterDrive: 0.35, ceilingDb: -1.5 } },
 };
 
 export interface AudioInfo {
@@ -114,7 +84,6 @@ export interface MasterResult {
   exportedWav16?: boolean;
   exportedWav24?: boolean;
   exportSizeBytes?: number;
-  /** blob:url kept only in memory during the session */
   blobUrl?: string;
 }
 
@@ -156,6 +125,8 @@ export interface Project {
   release?: ReleaseMeta;
   masterParams: MasterParams;
   chatHistory: ChatTurn[];
+  collaborators?: Collaborator[];
+  smartLinks?: SmartLinks;
 }
 
 export interface ChatTurn {
@@ -176,17 +147,17 @@ export interface StudioSettings {
   geminiKey: string;
   geminiTextModel: string;
   geminiImageModel: string;
-  /** Which engine powers AI cover art: "gemini" (free) or "fal" (fal.ai). */
   imageProvider: "gemini" | "fal";
   falKey: string;
   falModel: string;
   defaultTargetLufs: number;
   emailPing: boolean;
   soundOn: boolean;
-  /** Assistant's spoken voice: prefer a male or female TTS voice, or auto. */
   voiceGender: "male" | "female" | "auto";
-  /** Audio output device id (e.g. a DJ controller's sound card). "" = default. */
   audioOutputDevice: string;
+  youtubeApiKey: string;
+  spotifyClientId: string;
+  spotifyClientSecret: string;
 }
 
 export const DEFAULT_SETTINGS: StudioSettings = {
@@ -208,26 +179,18 @@ export const DEFAULT_SETTINGS: StudioSettings = {
   soundOn: true,
   voiceGender: "male",
   audioOutputDevice: "",
+  youtubeApiKey: "",
+  spotifyClientId: "",
+  spotifyClientSecret: "",
 };
 
 export type AssistantIntent =
-  | "greet"
-  | "create_project"
-  | "open_project"
-  | "list_projects"
-  | "master"
-  | "artwork"
-  | "release"
-  | "check"
-  | "status"
-  | "settings"
-  | "help"
-  | "thanks"
-  | "fallback";
+  | "greet" | "create_project" | "open_project" | "list_projects"
+  | "master" | "artwork" | "release" | "check" | "status"
+  | "settings" | "help" | "thanks" | "fallback";
 
 export interface AssistantDecision {
   intent: AssistantIntent;
   reply: string;
-  /** optional client action to perform after replying */
   action?: { type: "navigate"; to: string } | { type: "createProject"; name: string; kind: ProjectKind };
 }
