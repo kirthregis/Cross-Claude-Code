@@ -4,17 +4,25 @@ import { useEffect } from "react";
 
 /**
  * Registers the EMY Studio service worker (offline support + notifications)
- * and, on installable browsers, lets users add the app to their home screen.
+ * and ensures any stale service worker caches are purged immediately.
  */
 export function PwaRegister() {
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        /* offline support is best-effort */
-      });
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => {
+          reg.update().catch(() => {});
+        })
+        .catch(() => {
+          /* offline support is best-effort */
+        });
     }
+
     if ("Notification" in window && Notification.permission === "default") {
-      // ask only after the user has interacted with the studio
+      // ask only after user has interacted with the studio
       const onFirstClick = () => {
         window.removeEventListener("pointerdown", onFirstClick);
         Notification.requestPermission().catch(() => {});
@@ -22,5 +30,6 @@ export function PwaRegister() {
       window.addEventListener("pointerdown", onFirstClick, { once: true });
     }
   }, []);
+
   return null;
 }
