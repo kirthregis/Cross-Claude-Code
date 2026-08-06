@@ -275,11 +275,30 @@ export default function StudioSettingsPage() {
 function StyleBrandingCard() {
   const theme = useTheme();
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const patch = (p: Partial<ThemeSettings>) => saveTheme({ ...theme, ...p });
+
+  const applyBrandLive = (t: ThemeSettings) => {
+    if (typeof document !== "undefined") {
+      document.documentElement.style.setProperty("--brand-primary", t.primary);
+      document.documentElement.style.setProperty("--brand-accent", t.accent);
+      document.documentElement.style.setProperty("--brand-bg", t.background);
+      document.body.style.background = t.background;
+    }
+  };
+
+  const patch = (p: Partial<ThemeSettings>) => {
+    const updated = { ...theme, ...p };
+    applyBrandLive(updated);
+    saveTheme(updated);
+  };
+
   const onLogo = async (file: File | undefined) => {
     if (!file) return;
-    try { const dataUrl = await downscaleLogo(file); patch({ logoDataUrl: dataUrl }); } catch {}
+    try {
+      const dataUrl = await downscaleLogo(file);
+      patch({ logoDataUrl: dataUrl });
+    } catch {}
   };
+
   return (
     <Card className="p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -293,7 +312,7 @@ function StyleBrandingCard() {
         <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Preset themes</span>
         <div className="mt-2 flex flex-wrap gap-2">
           {THEME_PRESETS.map(p => (
-            <button key={p.id} onClick={() => saveTheme({ ...theme, primary: p.primary, accent: p.accent, background: p.background })}
+            <button key={p.id} onClick={() => patch({ primary: p.primary, accent: p.accent, background: p.background })}
               className={"flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition " + (theme.primary === p.primary ? "border-fuchsia-500/70 bg-zinc-800 text-white" : "border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-zinc-500")}
               style={{ borderLeft: "4px solid " + p.primary }}>
               <span className="h-3 w-3 rounded-full" style={{ background: "linear-gradient(135deg, " + p.primary + ", " + p.accent + ")" }} />
