@@ -51,6 +51,3 @@ worker/.wrangler
 
 # .env.example is committed for documentation (real envs stay ignored)
 !.env.example
-
-# Build scripts
-*.py
