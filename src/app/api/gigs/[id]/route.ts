@@ -1,20 +1,22 @@
-﻿import { NextResponse } from "next/server";
-import { getGig, updateGigStage, saveGigs, getGigs } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { getGig, saveGigs, getGigs } from "@/lib/db";
 import type { GigStage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const gig = getGig(params.id);
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const gig = getGig(id);
   if (!gig) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ gig });
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const body = await req.json() as { stage?: GigStage; feeAed?: number; notes?: string };
+    const { id } = await params;
+    const body = (await req.json()) as { stage?: GigStage; feeAed?: number; notes?: string };
     const gigs = getGigs();
-    const idx = gigs.findIndex(g => g.id === params.id);
+    const idx = gigs.findIndex((g) => g.id === id);
     if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
     if (body.stage) gigs[idx].stage = body.stage;
     if (body.feeAed !== undefined) gigs[idx].feeAed = body.feeAed;

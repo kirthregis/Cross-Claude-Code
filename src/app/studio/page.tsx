@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,10 +23,10 @@ export default function StudioHome() {
   const [genre, setGenre] = useState(settings.defaultGenre);
   const [mood, setMood] = useState("Deep, energetic, hypnotic");
 
-  const makeProject = (projectName: string, k: ProjectKind = kind, g = genre, m = mood) => {
+  const makeProject = (projectName: string, k: ProjectKind = kind, g = genre, m = mood, initialTab = "assistant") => {
     const p = createProject({ name: projectName, kind: k, genre: g, mood: m });
     saveSettings({ ...settings, defaultKind: k, defaultGenre: g });
-    router.push("/studio/p/" + p.meta.id + "?tab=assistant");
+    router.push("/studio/p/" + p.meta.id + "?tab=" + initialTab);
   };
 
   return (
@@ -102,8 +102,15 @@ export default function StudioHome() {
           { icon: "🎨", title: "Cover art in seconds", text: "AI-designed covers (Gemini or fal.ai) or offline templates, exported at 3000×3000.", tab: "artwork" as const },
           { icon: "📦", title: "Release-ready", text: "Title, description, tags, checks — formatted so YouTube and labels accept it first time.", tab: "release" as const },
         ].map(f => (
-          <button key={f.title} onClick={() => { if (projects.length === 0) { setShowForm(true); return; } router.push("/studio/p/" + projects[0].meta.id + "?tab=" + f.tab); }}
-            className="group rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4 text-left transition brand-hover-border hover:bg-zinc-900">
+          <button key={f.title} onClick={() => {
+            if (projects.length === 0) {
+              makeProject("Afro House Mix", "mix", undefined, undefined, f.tab);
+              return;
+            }
+            router.push("/studio/p/" + projects[0].meta.id + "?tab=" + f.tab);
+          }}
+            className="group rounded-2xl border border-zinc-800/70 bg-zinc-900/40 p-4 text-left transition brand-hover-border hover:bg-zinc-900"
+          >
             <div className="text-2xl">{f.icon}</div>
             <div className="mt-2 text-sm font-semibold text-zinc-200 group-hover:text-fuchsia-300">{f.title}</div>
             <div className="mt-1 text-xs leading-relaxed text-zinc-500">{f.text}</div>
@@ -111,13 +118,33 @@ export default function StudioHome() {
         ))}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/studio/gigradar" className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900/70 to-zinc-900/30 px-4 py-3.5 transition hover:border-fuchsia-500/50">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎯</span>
             <div>
               <div className="text-sm font-bold text-zinc-100">GigRadar</div>
               <div className="text-xs text-zinc-500">Find gigs, generate AI pitch emails, track revenue from UAE venues.</div>
+            </div>
+          </div>
+          <span className="brand-text shrink-0">Open →</span>
+        </Link>
+        <Link href="/studio/library" className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900/70 to-zinc-900/30 px-4 py-3.5 transition hover:border-fuchsia-500/50">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎵</span>
+            <div>
+              <div className="text-sm font-bold text-zinc-100">Music Library</div>
+              <div className="text-xs text-zinc-500">Offline track storage & Pioneer DDJ audio output routing.</div>
+            </div>
+          </div>
+          <span className="brand-text shrink-0">Open →</span>
+        </Link>
+        <Link href="/studio/planner" className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900/70 to-zinc-900/30 px-4 py-3.5 transition hover:border-fuchsia-500/50">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📋</span>
+            <div>
+              <div className="text-sm font-bold text-zinc-100">Gig Planner & Riders</div>
+              <div className="text-xs text-zinc-500">Setlists, custom tech riders, contracts and auto-invoices.</div>
             </div>
           </div>
           <span className="brand-text shrink-0">Open →</span>

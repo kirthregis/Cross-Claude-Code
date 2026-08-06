@@ -22,6 +22,7 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
 };
 
 function getClientId(): string {
+  if (typeof window === "undefined") return "server";
   const KEY = "emy-studio-client-id";
   try {
     let id = localStorage.getItem(KEY);

@@ -3,7 +3,7 @@ import { applyBiquad, biquadHighPass, biquadHighShelf, biquadLowShelf, biquadPea
 import { buildDescription, buildFileName, buildRelease, buildTags, buildTitle, checksSummary, runComplianceChecks, youtubeHandoff } from "../release";
 import { replyForIntent, routeCommand, summarizeProject } from "../assistant";
 import { createProject } from "../store";
-import { DEFAULT_SETTINGS } from "../types";
+import { DEFAULT_SETTINGS, type Project, type ProjectMeta } from "../types";
 import { encodeWav } from "../wav";
 
 describe("dsp", () => {
@@ -124,9 +124,9 @@ describe("wav", () => {
   });
 });
 
-function makeProject(over: Partial<ReturnType<typeof createProject>> = {}) {
+function makeProject(over?: Partial<Omit<Project, "meta">> & { meta?: Partial<ProjectMeta> }): Project {
   const p = createProject({ name: "Afro House Mix 2026", kind: "mix", genre: "Afro House", mood: "deep" });
-  return { ...p, ...over, meta: { ...p.meta, ...(over.meta ?? {}) } };
+  return { ...p, ...(over || {}), meta: { ...p.meta, ...(over?.meta ?? {}) } };
 }
 
 describe("release", () => {

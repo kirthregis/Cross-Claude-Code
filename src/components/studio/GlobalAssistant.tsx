@@ -7,7 +7,7 @@ import { replyForIntent, routeCommand } from "@/lib/studio/assistant";
 import { geminiChat, isGeminiConfigured } from "@/lib/studio/gemini";
 import { getServerAiStatus, serverTextChat } from "@/lib/studio/server-ai";
 import { speak, speechSupported, startListening } from "@/lib/studio/speech";
-import { createProject, loadProjects, loadSettings, upsertProject } from "@/lib/studio/store";
+import { createProject, loadProjects, loadSettings } from "@/lib/studio/store";
 
 const QUICK = ["Master my mix", "Make the cover art", "Build the release pack", "Is it ready?", "Open the library", "Open my EPK"];
 

@@ -8,6 +8,7 @@ export function useArabic() {
   const [arabic, setArabicState] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved === "true") {
@@ -20,6 +21,7 @@ export function useArabic() {
 
   const setArabic = (val: boolean) => {
     setArabicState(val);
+    if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_KEY, String(val));
       document.documentElement.setAttribute("dir", val ? "rtl" : "ltr");
@@ -36,10 +38,10 @@ export function ArabicToggle() {
   return (
     <button
       onClick={() => setArabic(!arabic)}
-      className="fixed bottom-24 right-4 z-50 rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 shadow-lg hover:text-white sm:bottom-6"
+      className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-zinc-500 hover:text-white"
       title="Toggle Arabic / English"
     >
-      {arabic ? "🇬🇧 English" : "🇦🇪 عربي"}
+      {arabic ? "🇬🇧 EN" : "🇦🇪 AR"}
     </button>
   );
 }

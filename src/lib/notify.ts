@@ -1,52 +1,91 @@
-import { Gig } from "./types";
+import type { Gig } from "./types";
 import {
   sendWhatsApp,
   sendEmail,
   whatsappConfigured,
   emailConfigured,
-  actionLinks,
+  whatsappDeepLink,
 } from "./channels";
 import { logAlert, deferAlert, pendingDeferred, markDeferredReleased } from "./db";
-import { pitch } from "./outreach";
+import { pitch, quoteFor, pitchFee } from "./outreach";
 
-export function isQuietHours(): boolean {
-  const hour = new Date().getHours();
-  return hour >= 2 && hour < 8;
+export function isQuietHours(now: Date = new Date()): boolean {
+  const dubaiHour = (now.getUTCHours() + 4) % 24;
+  return dubaiHour >= 2 && dubaiHour < 9;
 }
 
-export function isDigestTime(): boolean {
-  const hour = new Date().getHours();
-  return hour === 8;
+export function isDigestTime(now: Date = new Date()): boolean {
+  const dubaiHour = (now.getUTCHours() + 4) % 24;
+  return dubaiHour === 9;
 }
 
 export interface AlertResult {
   sent: string[];
-  deferred: boolean;
+  deferred?: boolean;
+  skipped?: string;
 }
 
-export async function alert(gig: Gig, score: { score: number }): Promise<AlertResult> {
-  if (score.score < 40) return { sent: [], deferred: false };
+export function buildPlainMessage(
+  gig: Gig,
+  score: { score: number; rationale?: string[] },
+): string {
+  const appUrl = process.env.APP_URL || "https://emy-studio-rho.vercel.app";
+  const quote = quoteFor(gig);
+  const ask = pitchFee(gig) || quote.askAed;
 
-  if (isQuietHours()) {
+  const phoneContact = gig.contacts?.find((c) => c.phone || c.whatsapp);
+  const rawPhone = phoneContact?.whatsapp || phoneContact?.phone;
+  const phoneMatch = !rawPhone ? gig.body.match(/(?:\+971|00971|05)\s*\d[\d\s-]{6,12}/) : null;
+  const phone = rawPhone || (phoneMatch ? phoneMatch[0] : null);
+
+  const lines: string[] = [];
+  lines.push(`New Gig Lead (${score.score}/100)`);
+  lines.push(`${gig.title}`);
+
+  if (gig.venueName) {
+    lines.push(`Venue: ${gig.venueName}`);
+  }
+
+  lines.push(`Ask AED: ${ask.toLocaleString()}`);
+
+  if (phone) {
+    lines.push(`WhatsApp Contact: ${whatsappDeepLink(phone, `Hi, enquiry regarding ${gig.title}`)}`);
+  }
+
+  lines.push(`Gig Details: ${appUrl}/gig/${gig.id}`);
+
+  return lines.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+export async function alert(
+  gig: Gig,
+  score: { score: number; tier?: string; rationale?: string[] },
+  now: Date = new Date(),
+): Promise<AlertResult> {
+  const isUrgent = score.tier === "urgent";
+
+  if (!isUrgent && isQuietHours(now)) {
     deferAlert(gig.id);
-    return { sent: [], deferred: true };
+    return {
+      sent: [],
+      deferred: true,
+      skipped: "queued for morning digest (quiet hours)",
+    };
   }
 
   const sent: string[] = [];
-  const links = actionLinks(gig);
-  const message = `🎯 New gig match!\n\n${gig.title}\nSource: ${gig.sourceName}\n\nView: ${links.view}`;
+  const message = buildPlainMessage(gig, score);
 
   if (whatsappConfigured()) {
-    const ok = await sendWhatsApp("971503443281", message);
+    const to = process.env.WHATSAPP_TO || "971503443281";
+    const ok = await sendWhatsApp(to, message);
     if (ok) sent.push("whatsapp");
   }
 
   if (emailConfigured()) {
-    const ok = await sendEmail(
-      "emy@emystudio.com",
-      `New Gig: ${gig.title}`,
-      pitch(gig)
-    );
+    const to = process.env.STUDIO_NOTIFY_TO || "admin@emyvisiongroup.com";
+    const p = pitch(gig, "email");
+    const ok = await sendEmail(to, p.subject || `New Lead: ${gig.title}`, p.body);
     if (ok) sent.push("email");
   }
 

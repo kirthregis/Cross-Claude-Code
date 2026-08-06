@@ -1,54 +1,66 @@
+import { DJ_EMY, type ArtistProfile } from "./artist";
 import { db } from "./db";
+import { setProfileLoader, invalidateProfileCache } from "./active-profile";
 
-export interface ArtistProfile {
-  name: string;
-  genres: string[];
-  rateAed: number;
-  ratesAreEstimated: boolean;
-  bio: string;
-  instagram?: string;
-  soundcloud?: string;
-  email?: string;
-  phone?: string;
-  preferredVenues?: string[];
-  blacklistedVenues?: string[];
+const PROFILE_KEY = "emy-artist-profile-v2";
+
+function isObject(val: unknown): val is Record<string, unknown> {
+  return typeof val === "object" && val !== null && !Array.isArray(val);
 }
 
-const PROFILE_KEY = "emy-artist-profile";
-
-const DEFAULT_PROFILE: ArtistProfile = {
-  name: "Emy",
-  genres: ["Afro House", "Afro Tech", "Tribal"],
-  rateAed: 3000,
-  ratesAreEstimated: true,
-  bio: "Dubai-based DJ and performer specialising in Afro House.",
-};
+function deepMerge<T>(base: T, patch: unknown): T {
+  if (!isObject(base) || !isObject(patch)) return (patch !== undefined ? patch : base) as T;
+  const result: Record<string, unknown> = { ...base };
+  for (const key of Object.keys(patch)) {
+    const patchVal = patch[key];
+    const baseVal = result[key];
+    if (patchVal === undefined) continue;
+    if (isObject(baseVal) && isObject(patchVal)) {
+      result[key] = deepMerge(baseVal, patchVal);
+    } else {
+      result[key] = patchVal;
+    }
+  }
+  return result as T;
+}
 
 export function getProfile(): ArtistProfile {
   const saved = db.get(PROFILE_KEY);
-  return saved ? { ...DEFAULT_PROFILE, ...saved } : DEFAULT_PROFILE;
+  if (!saved || typeof saved !== "object") return DJ_EMY;
+  return deepMerge<ArtistProfile>(DJ_EMY, saved);
 }
 
-export function saveProfile(profile: Partial<ArtistProfile>) {
+export function saveProfile(patch: Partial<ArtistProfile>): void {
   const current = getProfile();
-  db.set(PROFILE_KEY, { ...current, ...profile });
+  const updated = deepMerge<ArtistProfile>(current, patch);
+  db.set(PROFILE_KEY, updated);
+  invalidateProfileCache();
 }
 
 export function profileGaps(): string[] {
   const p = getProfile();
   const gaps: string[] = [];
-  if (!p.instagram) gaps.push("Instagram handle missing");
+
+  if (!p.name) gaps.push("Artist name missing");
+  if (!p.legalName) gaps.push("Artist full legal name missing");
   if (!p.email) gaps.push("Email missing");
-  if (!p.bio || p.bio.length < 20) gaps.push("Bio too short");
-  if (p.ratesAreEstimated) gaps.push("Rate is estimated — confirm your real rate");
+  if (!p.phone) gaps.push("Phone missing");
+  if (!p.management?.company) gaps.push("Management company missing");
+  if (!p.management?.tradeLicenceNo) gaps.push("EVG trade licence number missing");
+  if (!p.management?.bank?.iban) gaps.push("Bank IBAN missing");
+  if (!p.management?.bank?.swift) gaps.push("Bank SWIFT missing");
+
   return gaps;
 }
 
 export function ratesAreEstimates(): boolean {
-  return getProfile().ratesAreEstimated;
+  return false;
 }
 
-export function registerProfileLoader() {
-  const profile = getProfile();
-  return profile;
+export function registerProfileLoader(): () => ArtistProfile {
+  setProfileLoader(getProfile);
+  return getProfile;
 }
+
+// Auto-register on import
+setProfileLoader(getProfile);

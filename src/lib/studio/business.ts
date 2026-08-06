@@ -1,5 +1,3 @@
-﻿import { GigRevenue } from "./gigradar-ai";
-
 export interface Invoice {
   id: string;
   gigId: string;
