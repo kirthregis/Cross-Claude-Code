@@ -61,6 +61,16 @@ export default function GigRadarPage() {
       const data = await res.json();
       const errCount = data.errors?.length ?? 0;
       const srcCount = (data.sources ?? []).filter((s: {found: number}) => s.found > 0).length;
+      // Save returned gigs into browser localStorage so they appear in the UI
+      if (data.gigs && data.gigs.length > 0) {
+        try {
+          const existing = JSON.parse(localStorage.getItem("emy-gigs-db") || "[]");
+          const existingIds = new Set(existing.map((g: {id: string}) => g.id));
+          const incoming = (data.gigs as {id: string}[]).filter(g => !existingIds.has(g.id));
+          const merged = [...incoming, ...existing].slice(0, 500);
+          localStorage.setItem("emy-gigs-db", JSON.stringify(merged));
+        } catch {}
+      }
       setSweepResult(
         "Scanned " + srcCount + " sources. Found " + data.found + " leads. " +
         data.newGigs + " new gigs added." +

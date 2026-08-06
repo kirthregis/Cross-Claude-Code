@@ -17,6 +17,7 @@ export async function GET(req: Request) {
     digested: r.digested ?? 0,
     errors: r.errors,
     sources: r.sources ?? [],
+    gigs: r.gigs ?? [],
     at: new Date().toISOString(),
   });
 }
