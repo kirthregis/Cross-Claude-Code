@@ -52,7 +52,7 @@ export default function ProjectEditorClient({ id }: { id: string }) {
   }, [id]);
 
   // ── PUBLIC VIEW ──────────────────────────────────────────────────────
-  if (isPublic && notFound) {
+  if (isPublic || (project && !getProject(id))) {
     if (notFound) return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
         <div className="text-center">
