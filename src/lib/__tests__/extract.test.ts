@@ -91,6 +91,6 @@ describe("full normalise", () => {
     expect(g.setLengthMins).toBe(120);
     expect(g.slot).toBe("peak");
     expect(g.genresWanted).toContain("Afro House");
-    expect(g.contacts.some((c) => c.whatsapp)).toBe(true);
+    expect(g.contacts?.some((c) => c.whatsapp)).toBe(true);
   });
 });

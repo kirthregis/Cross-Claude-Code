@@ -1,29 +1,50 @@
 import { NextResponse } from "next/server";
 import { addStudioFeedback, listStudioFeedback } from "@/lib/db";
+import { analyzeSuggestion, thanksReply } from "@/lib/studio/improve";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const items = listStudioFeedback();
-  return NextResponse.json({ items, total: items.length });
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const clientId = searchParams.get("clientId") || undefined;
+  const items = listStudioFeedback(clientId);
+  return NextResponse.json({ ok: true, items, total: items.length });
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { message } = body;
+    const text = (body.text || body.message || "").trim();
+    const clientId = body.clientId;
 
-    if (!message || typeof message !== "string") {
+    if (!text || text.length < 2) {
       return NextResponse.json(
-        { error: "message is required" },
-        { status: 400 }
+        { ok: false, error: "Feedback text is required." },
+        { status: 400 },
       );
     }
 
-    const item = addStudioFeedback(message);
+    const analysis = analyzeSuggestion(text);
+    const item = addStudioFeedback({
+      clientId,
+      text,
+      message: text,
+      category: analysis.category,
+      priority: analysis.priority,
+      plan: analysis.plan,
+      status: "new",
+    });
 
-    return NextResponse.json({ ok: true, item });
+    const reply = thanksReply(analysis, item.id);
+
+    return NextResponse.json({
+      ok: true,
+      id: item.id,
+      reply,
+      category: analysis.category,
+      item,
+    });
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 400 });
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 400 });
   }
 }

@@ -84,13 +84,29 @@ export const DEFAULT_THEME: ThemeSettings = {
 
 const KEY = "emy-studio-theme-v1";
 
-function read(): ThemeSettings {
+let themeCache: { raw: string | null; theme: ThemeSettings } | null = null;
+
+export function loadTheme(): ThemeSettings {
   if (typeof window === "undefined") return DEFAULT_THEME;
+  let raw: string | null = null;
   try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return DEFAULT_THEME;
+    raw = window.localStorage.getItem(KEY);
+  } catch {
+    return DEFAULT_THEME;
+  }
+
+  if (themeCache && themeCache.raw === raw) {
+    return themeCache.theme;
+  }
+
+  if (!raw) {
+    themeCache = { raw: null, theme: DEFAULT_THEME };
+    return DEFAULT_THEME;
+  }
+
+  try {
     const p = JSON.parse(raw) as Partial<ThemeSettings>;
-    return {
+    const theme: ThemeSettings = {
       primary: typeof p.primary === "string" && p.primary ? p.primary : DEFAULT_THEME.primary,
       accent: typeof p.accent === "string" && p.accent ? p.accent : DEFAULT_THEME.accent,
       background: typeof p.background === "string" && p.background ? p.background : DEFAULT_THEME.background,
@@ -98,14 +114,19 @@ function read(): ThemeSettings {
       radius: (RADIUS_OPTIONS.some((r) => r.id === p.radius) ? p.radius : DEFAULT_THEME.radius) as ThemeRadius,
       logoDataUrl: typeof p.logoDataUrl === "string" ? p.logoDataUrl : null,
     };
+    themeCache = { raw, theme };
+    return theme;
   } catch {
+    themeCache = { raw, theme: DEFAULT_THEME };
     return DEFAULT_THEME;
   }
 }
 
 export function saveTheme(t: ThemeSettings): void {
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(t));
+    const raw = JSON.stringify(t);
+    window.localStorage.setItem(KEY, raw);
+    themeCache = { raw, theme: t };
   } catch {
     /* noop */
   }
@@ -115,6 +136,7 @@ export function saveTheme(t: ThemeSettings): void {
 export function resetTheme(): void {
   try {
     window.localStorage.removeItem(KEY);
+    themeCache = { raw: null, theme: DEFAULT_THEME };
   } catch {
     /* noop */
   }
@@ -133,7 +155,7 @@ function subscribe(l: () => void): () => void {
 }
 
 export function useTheme(): ThemeSettings {
-  return useSyncExternalStore(subscribe, read, () => DEFAULT_THEME);
+  return useSyncExternalStore(subscribe, loadTheme, () => DEFAULT_THEME);
 }
 
 export function fontStack(font: ThemeFont): string {

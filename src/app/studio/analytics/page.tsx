@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 import { Suspense } from "react";
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
-import { useSettings, saveSettings } from "@/lib/studio/store";
+import { useSettings } from "@/lib/studio/store";
 import {
   fetchYoutubeStats, formatCount, type YoutubeStats,
   fetchSpotifyStats, type SpotifyStats,
@@ -205,7 +205,7 @@ function AnalyticsPageInner() {
                 <p className="font-semibold text-zinc-300">Setup (one time):</p>
                 <ol className="list-decimal space-y-1.5 pl-4">
                   <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" className="text-fuchsia-400 hover:underline">developer.spotify.com/dashboard</a> — log in with your Spotify account.</li>
-                  <li>Click "Create app". Name: "EMY Studio". Redirect URI: <span className="font-mono text-zinc-300">{typeof window !== "undefined" ? window.location.origin : "https://yoursite.com"}/studio/analytics</span></li>
+                  <li>Click &quot;Create app&quot;. Name: &quot;EMY Studio&quot;. Redirect URI: <span className="font-mono text-zinc-300">{typeof window !== "undefined" ? window.location.origin : "https://yoursite.com"}/studio/analytics</span></li>
                   <li>Copy the <strong className="text-zinc-200">Client ID</strong> and paste it in Settings → Spotify Client ID.</li>
                   <li>Find your <strong className="text-zinc-200">Artist ID</strong>: open Spotify → your artist profile → Share → Copy link → the ID is the string after /artist/</li>
                   <li>Paste Artist ID in Settings → Spotify Artist ID.</li>

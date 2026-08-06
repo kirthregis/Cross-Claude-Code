@@ -7,7 +7,6 @@ import {
   getEpkBlob,
   getEpkPortraitDataUrl,
   getEpkState,
-  loadEpkNotes,
   removeEpkFile,
   saveEpkFile,
   saveEpkNotes,

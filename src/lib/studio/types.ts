@@ -1,4 +1,4 @@
-﻿export type ProjectKind = "mix" | "track";
+export type ProjectKind = "mix" | "track";
 export type ProjectStage = "draft" | "master" | "art" | "release" | "done";
 
 export interface Collaborator {
@@ -189,7 +189,8 @@ export const DEFAULT_SETTINGS: StudioSettings = {
 export type AssistantIntent =
   | "greet" | "create_project" | "open_project" | "list_projects"
   | "master" | "artwork" | "release" | "check" | "status"
-  | "settings" | "help" | "thanks" | "fallback";
+  | "settings" | "help" | "thanks" | "fallback"
+  | "gigradar" | "analytics" | "distribute" | "community" | "epk";
 
 export interface AssistantDecision {
   intent: AssistantIntent;

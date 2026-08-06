@@ -1,5 +1,5 @@
-﻿"use client";
-import { useState, useCallback } from "react";
+"use client";
+import { useState } from "react";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
 import BusinessSuite from "@/components/studio/BusinessSuite";
 import {
@@ -7,7 +7,7 @@ import {
   type Setlist, type SetlistTrack,
 } from "@/lib/db";
 import { getGigs } from "@/lib/db";
-import { generateDealPack, deriveTerms, type DealTerms } from "@/lib/contract";
+import { generateDealPack, type DealTerms } from "@/lib/contract";
 import type { Gig } from "@/lib/types";
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ export default function PlannerPage() {
   const [newTrack, setNewTrack] = useState<Partial<SetlistTrack>>({ name: "", artist: "" });
 
   // Contract state
-  const [gigs, setGigs] = useState<Gig[]>(() => getGigs());
+  const [gigs] = useState<Gig[]>(() => getGigs());
   const [selectedGigId, setSelectedGigId] = useState<string>("");
   const [terms, setTerms] = useState<Partial<DealTerms>>({});
   const [dealPack, setDealPack] = useState<ReturnType<typeof generateDealPack> | null>(null);

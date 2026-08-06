@@ -1,22 +1,58 @@
-import { Gig, GigStage, RevenueStats } from "./types";
+import type { Gig, GigStage, RevenueStats } from "./types";
 
 const GIG_KEY = "emy-gigs-db";
 const SWEEP_KEY = "emy-sweep-log";
 const ALERT_KEY = "emy-alert-log";
 const DEFER_KEY = "emy-defer-log";
+const FEEDBACK_KEY = "emy-studio-feedback";
+const SETLIST_KEY = "emy-setlists";
+
+// In-memory / file fallback for server or tests where localStorage is absent
+const memoryStore = new Map<string, string>();
+
+function getDbStore(): { getItem: (k: string) => string | null; setItem: (k: string, v: string) => void; removeItem: (k: string) => void; clear: () => void } {
+  if (typeof window !== "undefined" && window.localStorage) {
+    return window.localStorage;
+  }
+  // When running in Node with DB_PATH or tests:
+  const prefix = process.env.DB_PATH ? `${process.env.DB_PATH}:` : "";
+  return {
+    getItem: (k: string) => memoryStore.get(prefix + k) ?? null,
+    setItem: (k: string, v: string) => { memoryStore.set(prefix + k, v); },
+    removeItem: (k: string) => { memoryStore.delete(prefix + k); },
+    clear: () => {
+      if (prefix) {
+        for (const k of Array.from(memoryStore.keys())) {
+          if (k.startsWith(prefix)) memoryStore.delete(k);
+        }
+      } else {
+        memoryStore.clear();
+      }
+    },
+  };
+}
+
+export function closeDb(): void {
+  getDbStore().clear();
+}
 
 // ── Gig CRUD ─────────────────────────────────────────────────
 
 export function getGigs(): Gig[] {
-  if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(GIG_KEY) || "[]");
-  } catch { return []; }
+    const raw = getDbStore().getItem(GIG_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
 }
 
-export function saveGigs(gigs: Gig[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(GIG_KEY, JSON.stringify(gigs));
+export function saveGigs(gigs: Gig[]): void {
+  try {
+    getDbStore().setItem(GIG_KEY, JSON.stringify(gigs));
+  } catch {
+    /* noop */
+  }
 }
 
 export function getGig(id: string): Gig | undefined {
@@ -27,18 +63,21 @@ export function listGigs(): Gig[] {
   return getGigs();
 }
 
-export function upsertGig(gig: Gig) {
+export function upsertGig(gig: Gig): { inserted: boolean } {
   const gigs = getGigs();
-  const exists = gigs.find(
-    (g) => g.externalId && g.externalId === gig.externalId
-  );
-  if (exists) return { inserted: false };
+  const exists = gigs.find((g) => g.id === gig.id || (gig.externalId && g.externalId === gig.externalId));
+  if (exists) {
+    const idx = gigs.findIndex((g) => g.id === exists.id);
+    gigs[idx] = { ...exists, ...gig };
+    saveGigs(gigs);
+    return { inserted: false };
+  }
   gigs.unshift(gig);
   saveGigs(gigs.slice(0, 500));
   return { inserted: true };
 }
 
-export function updateGigStage(id: string, stage: GigStage, data?: Partial<Gig>) {
+export function updateGigStage(id: string, stage: GigStage, data?: Partial<Gig>): void {
   const gigs = getGigs();
   const idx = gigs.findIndex((g) => g.id === id);
   if (idx === -1) return;
@@ -46,11 +85,11 @@ export function updateGigStage(id: string, stage: GigStage, data?: Partial<Gig>)
   saveGigs(gigs);
 }
 
-export function setStage(id: string, stage: GigStage) {
+export function setStage(id: string, stage: GigStage): void {
   updateGigStage(id, stage);
 }
 
-export function stats() {
+export function stats(): RevenueStats {
   return getRevenueStats();
 }
 
@@ -70,27 +109,29 @@ export function getRevenueStats(): RevenueStats {
       }
       return acc;
     },
-    { totalEarned: 0, totalCommission: 0, pendingAed: 0, paidAed: 0, gigCount: 0 }
+    { totalEarned: 0, totalCommission: 0, pendingAed: 0, paidAed: 0, gigCount: 0 },
   );
 }
 
 // ── Alert Logging ─────────────────────────────────────────────
 
 export function alreadyAlerted(id: string): boolean {
-  if (typeof window === "undefined") return false;
   try {
-    const log: string[] = JSON.parse(localStorage.getItem(ALERT_KEY) || "[]");
+    const log: string[] = JSON.parse(getDbStore().getItem(ALERT_KEY) || "[]");
     return log.includes(id);
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
-export function logAlert(id: string) {
-  if (typeof window === "undefined") return;
+export function logAlert(id: string): void {
   try {
-    const log: string[] = JSON.parse(localStorage.getItem(ALERT_KEY) || "[]");
+    const log: string[] = JSON.parse(getDbStore().getItem(ALERT_KEY) || "[]");
     if (!log.includes(id)) log.push(id);
-    localStorage.setItem(ALERT_KEY, JSON.stringify(log.slice(-500)));
-  } catch {}
+    getDbStore().setItem(ALERT_KEY, JSON.stringify(log.slice(-500)));
+  } catch {
+    /* noop */
+  }
 }
 
 // ── Deferred Alerts (quiet hours) ────────────────────────────
@@ -100,136 +141,206 @@ export interface DeferredAlert {
   gigId: string;
   released: boolean;
   createdAt: string;
+  gig: Gig;
 }
 
-export function deferAlert(gigId: string) {
-  if (typeof window === "undefined") return;
+export function deferAlert(gigId: string): void {
   try {
-    const log: DeferredAlert[] = JSON.parse(
-      localStorage.getItem(DEFER_KEY) || "[]"
-    );
+    const raw = getDbStore().getItem(DEFER_KEY);
+    const log: Array<Omit<DeferredAlert, "gig">> = raw ? JSON.parse(raw) : [];
+    // Do not double-queue if already pending
+    if (log.some((d) => d.gigId === gigId && !d.released)) return;
     log.push({
-      id: `def-${Date.now()}`,
+      id: `def-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       gigId,
       released: false,
       createdAt: new Date().toISOString(),
     });
-    localStorage.setItem(DEFER_KEY, JSON.stringify(log));
-  } catch {}
+    getDbStore().setItem(DEFER_KEY, JSON.stringify(log));
+  } catch {
+    /* noop */
+  }
 }
 
 export function pendingDeferred(): DeferredAlert[] {
-  if (typeof window === "undefined") return [];
   try {
-    const log: DeferredAlert[] = JSON.parse(
-      localStorage.getItem(DEFER_KEY) || "[]"
-    );
-    return log.filter((d) => !d.released);
-  } catch { return []; }
+    const raw = getDbStore().getItem(DEFER_KEY);
+    const log: Array<Omit<DeferredAlert, "gig">> = raw ? JSON.parse(raw) : [];
+    const unreleased = log.filter((d) => !d.released);
+    const gigs = getGigs();
+    const result: DeferredAlert[] = [];
+    for (const item of unreleased) {
+      const gig = gigs.find((g) => g.id === item.gigId) || {
+        id: item.gigId,
+        sourceKind: "manual",
+        sourceName: "unknown",
+        title: "Deferred Gig",
+        body: "",
+        postedAt: item.createdAt,
+        score: 50,
+        stage: "new",
+      };
+      result.push({ ...item, gig });
+    }
+    // Rank by score descending
+    return result.sort((a, b) => (b.gig.score ?? 0) - (a.gig.score ?? 0));
+  } catch {
+    return [];
+  }
 }
 
-export function markDeferredReleased(ids: string[]) {
-  if (typeof window === "undefined") return;
+export function markDeferredReleased(ids: string[]): void {
   try {
-    const log: DeferredAlert[] = JSON.parse(
-      localStorage.getItem(DEFER_KEY) || "[]"
-    );
-    const updated = log.map((d) =>
-      ids.includes(d.id) ? { ...d, released: true } : d
-    );
-    localStorage.setItem(DEFER_KEY, JSON.stringify(updated));
-  } catch {}
+    const raw = getDbStore().getItem(DEFER_KEY);
+    const log: Array<Omit<DeferredAlert, "gig">> = raw ? JSON.parse(raw) : [];
+    const updated = log.map((d) => (ids.includes(d.id) ? { ...d, released: true } : d));
+    getDbStore().setItem(DEFER_KEY, JSON.stringify(updated));
+  } catch {
+    /* noop */
+  }
 }
 
 // ── Feedback ──────────────────────────────────────────────────
 
-const FEEDBACK_KEY = "emy-studio-feedback";
-
 export interface StudioFeedback {
   id: string;
-  message: string;
-  status: "open" | "done";
+  clientId?: string;
+  text: string;
+  message?: string;
+  category?: string;
+  priority?: string;
+  plan?: string;
+  status: "new" | "open" | "planned" | "done" | "rejected";
   createdAt: string;
 }
 
-export function addStudioFeedback(message: string): StudioFeedback {
-  const items: StudioFeedback[] = JSON.parse(
-    localStorage.getItem(FEEDBACK_KEY) || "[]"
-  );
-  const item: StudioFeedback = {
-    id: `fb-${Date.now()}`,
-    message,
-    status: "open",
-    createdAt: new Date().toISOString(),
-  };
+export function addStudioFeedback(
+  input: string | Partial<StudioFeedback>,
+): StudioFeedback {
+  const store = getDbStore();
+  const items: StudioFeedback[] = JSON.parse(store.getItem(FEEDBACK_KEY) || "[]");
+  const now = new Date().toISOString();
+  let item: StudioFeedback;
+
+  if (typeof input === "string") {
+    item = {
+      id: `fb-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      text: input,
+      message: input,
+      status: "new",
+      createdAt: now,
+    };
+  } else {
+    item = {
+      id: input.id || `fb-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      clientId: input.clientId,
+      text: input.text || input.message || "",
+      message: input.message || input.text || "",
+      category: input.category || "other",
+      priority: input.priority || "medium",
+      plan: input.plan,
+      status: input.status || "new",
+      createdAt: input.createdAt || now,
+    };
+  }
+
   items.unshift(item);
-  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(items.slice(0, 200)));
+  store.setItem(FEEDBACK_KEY, JSON.stringify(items.slice(0, 500)));
   return item;
 }
 
-export function listStudioFeedback(): StudioFeedback[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(FEEDBACK_KEY) || "[]");
-  } catch { return []; }
+export function getStudioFeedback(id: string): StudioFeedback | undefined {
+  return allStudioFeedback().find((i) => i.id === id);
+}
+
+export function listStudioFeedback(clientId?: string): StudioFeedback[] {
+  const all = allStudioFeedback();
+  if (!clientId) return all;
+  return all.filter((i) => i.clientId === clientId);
 }
 
 export function allStudioFeedback(): StudioFeedback[] {
-  return listStudioFeedback();
+  try {
+    return JSON.parse(getDbStore().getItem(FEEDBACK_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 
-export function studioFeedbackStats() {
-  const items = listStudioFeedback();
+export function studioFeedbackStats(): {
+  total: number;
+  open: number;
+  done: number;
+  byStatus: Record<string, number>;
+} {
+  const items = allStudioFeedback();
+  const byStatus: Record<string, number> = { new: 0, open: 0, planned: 0, done: 0, rejected: 0 };
+  for (const item of items) {
+    const s = item.status || "new";
+    byStatus[s] = (byStatus[s] || 0) + 1;
+  }
   return {
     total: items.length,
-    open: items.filter((i) => i.status === "open").length,
-    done: items.filter((i) => i.status === "done").length,
+    open: (byStatus.new || 0) + (byStatus.open || 0),
+    done: byStatus.done || 0,
+    byStatus,
   };
 }
 
-export function setStudioFeedbackStatus(id: string, status: "open" | "done") {
-  const items = listStudioFeedback();
+export function setStudioFeedbackStatus(
+  id: string,
+  status: "new" | "open" | "planned" | "done" | "rejected",
+): StudioFeedback | undefined {
+  const store = getDbStore();
+  const items = allStudioFeedback();
   const idx = items.findIndex((i) => i.id === id);
-  if (idx === -1) return;
+  if (idx === -1) return undefined;
   items[idx].status = status;
-  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(items));
+  store.setItem(FEEDBACK_KEY, JSON.stringify(items));
+  return items[idx];
 }
 
 // ── Sweep Log ─────────────────────────────────────────────────
 
-export function recordSweep(found: number, news: number, errors: string[]) {
-  if (typeof window === "undefined") return;
+export function recordSweep(found: number, news: number, errors: string[]): void {
   try {
-    const log = JSON.parse(localStorage.getItem(SWEEP_KEY) || "[]");
+    const store = getDbStore();
+    const log = JSON.parse(store.getItem(SWEEP_KEY) || "[]");
     log.unshift({ at: new Date().toISOString(), found, news, errors });
-    localStorage.setItem(SWEEP_KEY, JSON.stringify(log.slice(0, 50)));
-  } catch {}
+    store.setItem(SWEEP_KEY, JSON.stringify(log.slice(0, 50)));
+  } catch {
+    /* noop */
+  }
 }
 
 // ── Simple key-value store (used by profile-store) ────────────
 
 export const db = {
-  get(key: string) {
-    if (typeof window === "undefined") return null;
+  get(key: string): unknown {
     try {
-      const val = localStorage.getItem(key);
+      const val = getDbStore().getItem(key);
       return val ? JSON.parse(val) : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   },
-  set(key: string, value: unknown) {
-    if (typeof window === "undefined") return;
+  set(key: string, value: unknown): void {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {}
+      getDbStore().setItem(key, JSON.stringify(value));
+    } catch {
+      /* noop */
+    }
   },
-  delete(key: string) {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(key);
+  delete(key: string): void {
+    try {
+      getDbStore().removeItem(key);
+    } catch {
+      /* noop */
+    }
   },
 };
-// ── Setlist Storage ──────────────────────────────────────────────────────
 
-const SETLIST_KEY = "emy-setlists";
+// ── Setlist Storage ──────────────────────────────────────────────────────
 
 export interface SetlistTrack {
   id: string;
@@ -252,19 +363,24 @@ export interface Setlist {
 }
 
 export function getSetlists(): Setlist[] {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(SETLIST_KEY) || "[]"); }
-  catch { return []; }
+  try {
+    return JSON.parse(getDbStore().getItem(SETLIST_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 
 export function saveSetlists(setlists: Setlist[]): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(SETLIST_KEY, JSON.stringify(setlists));
+  try {
+    getDbStore().setItem(SETLIST_KEY, JSON.stringify(setlists));
+  } catch {
+    /* noop */
+  }
 }
 
 export function upsertSetlist(s: Setlist): void {
   const all = getSetlists();
-  const idx = all.findIndex(x => x.id === s.id);
+  const idx = all.findIndex((x) => x.id === s.id);
   s.updatedAt = new Date().toISOString();
   if (idx >= 0) all[idx] = s;
   else all.unshift(s);
@@ -272,5 +388,5 @@ export function upsertSetlist(s: Setlist): void {
 }
 
 export function deleteSetlist(id: string): void {
-  saveSetlists(getSetlists().filter(s => s.id !== id));
+  saveSetlists(getSetlists().filter((s) => s.id !== id));
 }

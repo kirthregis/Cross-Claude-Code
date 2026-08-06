@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
 import { calculateGigNet, formatAED, type GigFinances } from "@/lib/utils/finance";
@@ -116,7 +116,7 @@ export default function BusinessSuite() {
         )}
 
         <p className="mt-3 text-[11px] text-zinc-600">
-          Clicking "Print / Save PDF" opens a print-ready invoice in a new tab. Use your browser's Print → Save as PDF to download it.
+          Clicking &quot;Print / Save PDF&quot; opens a print-ready invoice in a new tab. Use your browser&apos;s Print → Save as PDF to download it.
         </p>
       </Card>
     </div>

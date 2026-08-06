@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { getGigs, updateGigStage } from "@/lib/db";
 import { generateWhatsAppLink } from "@/lib/outreach";
 import { Gig, GigStage } from "@/lib/types";
-import { getRegistry, saveRegistry, type CountryConfig, type FeedConfig } from "@/lib/sources/registry";
-import { UAE_VENUES, generatePitchEmail, getGigRevenue, upsertGigRevenue, totalRevenue, addFollowUp, getDueFollowUps, type GigRevenue, type VenueContact } from "@/lib/studio/gigradar-ai";
+import { getRegistry, saveRegistry, type CountryConfig } from "@/lib/sources/registry";
+import { UAE_VENUES, generatePitchEmail, getGigRevenue, upsertGigRevenue, totalRevenue, getDueFollowUps, type GigRevenue, type VenueContact } from "@/lib/studio/gigradar-ai";
 import { useSettings } from "@/lib/studio/store";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
 
@@ -180,7 +180,7 @@ export default function GigRadarPage() {
           {visible.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-zinc-800 p-12 text-center">
               <p className="text-zinc-500 text-sm">No gigs in this stage.</p>
-              <p className="text-zinc-600 text-xs mt-2">Press "Sweep Now" to pull from UAE feeds, or use "Add Lead" to paste one manually.</p>
+              <p className="text-zinc-600 text-xs mt-2">Press &quot;Sweep Now&quot; to pull from UAE feeds, or use &quot;Add Lead&quot; to paste one manually.</p>
             </div>
           ) : (
             visible.map(g => {
