@@ -3,16 +3,14 @@ import "./globals.css";
 import { PwaRegister } from "@/components/PwaRegister";
 import { GlobalAssistant } from "@/components/studio/GlobalAssistant";
 import { ThemeProvider } from "@/components/studio/ThemeProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
-  title: "EMY Studio — DJ Emy",
-  description: "Master your mixes, design covers, package releases. Your whole production studio — laptop and phone, offline and online.",
+  title: "EMY Studio � DJ Emy",
+  description: "Master your mixes, design covers, package releases. Your whole production studio � laptop and phone, offline and online.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EMY Studio" },
-  icons: {
-    icon: "/icon-512.png",
-    apple: "/icon-192.png",
-  },
+  icons: { icon: "/icon-512.png", apple: "/icon-192.png" },
 };
 
 export const viewport: Viewport = {
@@ -26,7 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen bg-[#0a0a0f] text-zinc-100 antialiased">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
         <PwaRegister />
         <GlobalAssistant />
         <ThemeProvider />
