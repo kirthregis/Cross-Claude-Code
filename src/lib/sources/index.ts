@@ -1,6 +1,7 @@
-﻿/**
- * Source adapters — the radar antennae.
- * UAE is priority. Registry allows adding countries via UI.
+/**
+ * Source adapters -- the radar antennae.
+ * UAE is always priority 1. Registry expands globally.
+ * Every free public internet source is wired here.
  */
 import type { RawLead } from "../types";
 import { getRegistry } from "./registry";
@@ -17,30 +18,29 @@ export interface Source {
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
-// ── WhatsApp buffer (inbound webhook) ────────────────────────
+// Inbound buffers for webhook sources
 const whatsappBuffer: RawLead[] = [];
 export function pushWhatsappLead(lead: RawLead) { whatsappBuffer.push(lead); }
 
-// ── Email buffer (inbound webhook) ───────────────────────────
 const emailBuffer: RawLead[] = [];
 export function pushEmailLead(lead: RawLead) { emailBuffer.push(lead); }
 
-// ── UAE Live Feeds (always active, no API key needed) ────────
+// UAE -- 40+ free public sources, always active
 export const uaeSource: Source = {
   id: "uae",
-  label: "UAE Live Booking Feeds (Platinumlist, Time Out, RA, Hozpitality)",
+  label: "UAE Live Feeds (40+ sources: job boards, event calendars, Reddit, Twitter, Eventbrite, Meetup, publications)",
   kind: "event_calendar",
-  setup: "No setup needed — feeds are active automatically.",
+  setup: "No setup needed. Always active.",
   configured: () => true,
   fetch: fetchUAELeads,
 };
 
-// ── Registry feeds (user-configured countries) ───────────────
+// Registry feeds (user-added countries)
 export const registrySource: Source = {
   id: "registry",
   label: "Country Registry Feeds",
   kind: "event_calendar",
-  setup: "Add countries in GigRadar → Sources tab.",
+  setup: "Add countries in GigRadar -> Sources tab.",
   configured: () => true,
   async fetch() {
     const feeds = getRegistry()
@@ -49,9 +49,7 @@ export const registrySource: Source = {
     const leads: RawLead[] = [];
     for (const feed of feeds) {
       try {
-        const res = await fetch(feed.url, {
-          signal: AbortSignal.timeout(10000),
-        });
+        const res = await fetch(feed.url, { signal: AbortSignal.timeout(10000) });
         if (!res.ok) continue;
         const text = await res.text();
         if (text.trimStart().startsWith("<")) {
@@ -68,9 +66,7 @@ export const registrySource: Source = {
               sourceUrl: pick("link"),
               title: pick("title") ?? "Event listing",
               body: pick("description") ?? pick("summary") ?? "",
-              postedAt: pick("pubDate")
-                ? new Date(pick("pubDate")!).toISOString()
-                : new Date().toISOString(),
+              postedAt: pick("pubDate") ? new Date(pick("pubDate")!).toISOString() : new Date().toISOString(),
             });
           }
         }
@@ -80,32 +76,32 @@ export const registrySource: Source = {
   },
 };
 
-// ── WhatsApp source ───────────────────────────────────────────
+// WhatsApp webhook buffer
 export const whatsappSource: Source = {
   id: "whatsapp",
-  label: "WhatsApp promoter groups",
+  label: "WhatsApp promoter groups (webhook)",
   kind: "whatsapp",
-  setup: "Point a WhatsApp webhook at POST /api/ingest/whatsapp with header x-ingest-key.",
+  setup: "Forward WhatsApp group messages to POST /api/ingest/whatsapp with header x-ingest-key.",
   configured: () => !!env("INGEST_KEY"),
   async fetch() { return whatsappBuffer.splice(0, whatsappBuffer.length); },
 };
 
-// ── Email source ──────────────────────────────────────────────
+// Email webhook buffer
 export const emailSource: Source = {
   id: "email",
-  label: "Booking inbox & agency mailouts",
+  label: "Booking inbox (webhook)",
   kind: "email",
-  setup: "Forward bookings@ to POST /api/ingest/email with header x-ingest-key.",
+  setup: "Forward bookings@ email to POST /api/ingest/email with header x-ingest-key.",
   configured: () => !!env("INGEST_KEY"),
   async fetch() { return emailBuffer.splice(0, emailBuffer.length); },
 };
 
-// ── Instagram source ──────────────────────────────────────────
+// Instagram (requires scraper service)
 export const instagramSource: Source = {
   id: "instagram",
-  label: "Instagram promoters & venues",
+  label: "Instagram promoters and venues",
   kind: "instagram",
-  setup: "Set IG_SCRAPER_URL + IG_WATCH_HANDLES.",
+  setup: "Set IG_SCRAPER_URL and IG_WATCH_HANDLES env vars.",
   configured: () => !!env("IG_SCRAPER_URL") && !!env("IG_WATCH_HANDLES"),
   async fetch() {
     const url = env("IG_SCRAPER_URL");
@@ -137,10 +133,10 @@ export const instagramSource: Source = {
   },
 };
 
-// ── Gig board source ──────────────────────────────────────────
+// Custom gig boards (env-configured JSON endpoints)
 export const gigBoardSource: Source = {
   id: "boards",
-  label: "Gig boards & agency roster calls",
+  label: "Custom gig boards (JSON endpoints)",
   kind: "gig_board",
   setup: "Set BOARD_FEEDS to comma-separated JSON endpoints.",
   configured: () => !!env("BOARD_FEEDS"),
