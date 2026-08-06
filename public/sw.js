@@ -1,24 +1,12 @@
-﻿const CACHE = "emy-studio-v1";
-const PRECACHE = ["/studio", "/studio/gigradar", "/studio/analytics", "/studio/distribute", "/studio/epk", "/studio/settings"];
-
+﻿const CACHE = "emy-studio-v3";
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(["/studio", "/studio/gigradar", "/studio/analytics"])));
 });
-
-self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+self.addEventListener("push", e => {
+  const data = e.data ? e.data.json() : { title: "EMY Studio", body: "New update available" };
+  e.waitUntil(self.registration.showNotification(data.title, { body: data.body, icon: "/icon-192.png" }));
 });
-
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
-  if (e.request.url.includes("/api/")) return;
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const network = fetch(e.request).then(res => {
-        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
-        return res;
-      });
-      return cached ?? network;
-    })
-  );
+  e.respondWith(caches.match(e.request).then(c => c ?? fetch(e.request)));
 });
