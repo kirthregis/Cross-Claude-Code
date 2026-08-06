@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AssistantPanel } from "@/components/studio/AssistantPanel";
 import { ProjectCard } from "@/components/studio/ProjectCard";
-import { StudioGuide } from "@/components/studio/StudioGuide";
 import { FeedbackBox } from "@/components/studio/FeedbackBox";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
 import type { ProjectKind } from "@/lib/studio/types";
@@ -52,8 +51,6 @@ export default function StudioHome() {
         </div>
         <span className="brand-text shrink-0 text-xs font-semibold">EPK →</span>
       </Link>
-
-      <StudioGuide onCreateProject={(n, k) => makeProject(n, k)} />
 
       {showForm && (
         <Card className="p-4 sm:p-5">
