@@ -227,3 +227,50 @@ export const db = {
     localStorage.removeItem(key);
   },
 };
+// ── Setlist Storage ──────────────────────────────────────────────────────
+
+const SETLIST_KEY = "emy-setlists";
+
+export interface SetlistTrack {
+  id: string;
+  name: string;
+  artist: string;
+  bpm?: number;
+  key?: string;
+  durationSec?: number;
+  notes?: string;
+}
+
+export interface Setlist {
+  id: string;
+  gigName: string;
+  venueName: string;
+  date: string;
+  tracks: SetlistTrack[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function getSetlists(): Setlist[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(SETLIST_KEY) || "[]"); }
+  catch { return []; }
+}
+
+export function saveSetlists(setlists: Setlist[]): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(SETLIST_KEY, JSON.stringify(setlists));
+}
+
+export function upsertSetlist(s: Setlist): void {
+  const all = getSetlists();
+  const idx = all.findIndex(x => x.id === s.id);
+  s.updatedAt = new Date().toISOString();
+  if (idx >= 0) all[idx] = s;
+  else all.unshift(s);
+  saveSetlists(all);
+}
+
+export function deleteSetlist(id: string): void {
+  saveSetlists(getSetlists().filter(s => s.id !== id));
+}

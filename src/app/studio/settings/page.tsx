@@ -146,6 +146,25 @@ export default function StudioSettingsPage() {
       </Card>
 
       <Card className="p-4 sm:p-5">
+        <SectionLabel>🎵 Analytics — Spotify</SectionLabel>
+        <p className="mt-1 text-xs text-zinc-500">
+          Connect Spotify to see followers, top tracks and releases in Analytics.
+          Get a free Client ID at <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" className="text-fuchsia-400 hover:underline">developer.spotify.com/dashboard</a>.
+          Your Artist ID is in your Spotify artist profile link (the string after /artist/).
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <Field label="Spotify Client ID" value={settings.spotifyClientId ?? ""} onChange={v => update({ spotifyClientId: v })} />
+          <Field label="Spotify Artist ID" value={settings.spotifyArtistId ?? ""} onChange={v => update({ spotifyArtistId: v })} />
+        </div>
+        {settings.spotifyClientId && settings.spotifyArtistId && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">✓ Credentials saved</span>
+            <a href="/studio/analytics" className="text-xs text-fuchsia-400 hover:underline">Open Analytics → Connect Spotify</a>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-4 sm:p-5">
         <SectionLabel>Image generation — choose the engine</SectionLabel>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {serverAi?.serverFal && (
