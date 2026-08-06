@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGig, saveGigs, getGigs } from "@/lib/db";
+import { quoteFor, generateWhatsAppLink, generatePitch, negotiationPlaybook } from "@/lib/outreach";
 import type { GigStage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,28 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const gig = getGig(id);
   if (!gig) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ gig });
+
+  const quote = quoteFor(gig);
+  const playbook = negotiationPlaybook(gig);
+  const pitches = {
+    whatsapp: generateWhatsAppLink(gig),
+    email: generatePitch(gig),
+  };
+
+  return NextResponse.json({
+    gig,
+    quote: {
+      fee: quote.fee ?? quote.askAed,
+      currency: quote.currency || "AED",
+      note: quote.note || `Suggested fee for ${gig.title}`,
+    },
+    pitches,
+    playbook: {
+      openingOffer: playbook.openingOffer ?? quote.askAed,
+      minimumAcceptable: playbook.minimumAcceptable ?? quote.walkAwayAed,
+      tips: playbook.tips || [],
+    },
+  });
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
