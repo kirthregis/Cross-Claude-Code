@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { sweep } from "@/lib/ingest";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +16,6 @@ export async function GET(req: Request) {
     alerted: r.alerted,
     digested: r.digested ?? 0,
     errors: r.errors,
-    sources: r.sources ?? [],
-    gigs: r.gigs ?? [],
     at: new Date().toISOString(),
   });
 }

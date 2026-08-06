@@ -84,17 +84,13 @@ export const DEFAULT_THEME: ThemeSettings = {
 
 const KEY = "emy-studio-theme-v1";
 
-// Memoised cache - same raw string = same object reference = no infinite loop
-let themeCache: { raw: string | null; t: ThemeSettings } | null = null;
-
 function read(): ThemeSettings {
   if (typeof window === "undefined") return DEFAULT_THEME;
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) { themeCache = null; return DEFAULT_THEME; }
-    if (themeCache && themeCache.raw === raw) return themeCache.t;
+    if (!raw) return DEFAULT_THEME;
     const p = JSON.parse(raw) as Partial<ThemeSettings>;
-    const t = {
+    return {
       primary: typeof p.primary === "string" && p.primary ? p.primary : DEFAULT_THEME.primary,
       accent: typeof p.accent === "string" && p.accent ? p.accent : DEFAULT_THEME.accent,
       background: typeof p.background === "string" && p.background ? p.background : DEFAULT_THEME.background,
@@ -102,8 +98,6 @@ function read(): ThemeSettings {
       radius: (RADIUS_OPTIONS.some((r) => r.id === p.radius) ? p.radius : DEFAULT_THEME.radius) as ThemeRadius,
       logoDataUrl: typeof p.logoDataUrl === "string" ? p.logoDataUrl : null,
     };
-    themeCache = { raw, t };
-    return t;
   } catch {
     return DEFAULT_THEME;
   }
@@ -112,7 +106,6 @@ function read(): ThemeSettings {
 export function saveTheme(t: ThemeSettings): void {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(t));
-    themeCache = null; // bust cache so next read picks up new value
   } catch {
     /* noop */
   }
@@ -122,7 +115,6 @@ export function saveTheme(t: ThemeSettings): void {
 export function resetTheme(): void {
   try {
     window.localStorage.removeItem(KEY);
-    themeCache = null; // bust cache
   } catch {
     /* noop */
   }
