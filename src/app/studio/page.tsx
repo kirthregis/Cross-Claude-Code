@@ -32,8 +32,11 @@ export default function StudioHome() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">Your studio, one place</h1>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <img src="/icon-192.png" alt="EMY Studio" className="h-9 w-9 rounded-xl shadow-lg" />
+            <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">EMY Studio</h1>
+          </div>
           <p className="mt-1 max-w-xl text-sm text-zinc-400">Master the mix, design the cover, package the release, pass the platform checks — no engineer, no designer, no hours of grunt work.</p>
         </div>
         <Button onClick={() => setShowForm(v => !v)}>{showForm ? "Cancel" : "+ New project"}</Button>
