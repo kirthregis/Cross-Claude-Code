@@ -12,8 +12,8 @@ export function StudioNav() {
     { href: "/studio/gigradar", label: "GigRadar" },
     { href: "/studio/analytics", label: "Analytics" },
     { href: "/studio/distribute", label: "Distribute" },
+    { href: "/studio/community", label: "Community" },
     { href: "/studio/epk", label: "EPK" },
-    { href: "/studio/admin", label: "Admin" },
     { href: "/studio/settings", label: "Settings" },
   ];
   return (
@@ -28,7 +28,7 @@ export function StudioNav() {
             const active = t.href === "/studio" ? path === "/studio" : path.startsWith(t.href);
             return (
               <Link key={t.href} href={t.href}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap ${active ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}>
+                className={"rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap " + (active ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white")}>
                 {t.label}
               </Link>
             );
