@@ -10,10 +10,9 @@ export function StudioNav() {
   const tabs = [
     { href: "/studio", label: "Studio" },
     { href: "/studio/gigradar", label: "GigRadar" },
+    { href: "/studio/planner", label: "Planner" },
     { href: "/studio/analytics", label: "Analytics" },
-    { href: "/studio/distribute", label: "Distribute" },
     { href: "/studio/community", label: "Community" },
-    { href: "/studio/epk", label: "EPK" },
     { href: "/studio/settings", label: "Settings" },
   ];
   return (
@@ -24,21 +23,11 @@ export function StudioNav() {
           <span className="hidden text-base font-extrabold text-white sm:block">EMY STUDIO</span>
         </Link>
         <nav className="flex items-center gap-1 overflow-x-auto min-w-0">
-          {tabs.map(t => {
-            const active = t.href === "/studio" ? path === "/studio" : path.startsWith(t.href);
-            return (
-              <Link key={t.href} href={t.href}
-                className={"rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap " + (active ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white")}>
-                {t.label}
-              </Link>
-            );
-          })}
+          {tabs.map(t => (
+            <Link key={t.href} href={t.href} className={"rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap " + (path === t.href ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white")}>{t.label}</Link>
+          ))}
         </nav>
-        <div className="flex items-center gap-2 shrink-0">
-          <GlobalVoiceButton />
-          <ArabicToggle />
-          <NotificationBell />
-        </div>
+        <div className="flex items-center gap-2 shrink-0"><GlobalVoiceButton /><ArabicToggle /><NotificationBell /></div>
       </div>
     </header>
   );
