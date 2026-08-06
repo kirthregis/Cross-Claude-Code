@@ -33,9 +33,9 @@ export default function StudioHome() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <img src="/icon-192.png" alt="EMY Studio" className="h-9 w-9 rounded-xl shadow-lg" />
-            <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">EMY Studio</h1>
+          <div className="flex items-center gap-3">
+            <img src="/icon-192.png" alt="EMY Studio" className="h-10 w-10 rounded-xl shadow-lg" />
+            <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">Emy Studio</h1>
           </div>
           <p className="mt-1 max-w-xl text-sm text-zinc-400">Master the mix, design the cover, package the release, pass the platform checks — no engineer, no designer, no hours of grunt work.</p>
         </div>
@@ -86,7 +86,7 @@ export default function StudioHome() {
           <span className="text-[11px] text-zinc-600">{projects.length} total</span>
         </div>
         {projects.length === 0 ? (
-          <Card className="flex flex-col items-center gap-2 p-8 text-center">
+          <Card className="flex flex-col items-center gap-3 p-8 text-center">
             <div className="text-3xl">💿</div>
             <div className="text-sm font-semibold text-zinc-300">No projects yet</div>
             <p className="max-w-sm text-xs text-zinc-500">Create a project, drop in your mix, and the studio takes it from raw file to upload-ready release.</p>
