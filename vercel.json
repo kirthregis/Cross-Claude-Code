@@ -15,6 +15,7 @@
     }
   ],
   "crons": [
-    { "path": "/api/sweep", "schedule": "0 6 * * *" }
+    { "path": "/api/sweep", "schedule": "0 5 * * *" },
+    { "path": "/api/sweep", "schedule": "0 17 * * *" }
   ]
 }
