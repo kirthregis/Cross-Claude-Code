@@ -1,26 +1,14 @@
-﻿"use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+"use client";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { getProject, upsertProject, loadSettings } from "@/lib/studio/store";
+import { getProject } from "@/lib/studio/store";
 import type { Project } from "@/lib/studio/types";
 import { MasterPanel } from "@/components/studio/MasterPanel";
 import { ArtworkPanel } from "@/components/studio/ArtworkPanel";
 import { ReleasePanel } from "@/components/studio/ReleasePanel";
 import { CheckPanel } from "@/components/studio/CheckPanel";
 import { AssistantPanel } from "@/components/studio/AssistantPanel";
-
-// Public release page imports
-import { generateWhatsAppLink } from "@/lib/outreach";
-
-const PLATFORM_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  spotify: { label: "Spotify", icon: "🟢", color: "bg-[#1DB954] hover:bg-[#1ed760]" },
-  appleMusic: { label: "Apple Music", icon: "🍎", color: "bg-[#fc3c44] hover:bg-[#ff4d55]" },
-  youtube: { label: "YouTube", icon: "▶", color: "bg-[#FF0000] hover:bg-[#cc0000]" },
-  soundcloud: { label: "SoundCloud", icon: "☁", color: "bg-[#ff5500] hover:bg-[#ff6a1a]" },
-  tidal: { label: "Tidal", icon: "〰", color: "bg-zinc-900 hover:bg-zinc-800 border border-zinc-700" },
-  bandcamp: { label: "Bandcamp", icon: "🎵", color: "bg-[#1da0c3] hover:bg-[#22b5da]" },
-};
 
 type Tab = "assistant" | "master" | "artwork" | "release" | "check";
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -83,7 +71,6 @@ export default function ProjectEditorClient({ id }: { id: string }) {
     </div>
   );
 
-  const settings = loadSettings();
   const stages = [
     { key: "mastered", label: "Master", done: project.meta.mastered, tab: "master" as Tab },
     { key: "artworkDone", label: "Art", done: project.meta.artworkDone, tab: "artwork" as Tab },

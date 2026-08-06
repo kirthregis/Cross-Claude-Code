@@ -1,4 +1,4 @@
-﻿export type GigStage = "new" | "contacted" | "negotiating" | "confirmed" | "paid" | "archived";
+export type GigStage = "new" | "contacted" | "negotiating" | "confirmed" | "paid" | "archived";
 
 export type VenueTier = "superclub" | "beach_club" | "festival" | "brand_activation" | "hotel" | "private" | "private_event" | "hotel_lounge" | "bar_restaurant" | "unknown" | "other";
 
@@ -14,7 +14,7 @@ export interface Contact {
 
 export interface Gig {
   id: string;
-  sourceKind: "instagram" | "whatsapp" | "email" | "event_calendar" | "gig_board";
+  sourceKind: "instagram" | "whatsapp" | "email" | "event_calendar" | "gig_board" | "manual";
   sourceName: string;
   sourceUrl?: string;
   externalId?: string;

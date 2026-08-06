@@ -1,12 +1,12 @@
-﻿"use client";
-import { useEffect, useRef, useState, useCallback, type RefObject } from "react";
+"use client";
+import { useEffect, useRef, useState, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
 import * as Tone from "tone";
 import { DeckUI } from "./DeckUI";
 import { wavBlob } from "@/lib/studio/wav";
-import { measureLoudness, computeMakeupGain, dbToGain } from "@/lib/studio/dsp";
+import { measureLoudness, computeMakeupGain } from "@/lib/studio/dsp";
 import { Project, MASTER_PRESETS } from "@/lib/studio/types";
-import { Button, Card, SectionLabel } from "./ui";
+import { Card, SectionLabel } from "./ui";
 
 interface Props { project: Project; onChanged: () => void; }
 interface EQ { lo: number; mid: number; hi: number; }
@@ -83,7 +83,7 @@ export function MasterPanel({ project, onChanged }: Props) {
       const primary = bufA ?? bufB!;
       const mono = primary.getChannelData(0);
       const loudness = measureLoudness(mono, primary.sampleRate);
-      setInputLoudness(loudness);
+      setInputLoudness(loudness.integratedLufs);
       const gainDb = computeMakeupGain(loudness, project.masterParams.targetLufs, -1);
       setStatus("Applying " + gainDb.toFixed(1) + "dB boost...");
       const blob = wavBlob([primary.getChannelData(0)], primary.sampleRate, 24, { title: project.meta.name, artist: "DJ Emy" });

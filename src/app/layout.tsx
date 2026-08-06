@@ -3,6 +3,7 @@ import "./globals.css";
 import { PwaRegister } from "@/components/PwaRegister";
 import { GlobalAssistant } from "@/components/studio/GlobalAssistant";
 import { ThemeProvider } from "@/components/studio/ThemeProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "EMY Studio — DJ Emy",
@@ -24,12 +25,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#0a0a0f] text-zinc-100 antialiased">
-        {children}
-        <PwaRegister />
-        <GlobalAssistant />
-        <ThemeProvider />
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-[#0a0a0f] text-zinc-100 antialiased" suppressHydrationWarning>
+        <ErrorBoundary>
+          {children}
+          <PwaRegister />
+          <GlobalAssistant />
+          <ThemeProvider />
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -1,11 +1,9 @@
-﻿"use client";
+"use client";
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
-import { useProjects } from "@/lib/studio/store";
-import { upsertProject } from "@/lib/studio/store";
+import { useProjects, upsertProject } from "@/lib/studio/store";
 import { newId } from "@/lib/studio/id";
-import type { Collaborator, SmartLinks } from "@/lib/studio/types";
+import type { SmartLinks } from "@/lib/studio/types";
 
 interface Site { name: string; url: string; what: string; free: string; tag: "stores" | "mixes" | "labels" | "social"; }
 const SITES: Site[] = [
