@@ -27,6 +27,7 @@ const STORAGE_KEY = "emy-studio-notifications";
 // ── Read / Write ──────────────────────────────────────────────
 
 export function getNotifications(): AppNotification[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -36,6 +37,7 @@ export function getNotifications(): AppNotification[] {
 }
 
 export function saveNotifications(notifications: AppNotification[]): void {
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
   } catch {}
@@ -83,7 +85,7 @@ export function unreadCount(): number {
 // ── Browser Push Notifications ────────────────────────────────
 
 export async function requestPushPermission(): Promise<boolean> {
-  if (!("Notification" in window)) return false;
+  if (typeof window === "undefined" || !("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
   if (Notification.permission === "denied") return false;
   const result = await Notification.requestPermission();
@@ -97,8 +99,8 @@ function fireBrowserNotification(n: AppNotification): void {
   try {
     new Notification(n.title, {
       body: n.body,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
       tag: n.id,
     });
   } catch {}
@@ -188,6 +190,7 @@ export const DEFAULT_PREFS: NotificationPrefs = {
 };
 
 export function getNotifPrefs(): NotificationPrefs {
+  if (typeof window === "undefined") return DEFAULT_PREFS;
   try {
     const raw = localStorage.getItem(PREFS_KEY);
     return raw ? { ...DEFAULT_PREFS, ...JSON.parse(raw) } : DEFAULT_PREFS;
@@ -197,6 +200,7 @@ export function getNotifPrefs(): NotificationPrefs {
 }
 
 export function saveNotifPrefs(prefs: NotificationPrefs): void {
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {}

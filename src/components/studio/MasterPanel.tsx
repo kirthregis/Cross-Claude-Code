@@ -1,117 +1,600 @@
-﻿"use client";
-import { useEffect, useRef, useState, useCallback, type RefObject } from "react";
-import WaveSurfer from "wavesurfer.js";
-import * as Tone from "tone";
-import { DeckUI } from "./DeckUI";
-import { wavBlob } from "@/lib/studio/wav";
-import { measureLoudness, computeMakeupGain, dbToGain } from "@/lib/studio/dsp";
-import { Project, MASTER_PRESETS } from "@/lib/studio/types";
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { AudioInfo, MasterParams, MasterResult, Project } from "@/lib/studio/types";
+import { DEFAULT_MASTER_PARAMS, MASTER_PRESETS } from "@/lib/studio/types";
+import { decodeAudioFile, renderMaster, MasteringPlayer } from "@/lib/studio/audio";
+import { formatBytes, formatDuration } from "@/lib/studio/dsp";
+import { wavBlob, type WavTags } from "@/lib/studio/wav";
+import { notify, speak } from "@/lib/studio/speech";
+import { loadSettings, upsertProject } from "@/lib/studio/store";
 import { Button, Card, SectionLabel } from "./ui";
 
-interface Props { project: Project; onChanged: () => void; }
-interface EQ { lo: number; mid: number; hi: number; }
-interface DeckState { loaded: boolean; playing: boolean; bpm: number | null; duration: number; currentTime: number; fileName: string; }
-const EMPTY: DeckState = { loaded: false, playing: false, bpm: null, duration: 0, currentTime: 0, fileName: "" };
+interface Props {
+  project: Project;
+  onChanged: () => void;
+}
 
 export function MasterPanel({ project, onChanged }: Props) {
-  const waveARef = useRef<HTMLDivElement>(null);
-  const waveBRef = useRef<HTMLDivElement>(null);
-  const wsARef = useRef<WaveSurfer | null>(null);
-  const wsBRef = useRef<WaveSurfer | null>(null);
-  const eqARef = useRef<Tone.EQ3 | null>(null);
-  const eqBRef = useRef<Tone.EQ3 | null>(null);
-  const volANodeRef = useRef<Tone.Volume | null>(null);
-  const volBNodeRef = useRef<Tone.Volume | null>(null);
-  const crossRef = useRef<Tone.CrossFade | null>(null);
-  const limiterRef = useRef<Tone.Limiter | null>(null);
-  const bufARef = useRef<AudioBuffer | null>(null);
-  const bufBRef = useRef<AudioBuffer | null>(null);
-  const engineRef = useRef(false);
+  const settings = loadSettings();
+  const [params, setParams] = useState<MasterParams>(project.masterParams || DEFAULT_MASTER_PARAMS);
+  const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
+  const [masteredBuffer, setMasteredBuffer] = useState<AudioBuffer | null>(null);
+  const [rendering, setRendering] = useState(false);
+  const [progress, setProgress] = useState<{ pct: number; stage: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [deckA, setDeckA] = useState<DeckState>(EMPTY);
-  const [deckB, setDeckB] = useState<DeckState>(EMPTY);
-  const [crossfade, setCrossfade] = useState(0.5);
-  const [volA, setVolA] = useState(0);
-  const [volB, setVolB] = useState(0);
-  const [eqA, setEqA] = useState<EQ>({ lo: 0, mid: 0, hi: 0 });
-  const [eqB, setEqB] = useState<EQ>({ lo: 0, mid: 0, hi: 0 });
-  const [exporting, setExporting] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const [inputLoudness, setInputLoudness] = useState<number | null>(null);
+  // Playback state
+  const playerRef = useRef<MasteringPlayer | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackMode, setPlaybackMode] = useState<"original" | "mastered">("mastered");
+  const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const initEngine = useCallback(async () => {
-    if (engineRef.current) return;
-    engineRef.current = true;
-    await Tone.start();
-    const eqA = new Tone.EQ3(0, 0, 0); const eqB = new Tone.EQ3(0, 0, 0);
-    const volA = new Tone.Volume(0); const volB = new Tone.Volume(0);
-    const cross = new Tone.CrossFade(0.5); const limiter = new Tone.Limiter(-1);
-    eqA.connect(volA); volA.connect(cross.a); eqB.connect(volB); volB.connect(cross.b);
-    cross.connect(limiter); limiter.toDestination();
-    eqARef.current = eqA; eqBRef.current = eqB; volANodeRef.current = volA; volBNodeRef.current = volB; crossRef.current = cross; limiterRef.current = limiter;
-  }, []);
-
+  // Initialize player once
   useEffect(() => {
-    if (!waveARef.current || !waveBRef.current) return;
-    wsARef.current = WaveSurfer.create({ container: waveARef.current, waveColor: "#3b82f6", progressColor: "#1d4ed8", height: 64, barWidth: 2 });
-    wsBRef.current = WaveSurfer.create({ container: waveBRef.current, waveColor: "#a855f7", progressColor: "#7e22ce", height: 64, barWidth: 2 });
-    wsARef.current.on("timeupdate", t => setDeckA(d => ({ ...d, currentTime: t })));
-    wsBRef.current.on("timeupdate", t => setDeckB(d => ({ ...d, currentTime: t })));
-    return () => { wsARef.current?.destroy(); wsBRef.current?.destroy(); };
+    playerRef.current = new MasteringPlayer();
+    return () => {
+      playerRef.current?.stop();
+    };
   }, []);
 
-  const loadDeck = useCallback(async (file: File, deck: "A" | "B") => {
-    const isA = deck === "A";
-    const ws = isA ? wsARef.current : wsBRef.current;
-    if (!ws) return;
-    await initEngine();
-    const url = URL.createObjectURL(file);
-    await ws.load(url);
-    const ab = await file.arrayBuffer();
-    const toneCtx = Tone.getContext().rawContext as AudioContext;
-    const buf = await toneCtx.decodeAudioData(ab);
-    if (isA) bufARef.current = buf; else bufBRef.current = buf;
-    (isA ? setDeckA : setDeckB)({ loaded: true, playing: false, bpm: 124, duration: ws.getDuration(), currentTime: 0, fileName: file.name });
-  }, [initEngine]);
+  // Update time tracker loop
+  useEffect(() => {
+    if (!isPlaying) return;
+    const timer = setInterval(() => {
+      if (playerRef.current) {
+        setCurrentTime(playerRef.current.getCurrentTime());
+        setIsPlaying(playerRef.current.getIsPlaying());
+      }
+    }, 100);
+    return () => clearInterval(timer);
+  }, [isPlaying]);
 
-  const handleExport = useCallback(async () => {
-    const bufA = bufARef.current; const bufB = bufBRef.current;
-    if (!bufA && !bufB) return;
-    setExporting(true);
+  const handleFileUpload = useCallback(async (file: File) => {
+    setError(null);
     try {
-      setStatus("Analyzing input...");
-      const primary = bufA ?? bufB!;
-      const mono = primary.getChannelData(0);
-      const loudness = measureLoudness(mono, primary.sampleRate);
-      setInputLoudness(loudness);
-      const gainDb = computeMakeupGain(loudness, project.masterParams.targetLufs, -1);
-      setStatus("Applying " + gainDb.toFixed(1) + "dB boost...");
-      const blob = wavBlob([primary.getChannelData(0)], primary.sampleRate, 24, { title: project.meta.name, artist: "DJ Emy" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = project.meta.name + "_MASTERED.wav"; a.click();
-      setStatus("✅ Export Complete");
-      setTimeout(() => setStatus(null), 5000);
-    } catch { setStatus("Export Failed"); }
-    finally { setExporting(false); }
-  }, [project]);
+      const buf = await decodeAudioFile(file);
+      setAudioBuffer(buf);
+      setMasteredBuffer(null);
+
+      const audioInfo: AudioInfo = {
+        fileName: file.name,
+        sizeBytes: file.size,
+        durationSec: buf.duration,
+        sampleRate: buf.sampleRate,
+        channels: buf.numberOfChannels,
+      };
+
+      upsertProject({
+        ...project,
+        audio: audioInfo,
+        meta: { ...project.meta, updatedAt: Date.now() },
+      });
+      onChanged();
+
+      if (playerRef.current) {
+        await playerRef.current.init(buf);
+      }
+      speak(`Audio loaded: ${file.name}. Pick a target preset or hit Master.`, settings.soundOn, "en-US", settings.voiceGender);
+    } catch (e) {
+      setError(`Failed to read audio file: ${e instanceof Error ? e.message : "Invalid format"}`);
+    }
+  }, [project, settings.soundOn, settings.voiceGender, onChanged]);
+
+  const applyPreset = (presetKey: string) => {
+    const p = MASTER_PRESETS[presetKey];
+    if (!p) return;
+    const updated = { ...p.params };
+    setParams(updated);
+    upsertProject({
+      ...project,
+      masterParams: updated,
+      meta: { ...project.meta, updatedAt: Date.now() },
+    });
+    onChanged();
+  };
+
+  const updateParam = <K extends keyof MasterParams>(key: K, val: MasterParams[K]) => {
+    const updated = { ...params, [key]: val };
+    setParams(updated);
+    upsertProject({
+      ...project,
+      masterParams: updated,
+      meta: { ...project.meta, updatedAt: Date.now() },
+    });
+    onChanged();
+  };
+
+  const runMastering = async () => {
+    if (!audioBuffer) {
+      fileInputRef.current?.click();
+      return;
+    }
+    setRendering(true);
+    setError(null);
+    try {
+      const result = await renderMaster(audioBuffer, params, (p) => setProgress(p));
+      setMasteredBuffer(result.renderedBuffer);
+
+      if (playerRef.current) {
+        playerRef.current.setMasteredBuffer(result.renderedBuffer);
+        playerRef.current.setMode("mastered");
+        setPlaybackMode("mastered");
+      }
+
+      const masterResult: MasterResult = {
+        params,
+        inputLufs: result.inputLufs,
+        outputLufs: result.outputLufs,
+        inputTruePeakDb: result.inputTruePeakDb,
+        outputTruePeakDb: result.outputTruePeakDb,
+        gainAppliedDb: result.gainAppliedDb,
+        renderedAt: Date.now(),
+        exportName: `${project.meta.name.replace(/[^a-zA-Z0-9_-]/g, "_")}_48kHz_24bit.wav`,
+        exportedWav24: true,
+      };
+
+      upsertProject({
+        ...project,
+        master: masterResult,
+        meta: {
+          ...project.meta,
+          mastered: true,
+          stage: project.meta.stage === "draft" ? "master" : project.meta.stage,
+          updatedAt: Date.now(),
+        },
+      });
+      onChanged();
+
+      notify("Mastering complete", `"${project.meta.name}" is mastered to ${result.outputLufs.toFixed(1)} LUFS.`);
+      speak(
+        `Mastering finished at ${result.outputLufs.toFixed(1)} LUFS with ${result.gainAppliedDb > 0 ? "+" : ""}${result.gainAppliedDb.toFixed(1)} dB boost. Check the A/B comparison.`,
+        settings.soundOn,
+        "en-US",
+        settings.voiceGender,
+      );
+    } catch (e) {
+      setError(`Mastering failed: ${e instanceof Error ? e.message : "DSP error"}`);
+    } finally {
+      setRendering(false);
+      setProgress(null);
+    }
+  };
+
+  const handlePlayToggle = () => {
+    if (!playerRef.current) return;
+    if (isPlaying) {
+      playerRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      playerRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handleModeChange = (mode: "original" | "mastered") => {
+    setPlaybackMode(mode);
+    playerRef.current?.setMode(mode);
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sec = parseFloat(e.target.value);
+    setCurrentTime(sec);
+    playerRef.current?.seek(sec);
+  };
+
+  const exportWavFile = (bits: 16 | 24) => {
+    const buf = masteredBuffer ?? audioBuffer;
+    if (!buf) {
+      setError("Load an audio file first.");
+      return;
+    }
+
+    const ch0 = buf.getChannelData(0);
+    const ch1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : ch0;
+
+    const tags: WavTags = {
+      title: project.meta.name,
+      artist: settings.artistName || "DJ EMY",
+      genre: project.meta.genre || "Afro House",
+      album: "EMY Studio Master",
+      comment: `Mastered via EMY Studio to ${project.master?.outputLufs.toFixed(1) ?? params.targetLufs} LUFS`,
+    };
+
+    const blob = wavBlob([ch0, ch1], buf.sampleRate, bits, tags);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const cleanName = project.meta.name.replace(/[^a-zA-Z0-9_-]/g, "_");
+    a.download = `${cleanName}_48kHz_${bits}bit.wav`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const duration = audioBuffer?.duration || project.audio?.durationSec || 0;
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <DeckUI deck="A" state={deckA} eq={eqA} vol={volA} waveRef={waveARef} onFile={f => void loadDeck(f, "A")} onPlay={() => wsARef.current?.play()} onStop={() => wsARef.current?.pause()} onEQ={setEqA} onVol={setVolA} />
-        <DeckUI deck="B" state={deckB} eq={eqB} vol={volB} waveRef={waveBRef} onFile={f => void loadDeck(f, "B")} onPlay={() => wsBRef.current?.play()} onStop={() => wsBRef.current?.pause()} onEQ={setEqB} onVol={setVolB} />
-      </div>
-      <Card className="p-4">
-        <SectionLabel>Mastering Presets</SectionLabel>
-        <div className="grid grid-cols-2 gap-2 mt-3 sm:grid-cols-4">
-          {Object.entries(MASTER_PRESETS).map(([id, p]) => (
-            <button key={id} onClick={() => setStatus("Preset " + p.label + " selected")} className="rounded-xl border border-zinc-800 bg-zinc-900 p-2 text-[10px] font-bold hover:border-fuchsia-500 transition">{p.label}</button>
-          ))}
+      {/* File Import Header */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <SectionLabel>Audio Source</SectionLabel>
+            {project.audio ? (
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-300">
+                <span className="font-bold text-white">{project.audio.fileName}</span>
+                <span className="text-zinc-500">·</span>
+                <span>{formatDuration(project.audio.durationSec)}</span>
+                <span className="text-zinc-500">·</span>
+                <span>{project.audio.sampleRate} Hz</span>
+                <span className="text-zinc-500">·</span>
+                <span>{project.audio.channels === 2 ? "Stereo" : "Mono"}</span>
+                <span className="text-zinc-500">·</span>
+                <span>{formatBytes(project.audio.sizeBytes)}</span>
+              </div>
+            ) : (
+              <p className="mt-1 text-xs text-zinc-500">
+                Drag and drop your raw mix (MP3, WAV, M4A, FLAC, AIFF) or browse.
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void handleFileUpload(f);
+              }}
+            />
+            <Button variant="ghost" onClick={() => fileInputRef.current?.click()}>
+              {project.audio ? "↻ Replace Audio" : "⬆ Choose Audio File"}
+            </Button>
+          </div>
         </div>
       </Card>
-      <input type="range" min={0} max={1} step={0.01} value={crossfade} onChange={e => setCrossfade(parseFloat(e.target.value))} className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500" />
-      {status && <div className="text-center text-xs text-fuchsia-400 animate-pulse">{status}</div>}
-      <button onClick={() => void handleExport()} disabled={exporting} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-zinc-200 transition">Export Mastered WAV</button>
+
+      {/* Target Presets */}
+      <Card className="p-4 sm:p-5">
+        <SectionLabel>Mastering Targets & Presets</SectionLabel>
+        <p className="mt-1 text-xs text-zinc-500">
+          Industry-standard integrated loudness curves tailored for streaming, club PA systems, and label distribution.
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {Object.entries(MASTER_PRESETS).map(([id, p]) => {
+            const isSelected = params.targetLufs === p.params.targetLufs;
+            return (
+              <button
+                key={id}
+                onClick={() => applyPreset(id)}
+                className={`rounded-xl border p-3 text-left transition ${
+                  isSelected
+                    ? "border-fuchsia-500 bg-fuchsia-500/10 text-white"
+                    : "border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                }`}
+              >
+                <div className="text-xs font-bold">{p.label.split(" (")[0]}</div>
+                <div className="mt-1 text-[11px] font-mono text-fuchsia-300">
+                  {p.params.targetLufs} LUFS
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* Real-time A/B Player */}
+      {(audioBuffer || project.master) && (
+        <Card className="p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <SectionLabel>A/B Master Audition & Preview</SectionLabel>
+            <div className="flex rounded-xl border border-zinc-800 bg-zinc-950 p-0.5">
+              <button
+                onClick={() => handleModeChange("original")}
+                className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                  playbackMode === "original"
+                    ? "bg-zinc-800 text-white"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                Original Audio
+              </button>
+              <button
+                onClick={() => handleModeChange("mastered")}
+                disabled={!masteredBuffer && !project.master}
+                className={`rounded-lg px-3 py-1 text-xs font-semibold transition disabled:opacity-30 ${
+                  playbackMode === "mastered"
+                    ? "bg-fuchsia-600 text-white"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                Mastered DSP
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handlePlayToggle}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-zinc-200 active:scale-95 font-bold"
+              >
+                {isPlaying ? "⏸" : "▶"}
+              </button>
+              <div className="min-w-0 flex-1">
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  step={0.1}
+                  value={currentTime}
+                  onChange={handleSeek}
+                  className="w-full accent-fuchsia-500 cursor-pointer"
+                />
+                <div className="flex justify-between font-mono text-[10px] text-zinc-500">
+                  <span>{formatDuration(currentTime)}</span>
+                  <span>{formatDuration(duration)}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs text-zinc-500">🔊</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1.5}
+                  step={0.05}
+                  value={volume}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    setVolume(v);
+                    playerRef.current?.setVolume(v);
+                  }}
+                  className="w-16 accent-fuchsia-500"
+                />
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* DSP Mastering Chain Settings */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Equalization */}
+        <Card className="p-4">
+          <SectionLabel>3-Band EQ & Clean Air</SectionLabel>
+          <div className="mt-3 space-y-3">
+            <div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-400">Low Sub (90 Hz)</span>
+                <span className="font-mono text-zinc-200">{params.lowGainDb > 0 ? "+" : ""}{params.lowGainDb} dB</span>
+              </div>
+              <input
+                type="range"
+                min={-6}
+                max={6}
+                step={0.5}
+                value={params.lowGainDb}
+                onChange={(e) => updateParam("lowGainDb", parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-400">Mid Punch (1 kHz)</span>
+                <span className="font-mono text-zinc-200">{params.midGainDb > 0 ? "+" : ""}{params.midGainDb} dB</span>
+              </div>
+              <input
+                type="range"
+                min={-6}
+                max={6}
+                step={0.5}
+                value={params.midGainDb}
+                onChange={(e) => updateParam("midGainDb", parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-400">High Air (8 kHz)</span>
+                <span className="font-mono text-zinc-200">{params.highGainDb > 0 ? "+" : ""}{params.highGainDb} dB</span>
+              </div>
+              <input
+                type="range"
+                min={-6}
+                max={6}
+                step={0.5}
+                value={params.highGainDb}
+                onChange={(e) => updateParam("highGainDb", parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500"
+              />
+            </div>
+            <label className="flex items-center gap-2 pt-2 border-t border-zinc-800 text-xs text-zinc-300">
+              <input
+                type="checkbox"
+                checked={params.rumbleFilter}
+                onChange={(e) => updateParam("rumbleFilter", e.target.checked)}
+                className="rounded accent-fuchsia-500"
+              />
+              <span>30 Hz Rumble High-Pass Filter</span>
+            </label>
+          </div>
+        </Card>
+
+        {/* Dynamics */}
+        <Card className="p-4">
+          <SectionLabel>Dynamics & Compression</SectionLabel>
+          <div className="mt-3 space-y-3">
+            <div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-400">Comp Threshold</span>
+                <span className="font-mono text-zinc-200">{params.compThreshold} dB</span>
+              </div>
+              <input
+                type="range"
+                min={-30}
+                max={-6}
+                step={1}
+                value={params.compThreshold}
+                onChange={(e) => updateParam("compThreshold", parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-400">Comp Ratio</span>
+                <span className="font-mono text-zinc-200">{params.compRatio.toFixed(1)}:1</span>
+              </div>
+              <input
+                type="range"
+                min={1.2}
+                max={5.0}
+                step={0.1}
+                value={params.compRatio}
+                onChange={(e) => updateParam("compRatio", parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500"
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Limiter & Ceiling */}
+        <Card className="p-4 sm:col-span-2 lg:col-span-1">
+          <SectionLabel>Soft Limiter & True Peak Ceiling</SectionLabel>
+          <div className="mt-3 space-y-3">
+            <div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-400">Limiter Drive (tanh)</span>
+                <span className="font-mono text-zinc-200">{params.limiterDrive.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={1.5}
+                step={0.05}
+                value={params.limiterDrive}
+                onChange={(e) => updateParam("limiterDrive", parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-400">True Peak Ceiling</span>
+                <span className="font-mono text-zinc-200">{params.ceilingDb} dBTP</span>
+              </div>
+              <input
+                type="range"
+                min={-2.0}
+                max={-0.3}
+                step={0.1}
+                value={params.ceilingDb}
+                onChange={(e) => updateParam("ceilingDb", parseFloat(e.target.value))}
+                className="w-full accent-fuchsia-500"
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Render & Status */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-white">Mastering Execution</h3>
+            <p className="text-xs text-zinc-500">
+              Renders the entire mix through the 48 kHz DSP chain on this device with BS.1770-4 loudness compliance.
+            </p>
+          </div>
+          <Button
+            onClick={() => void runMastering()}
+            disabled={rendering}
+            className="shrink-0 !py-3 !px-6 text-sm font-bold"
+          >
+            {rendering ? "Mastering In Progress…" : project.meta.mastered ? "⚡ Re-Master Mix" : "⚡ Master Mix Now"}
+          </Button>
+        </div>
+
+        {progress && (
+          <div className="mt-4 space-y-1.5">
+            <div className="flex justify-between text-xs font-semibold text-zinc-300">
+              <span>{progress.stage}</span>
+              <span className="font-mono">{progress.pct}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
+              <div
+                className="brand-grad h-full transition-all duration-300"
+                style={{ width: `${progress.pct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {project.master && (
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-zinc-800/80 pt-4 sm:grid-cols-4">
+            <div className="rounded-xl bg-zinc-950 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-zinc-500">Input Loudness</div>
+              <div className="mt-1 font-mono text-sm font-bold text-zinc-300">
+                {project.master.inputLufs.toFixed(1)} LUFS
+              </div>
+            </div>
+            <div className="rounded-xl bg-zinc-950 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-zinc-500">Mastered Loudness</div>
+              <div className="mt-1 font-mono text-sm font-bold text-emerald-400">
+                {project.master.outputLufs.toFixed(1)} LUFS
+              </div>
+            </div>
+            <div className="rounded-xl bg-zinc-950 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-zinc-500">True Peak</div>
+              <div className="mt-1 font-mono text-sm font-bold text-zinc-300">
+                {project.master.outputTruePeakDb.toFixed(1)} dBTP
+              </div>
+            </div>
+            <div className="rounded-xl bg-zinc-950 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-zinc-500">Makeup Boost</div>
+              <div className="mt-1 font-mono text-sm font-bold text-fuchsia-400">
+                {project.master.gainAppliedDb > 0 ? "+" : ""}
+                {project.master.gainAppliedDb.toFixed(1)} dB
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Export Section */}
+      <Card className="p-4 sm:p-5">
+        <SectionLabel>Label Deliverables & WAV Export</SectionLabel>
+        <p className="mt-1 text-xs text-zinc-500">
+          Exports tagged WAV files directly to your device. Metadata is embedded into RIFF INFO chunks.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button
+            onClick={() => exportWavFile(24)}
+            disabled={!audioBuffer && !project.master}
+            className="flex-1 !py-3 font-bold"
+          >
+            ⬇ Export 24-Bit / 48kHz WAV (Label Master)
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => exportWavFile(16)}
+            disabled={!audioBuffer && !project.master}
+            className="flex-1 !py-3 font-bold"
+          >
+            ⬇ Export 16-Bit / 48kHz WAV (Dithered)
+          </Button>
+        </div>
+      </Card>
+
+      {error && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

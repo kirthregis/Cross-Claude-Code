@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ProjectKind } from "@/lib/studio/types";
-import { GUIDE_DISMISSED_KEY, GUIDE_STEPS, GUIDE_QUICK_TIPS } from "@/lib/studio/guide";
+import { GUIDE_DISMISSED_KEY, GUIDE_STEPS, GUIDE_QUICK_TIPS, type GuideStep } from "@/lib/studio/guide";
+import { useProjects } from "@/lib/studio/store";
 import { Button } from "./ui";
 
 export function StudioGuide({
@@ -11,6 +13,8 @@ export function StudioGuide({
 }: {
   onCreateProject: (name: string, kind: ProjectKind) => void;
 }) {
+  const router = useRouter();
+  const projects = useProjects();
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -20,6 +24,22 @@ export function StudioGuide({
       /* noop */
     }
   }, []);
+
+  const handleStepClick = (step: GuideStep) => {
+    if (step.href) {
+      router.push(step.href);
+      return;
+    }
+    if (step.tab) {
+      if (projects.length > 0) {
+        router.push(`/studio/p/${projects[0].meta.id}?tab=${step.tab}`);
+      } else {
+        onCreateProject("Afro House Mix", "mix");
+      }
+      return;
+    }
+    onCreateProject("Afro House Mix", "mix");
+  };
 
   if (dismissed) {
     return (
@@ -34,29 +54,27 @@ export function StudioGuide({
         }}
         className="text-xs text-zinc-600 underline-offset-2 hover:text-zinc-400 hover:underline"
       >
-        Show the “How to” guide again
+        Show studio tools guide
       </button>
     );
   }
-
-  const start = () => onCreateProject("Afro House Mix", "mix");
 
   return (
     <div className="overflow-hidden rounded-2xl border brand-border bg-gradient-to-br from-zinc-900 via-zinc-900/80 to-zinc-950">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/70 px-4 py-3 sm:px-5">
         <div className="flex items-center gap-2.5">
-          <span className="text-xl">👋</span>
+          <span className="text-xl">🎛</span>
           <div>
-            <div className="text-sm font-extrabold tracking-tight text-white">How to use EMY Studio</div>
-            <div className="text-[11px] text-zinc-500">Six steps from finished mix to published release — or just talk to the assistant and it sets each one up.</div>
+            <div className="text-sm font-extrabold tracking-tight text-white">Studio Quick Actions</div>
+            <div className="text-[11px] text-zinc-500">Tap any tool below to launch it directly, or use the voice assistant to navigate.</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={start} className="!px-3 !py-2 text-xs">
-            + Start a project
+          <Button onClick={() => onCreateProject("Afro House Mix", "mix")} className="!px-3 !py-2 text-xs">
+            + New project
           </Button>
           <Link href="/studio/guide" className="brand-hover-border hover:brand-text rounded-xl border border-zinc-700 px-3 py-2 text-xs font-semibold text-zinc-300 transition">
-            Full guide
+            Full documentation →
           </Link>
           <button
             onClick={() => {
@@ -75,28 +93,25 @@ export function StudioGuide({
         </div>
       </div>
 
-      <div className="grid gap-2 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+      <div className="grid gap-2 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
         {GUIDE_STEPS.map((s) => (
-          <Link
+          <button
             key={s.n}
-            href={`/studio/guide#step-${s.n}`}
-            className="group flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-3 text-left transition brand-hover-border hover:bg-zinc-900"
+            type="button"
+            onClick={() => handleStepClick(s)}
+            className="group flex flex-col items-start rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-left transition brand-hover-border hover:bg-zinc-900"
           >
-            <span className="brand-soft flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base">
-              {s.icon}
-            </span>
-            <span className="min-w-0">
-              <span className="block text-[13px] font-bold text-zinc-100">
-                {s.n}. {s.title}
+            <div className="flex w-full items-center justify-between">
+              <span className="brand-soft flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base">
+                {s.icon}
               </span>
-              <span className="mt-0.5 block text-[11px] leading-relaxed text-zinc-500">{s.short}</span>
-              {s.command && (
-                <span className="brand-text mt-1 inline-block rounded-full border border-zinc-700 bg-zinc-900 px-2 py-0.5 font-mono text-[10px]">
-                  {s.command}
-                </span>
-              )}
+              <span className="text-[10px] font-bold text-zinc-600 group-hover:text-fuchsia-400">Open ↗</span>
+            </div>
+            <span className="mt-2 block text-[13px] font-bold text-zinc-100 group-hover:text-white">
+              {s.title}
             </span>
-          </Link>
+            <span className="mt-0.5 block text-[11px] leading-relaxed text-zinc-500">{s.short}</span>
+          </button>
         ))}
       </div>
 

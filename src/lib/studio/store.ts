@@ -19,16 +19,6 @@ const PROJECTS_KEY = "emy-studio-projects-v1";
 const SETTINGS_KEY = "emy-studio-settings-v1";
 const ART_KEY = (id: string) => `emy-studio-art:${id}`;
 
-function readJSON<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 function writeJSON(key: string, value: unknown): void {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));

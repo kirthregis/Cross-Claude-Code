@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, SectionLabel, Toggle } from "@/components/studio/ui";
 import { geminiChat, isGeminiConfigured } from "@/lib/studio/gemini";
 import { FAL_MODELS, isFalConfigured } from "@/lib/studio/fal";
 import type { ProjectKind, StudioSettings } from "@/lib/studio/types";
-import { DEFAULT_SETTINGS } from "@/lib/studio/types";
 import { useSettings, saveSettings } from "@/lib/studio/store";
 import { BACKGROUND_OPTIONS, FONT_OPTIONS, RADIUS_OPTIONS, THEME_PRESETS, downscaleLogo, resetTheme, saveTheme, useTheme, type ThemeSettings } from "@/lib/studio/theme";
 

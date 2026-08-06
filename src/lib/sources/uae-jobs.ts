@@ -56,6 +56,9 @@ const FREE_SOURCES = [
   },
 ];
 
+const DJ_RE = /\b(dj|disc jockey|music|sound|nightclub|club|beach club|party|festival|lineup|performer|artist|afro house|house music|techno|lounge|acoustic|entertainment)\b/i;
+const NON_RE = /\b(real estate|villa for sale|puppy|puppies|cat|pet|used car|maid|driver needed|cleaner|credit card|loan|mortgage)\b/i;
+
 function parseRSS(xml: string, sourceName: string, kind: RawLead["sourceKind"]): RawLead[] {
   const out: RawLead[] = [];
   const items = xml.split(/<item>|<entry>/).slice(1);
@@ -69,7 +72,8 @@ function parseRSS(xml: string, sourceName: string, kind: RawLead["sourceKind"]):
     const body = pick("description") ?? pick("summary") ?? "";
     const url = pick("link") ?? pick("url");
     const postedAt = pick("pubDate") ?? pick("published") ?? new Date().toISOString();
-    if (title) {
+    const combined = `${title} ${body}`;
+    if (title && DJ_RE.test(combined) && !NON_RE.test(combined)) {
       out.push({
         sourceKind: kind,
         sourceName,
@@ -101,15 +105,20 @@ export async function fetchUaeJobs(): Promise<RawLead[]> {
             const json = JSON.parse(text);
             const rows = Array.isArray(json) ? json : json.results ?? json.data ?? [];
             for (const r of rows) {
-              out.push({
-                sourceKind: s.kind,
-                sourceName: s.name,
-                sourceUrl: r.url ?? r.link,
-                externalId: String(r.id ?? r.jobId ?? ""),
-                title: r.title ?? r.name ?? "Gig",
-                body: r.description ?? r.body ?? "",
-                postedAt: r.postedAt ?? r.date ?? new Date().toISOString(),
-              });
+              const title = r.title ?? r.name ?? "Gig";
+              const body = r.description ?? r.body ?? "";
+              const combined = `${title} ${body}`;
+              if (DJ_RE.test(combined) && !NON_RE.test(combined)) {
+                out.push({
+                  sourceKind: s.kind,
+                  sourceName: s.name,
+                  sourceUrl: r.url ?? r.link,
+                  externalId: String(r.id ?? r.jobId ?? ""),
+                  title,
+                  body,
+                  postedAt: r.postedAt ?? r.date ?? new Date().toISOString(),
+                });
+              }
             }
           } catch { /* not JSON */ }
         }

@@ -8,7 +8,7 @@ export default function SourcesPage() {
   const { data } = useFetch<{ sources: Row[]; channels: Row[] }>("/api/sources");
   return (
     <main className="mx-auto max-w-2xl px-4 pb-24 pt-6">
-      <Link href="/" className="text-xs text-red-500">← Dashboard</Link>
+      <Link href="/studio" className="text-xs text-zinc-400 hover:text-white">← Studio</Link>
       <h1 className="mb-1 mt-3 text-xl font-bold">Alerts &amp; sources</h1>
       <h2 className="mb-2 mt-4 text-xs font-bold uppercase tracking-widest text-zinc-500">
         Where alerts are sent

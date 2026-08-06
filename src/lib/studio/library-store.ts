@@ -17,7 +17,7 @@ export interface LibraryTrack {
 
 const DB_NAME = "emy-studio-library";
 const STORE = "tracks";
-const META_KEY = "meta";
+const META_STORE = "meta";
 
 function idb(): Promise<IDBDatabase | null> {
   return new Promise((resolve) => {
@@ -26,7 +26,7 @@ function idb(): Promise<IDBDatabase | null> {
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
-      if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
+      if (!db.objectStoreNames.contains(META_STORE)) db.createObjectStore(META_STORE);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => resolve(null);
@@ -46,9 +46,9 @@ export async function saveLibraryTrack(file: File): Promise<LibraryTrack> {
   };
   if (db) {
     await new Promise<void>((resolve) => {
-      const tx = db.transaction([STORE, "meta"], "readwrite");
+      const tx = db.transaction([STORE, META_STORE], "readwrite");
       tx.objectStore(STORE).put(file, id);
-      tx.objectStore("meta").put(JSON.stringify(track), id);
+      tx.objectStore(META_STORE).put(JSON.stringify(track), id);
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
     });
