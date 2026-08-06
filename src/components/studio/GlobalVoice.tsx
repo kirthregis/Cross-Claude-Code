@@ -1,15 +1,15 @@
 ﻿"use client";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { startListening, speechSupported, speak } from "@/lib/studio/speech";
-import { loadSettings } from "@/lib/studio/store";
+import { useSettings } from "@/lib/studio/store";
 import { routeCommand } from "@/lib/studio/assistant";
 
 export function GlobalVoiceButton() {
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(false);
   const router = useRouter();
-  const settings = loadSettings();
+  const settings = useSettings();
   const stopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -17,28 +17,26 @@ export function GlobalVoiceButton() {
   }, []);
 
   const handleCommand = useCallback((text: string) => {
-    const intent = routeCommand(text);
-    
-    // Automatic navigation based on voice commands
-    if (text.toLowerCase().includes("radar") || text.toLowerCase().includes("gig")) {
+    routeCommand(text);
+    const t = text.toLowerCase();
+    if (t.includes("radar") || t.includes("gig")) {
       router.push("/studio/gigradar");
       speak("Opening Gig Radar.", settings.soundOn);
-    } else if (text.toLowerCase().includes("library") || text.toLowerCase().includes("music")) {
+    } else if (t.includes("library") || t.includes("music")) {
       router.push("/studio/library");
       speak("Opening your music library.", settings.soundOn);
-    } else if (text.toLowerCase().includes("settings") || text.toLowerCase().includes("theme")) {
+    } else if (t.includes("settings") || t.includes("theme")) {
       router.push("/studio/settings");
       speak("Opening settings.", settings.soundOn);
-    } else if (text.toLowerCase().includes("admin") || text.toLowerCase().includes("money")) {
+    } else if (t.includes("admin") || t.includes("money")) {
       router.push("/studio/admin");
       speak("Opening admin dashboard.", settings.soundOn);
-    } else if (text.toLowerCase().includes("epk") || text.toLowerCase().includes("press")) {
+    } else if (t.includes("epk") || t.includes("press")) {
       router.push("/studio/epk");
       speak("Opening your press kit.", settings.soundOn);
     } else {
-      // Fallback: take them to the project assistant if it's a general question
       router.push("/studio?tab=assistant");
-      speak("Let's talk in the assistant panel.", settings.soundOn);
+      speak("Let me help you in the assistant.", settings.soundOn);
     }
   }, [router, settings.soundOn]);
 
@@ -48,7 +46,6 @@ export function GlobalVoiceButton() {
       setListening(false);
       return;
     }
-
     const stop = startListening({
       onResult: (t) => {
         setListening(false);
@@ -57,7 +54,6 @@ export function GlobalVoiceButton() {
       onEnd: () => setListening(false),
       onError: () => setListening(false),
     });
-
     if (stop) {
       stopRef.current = stop;
       setListening(true);
@@ -69,11 +65,7 @@ export function GlobalVoiceButton() {
   return (
     <button
       onClick={toggle}
-      className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all ${
-        listening 
-          ? "bg-red-600 animate-pulse scale-110 shadow-[0_0_15px_rgba(220,38,38,0.5)]" 
-          : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white"
-      }`}
+      className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all ${listening ? "bg-red-600 animate-pulse scale-110 shadow-[0_0_15px_rgba(220,38,38,0.5)]" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white"}`}
       title="Voice Assistant"
     >
       {listening ? "🛑" : "🎙️"}
