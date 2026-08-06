@@ -276,32 +276,35 @@ export default function StudioSettingsPage() {
 }
 
 function StyleBrandingCard() {
-  const themeLive = useTheme();
-  const [themeDraft, setThemeDraft] = useState<ThemeSettings>(themeLive);
+  const [themeDraft, setThemeDraft] = useState(() => {
+    try {
+      const raw = localStorage.getItem("emy-studio-theme-v1");
+      return raw ? { primary: "#c026d3", accent: "#f59e0b", background: "#0a0a0f", font: "inter", radius: "soft", logoDataUrl: null, ...JSON.parse(raw) } : { primary: "#c026d3", accent: "#f59e0b", background: "#0a0a0f", font: "inter", radius: "soft", logoDataUrl: null };
+    } catch { return { primary: "#c026d3", accent: "#f59e0b", background: "#0a0a0f", font: "inter", radius: "soft", logoDataUrl: null }; }
+  });
   const logoInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setThemeDraft(prev => ({ ...prev }));
-  }, []);
-
-  const patch = (p: Partial<ThemeSettings>) => setThemeDraft(prev => ({ ...prev, ...p }));
-
+  const patch = (p: Partial<ThemeSettings>) => setThemeDraft((prev: ThemeSettings) => ({ ...prev, ...p }));
   const onLogo = async (file: File | undefined) => {
     if (!file) return;
     try { const dataUrl = await downscaleLogo(file); patch({ logoDataUrl: dataUrl }); } catch {}
   };
-
-  const applyThemeChanges = () => saveTheme(themeDraft);
-
+  const applyThemeChanges = () => {
+    try { localStorage.setItem("emy-studio-theme-v1", JSON.stringify(themeDraft)); } catch {}
+    window.location.reload();
+  };
+  const resetThemeLocal = () => {
+    try { localStorage.removeItem("emy-studio-theme-v1"); } catch {}
+    setThemeDraft({ primary: "#c026d3", accent: "#f59e0b", background: "#0a0a0f", font: "inter", radius: "soft", logoDataUrl: null });
+  };
   return (
     <Card className="p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <SectionLabel>Style and branding</SectionLabel>
-          <p className="mt-1 text-xs text-zinc-500">Edit safely here, then click Apply.</p>
+          <p className="mt-1 text-xs text-zinc-500">Pick your style, then click Apply. The page reloads to apply the theme.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" onClick={() => resetTheme()}>Reset</Button>
+          <Button variant="ghost" onClick={resetThemeLocal}>Reset</Button>
           <Button onClick={applyThemeChanges}>Apply style changes</Button>
         </div>
       </div>
