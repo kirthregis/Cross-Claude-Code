@@ -59,7 +59,14 @@ export default function GigRadarPage() {
     try {
       const res = await fetch("/api/sweep");
       const data = await res.json();
-      setSweepResult("Found " + data.found + " leads. " + data.newGigs + " new gigs added.");
+      const errCount = data.errors?.length ?? 0;
+      const srcCount = (data.sources ?? []).filter((s: {found: number}) => s.found > 0).length;
+      setSweepResult(
+        "Scanned " + srcCount + " sources. Found " + data.found + " leads. " +
+        data.newGigs + " new gigs added." +
+        (data.alerted > 0 ? " " + data.alerted + " alerts sent." : "") +
+        (errCount > 0 ? " (" + errCount + " sources offline)" : " All sources OK.")
+      );
       refresh();
     } catch { setSweepResult("Sweep failed — check your internet connection."); }
     finally { setSweeping(false); }
@@ -393,7 +400,11 @@ export default function GigRadarPage() {
         <div className="space-y-4">
           <Card className="p-5">
             <h2 className="text-lg font-bold mb-1">Country & Source Manager</h2>
-            <p className="text-sm text-zinc-500 mb-4">Toggle countries and feeds on/off. UAE is always priority 1.</p>
+            <p className="text-sm text-zinc-500 mb-2">Toggle countries and feeds on/off. UAE is always priority 1.</p>
+            <div className="mb-4 rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/5 p-3">
+              <p className="text-xs font-bold text-fuchsia-300">Built-in UAE sources (always active, no setup needed)</p>
+              <p className="text-[11px] text-zinc-400 mt-1">40+ free public sources: Indeed, Bayt, GulfTalent, NaukriGulf, Hozpitality, Dubizzle, Reddit (r/DJs, r/dubai), Twitter/X (DJ booking, DJ wanted, Afro House Dubai), Eventbrite, Meetup, Time Out Dubai, Resident Advisor, Platinumlist, Visit Dubai, Dubai Calendar, What's On UAE, Gulf News, Khaleej Times, Arabian Business, Esquire ME, Hospitality Net, Caterer, Total Jobs.</p>
+            </div>
             {countries.map(country => (
               <div key={country.code} className="mb-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
                 <div className="flex items-center justify-between mb-3">
