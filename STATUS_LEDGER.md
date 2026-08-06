@@ -1,27 +1,21 @@
-﻿# EMY STUDIO — STATUS LEDGER
-Last Updated: 2026-08-05
+# EMY STUDIO - STATUS LEDGER
+Last Updated: August 2026
 
-## 🌍 DEPLOYMENT
-- **Live URL:** https://emy-studio-rho.vercel.app/studio
-- **GitHub:** https://github.com/kirthregis/Cross-Claude-Code
-- **Branch:** main
-- **Folder:** C:\Users\kirth\Cross-Claude-Code\Cross-Claude-Code
+## LIVE ACCESS
+- App: https://emy-studio-rho.vercel.app/studio
+- Ledger: https://raw.githubusercontent.com/kirthregis/Cross-Claude-Code/main/STATUS_LEDGER.md
+- Handover: https://raw.githubusercontent.com/kirthregis/Cross-Claude-Code/main/HANDOVER.md
+- GitHub: https://github.com/kirthregis/Cross-Claude-Code
 
-## 🔑 CREDENTIALS
-- **Admin Password:** Emy1912@
-- **AI Keys:** Gemini & Fal.ai (Stored in Studio Settings)
+## CURRENT STATE
+Phase 6 restored. See HANDOVER.md for full details.
 
-## ✅ ACTIVE FLOWS (Verified Clean)
-1. **Mixing Engine:** Pro dual-deck, WaveSurfer waveforms, BPM detection.
-2. **Mastering:** -14 LUFS 24-bit WAV export with EQ and Crossfader blend.
-3. **GigRadar:** UAE Live Feeds (Platinumlist, RA, etc.) + Manual Lead Entry.
-4. **CRM:** Booking pipeline (New → Paid) with WhatsApp pitch generation.
-5. **EPK:** Press kit storage, view, and download.
-6. **AI Assistant:** Voice/Text assistant with Gemini intelligence.
-7. **Identity:** Arabic/English toggle, Notification Bell, Theme engine.
+## CREDENTIALS
+- Admin: Emy1912@
+- Contact: Kirth - admin@emyvisiongroup.com - +971 50 344 3281
 
-## 💾 EXPORT & RECOVERY
-To move this to any other machine:
-1. git clone https://github.com/kirthregis/Cross-Claude-Code
-2. cd Cross-Claude-Code
-3. npm install
+## CLONE TO ANY MACHINE
+git clone https://github.com/kirthregis/Cross-Claude-Code
+cd Cross-Claude-Code/Cross-Claude-Code
+npm install
+npm run dev
