@@ -1,35 +1,42 @@
 /**
- * UAE Live Booking Sources - DJ gigs only.
- * Every feed here is filtered for DJ booking signals before scoring.
+ * UAE Live Booking Sources - DJ and entertainment gigs.
  */
 import type { RawLead } from "../types";
 
 const DJ_KEYWORDS = [
-  "dj", "disc jockey", "deejay", "d.j.",
-  "dj booking", "dj wanted", "dj needed", "dj required", "dj hire",
-  "dj set", "dj slot", "dj night", "dj gig", "dj residency",
-  "resident dj", "book a dj", "need a dj", "looking for a dj",
-  "afro house dj", "house dj", "techno dj", "dj performance",
-  "entertainment booking", "music booking", "performer wanted",
-  "dj opportunity", "nightclub dj", "club dj", "beach club dj",
+  "dj", "disc jockey", "deejay",
+  "booking", "book a", "looking for", "need a", "wanted",
+  "required", "hiring", "hire", "residency", "resident",
+  "set", "slot", "night", "gig", "opportunity",
+  "performance", "entertainment", "music booking", "performer",
+  "nightclub", "club", "beach club", "lounge", "rooftop",
+  "afro house", "house music", "techno", "electronic",
+  "brunch", "event", "party", "venue", "promoter",
+  "dubai dj", "dj dubai", "uae dj", "dj uae",
 ];
 
-function isDjContent(title: string, body: string): boolean {
+function isRelevant(title: string, body: string): boolean {
   const text = (title + " " + body).toLowerCase();
-  return DJ_KEYWORDS.some(k => text.includes(k));
+  // Must mention DJ directly OR be a booking/entertainment lead in Dubai/UAE
+  const hasDj = text.includes("dj") || text.includes("disc jockey") || text.includes("deejay");
+  const hasBooking = ["booking", "looking for", "need a", "wanted", "hiring", "residency"].some(k => text.includes(k));
+  const hasVenue = ["nightclub", "beach club", "lounge", "rooftop", "brunch", "afro house", "house music", "techno", "electronic"].some(k => text.includes(k));
+  const hasDubai = ["dubai", "uae", "abu dhabi", "sharjah", "doha", "qatar"].some(k => text.includes(k));
+  // Pass if: has DJ word, OR (has booking signal AND has Dubai/UAE AND has venue type)
+  return hasDj || (hasBooking && hasDubai && hasVenue);
 }
 
 async function fetchFeed(url: string, name: string, kind: RawLead["sourceKind"]): Promise<RawLead[]> {
   try {
     const res = await fetch(url, {
-      signal: AbortSignal.timeout(10000),
-      headers: { "User-Agent": "EMY-GigRadar/1.0 (+https://emy-studio-rho.vercel.app)" },
+      signal: AbortSignal.timeout(12000),
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; EMY-GigRadar/1.0)" },
     });
     if (!res.ok) return [];
     const text = await res.text();
     const items = text.split(/<item>|<entry>/).slice(1);
     const leads: RawLead[] = [];
-    for (const item of items.slice(0, 20)) {
+    for (const item of items.slice(0, 30)) {
       const pick = (tag: string) =>
         item.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`))?.[1]
           ?.replace(/<![CDATA[|]]>/g, "")
@@ -39,7 +46,7 @@ async function fetchFeed(url: string, name: string, kind: RawLead["sourceKind"])
       const body = pick("description") ?? pick("summary") ?? pick("content") ?? "";
       const link = pick("link") ?? "";
       const pubDate = pick("pubDate") ?? pick("published") ?? "";
-      if (!isDjContent(title, body)) continue;
+      if (!isRelevant(title, body)) continue;
       leads.push({
         sourceKind: kind,
         sourceName: name,
@@ -56,21 +63,31 @@ async function fetchFeed(url: string, name: string, kind: RawLead["sourceKind"])
 }
 
 const FEEDS: { url: string; name: string; kind: RawLead["sourceKind"] }[] = [
+  { url: "https://ae.indeed.com/rss?q=dj&l=Dubai&sort=date", name: "Indeed DJ Dubai", kind: "gig_board" },
   { url: "https://ae.indeed.com/rss?q=dj+booking&l=Dubai&sort=date", name: "Indeed DJ Booking Dubai", kind: "gig_board" },
-  { url: "https://ae.indeed.com/rss?q=dj+performer+entertainment&l=Dubai&sort=date", name: "Indeed DJ Performer Dubai", kind: "gig_board" },
-  { url: "https://ae.indeed.com/rss?q=nightclub+dj+dubai&sort=date", name: "Indeed Nightclub DJ Dubai", kind: "gig_board" },
+  { url: "https://ae.indeed.com/rss?q=entertainment+performer&l=Dubai&sort=date", name: "Indeed Performer Dubai", kind: "gig_board" },
+  { url: "https://ae.indeed.com/rss?q=nightclub+entertainment&l=Dubai&sort=date", name: "Indeed Nightclub Dubai", kind: "gig_board" },
   { url: "https://hozpitality.com/rss/jobs.xml", name: "Hozpitality UAE", kind: "gig_board" },
   { url: "https://www.gulftalent.com/rss/jobs.xml?category=entertainment", name: "GulfTalent Entertainment", kind: "gig_board" },
-  { url: "https://www.bayt.com/en/uae/jobs/rss/?q=dj+booking", name: "Bayt DJ Booking", kind: "gig_board" },
+  { url: "https://www.bayt.com/en/uae/jobs/rss/?q=dj", name: "Bayt DJ UAE", kind: "gig_board" },
+  { url: "https://www.bayt.com/en/uae/jobs/rss/?q=entertainment+booking", name: "Bayt Entertainment UAE", kind: "gig_board" },
+  { url: "https://www.dubizzle.com/rss/jobs/?category=entertainment", name: "Dubizzle Entertainment", kind: "gig_board" },
   { url: "https://ra.co/xml/feed.xml?area=62", name: "Resident Advisor Dubai", kind: "event_calendar" },
   { url: "https://ra.co/xml/feed.xml?area=398", name: "Resident Advisor Doha", kind: "event_calendar" },
+  { url: "https://platinumlist.net/rss", name: "Platinumlist Dubai", kind: "event_calendar" },
+  { url: "https://www.timeoutdubai.com/music/rss", name: "Time Out Dubai Music", kind: "event_calendar" },
   { url: "https://www.reddit.com/r/DJs/search.rss?q=booking+UAE+Dubai&sort=new", name: "Reddit DJs UAE", kind: "gig_board" },
   { url: "https://www.reddit.com/r/DJs/search.rss?q=afro+house+gig&sort=new", name: "Reddit Afro House", kind: "gig_board" },
-  { url: "https://www.reddit.com/r/dubai/search.rss?q=dj+booking&sort=new", name: "Reddit Dubai DJ", kind: "gig_board" },
+  { url: "https://www.reddit.com/r/DJs/search.rss?q=dj+wanted&sort=new", name: "Reddit DJ Wanted", kind: "gig_board" },
+  { url: "https://www.reddit.com/r/dubai/search.rss?q=dj+booking+event&sort=new", name: "Reddit Dubai Events", kind: "gig_board" },
   { url: "https://nitter.net/search/rss?q=DJ+booking+Dubai&f=tweets", name: "Twitter DJ Booking Dubai", kind: "instagram" },
   { url: "https://nitter.net/search/rss?q=DJ+wanted+Dubai&f=tweets", name: "Twitter DJ Wanted Dubai", kind: "instagram" },
   { url: "https://nitter.net/search/rss?q=Afro+House+DJ+Dubai&f=tweets", name: "Twitter Afro House Dubai", kind: "instagram" },
+  { url: "https://nitter.net/search/rss?q=looking+for+DJ+Dubai&f=tweets", name: "Twitter Looking For DJ", kind: "instagram" },
+  { url: "https://nitter.net/search/rss?q=DJ+residency+Dubai&f=tweets", name: "Twitter DJ Residency Dubai", kind: "instagram" },
   { url: "https://www.eventbrite.com/d/ae--dubai/dj/rss/", name: "Eventbrite Dubai DJ", kind: "event_calendar" },
+  { url: "https://www.eventbrite.com/d/ae--dubai/electronic-music/rss/", name: "Eventbrite Electronic Dubai", kind: "event_calendar" },
+  { url: "https://whatson.ae/feed/", name: "WhatsOn UAE", kind: "event_calendar" },
 ];
 
 export async function fetchUAELeads(): Promise<RawLead[]> {
