@@ -1,10 +1,9 @@
-import type { NextConfig } from "next";
+﻿import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  // pdf-parse/pdf.js loads its worker from disk at runtime; bundling it breaks
-  // that lookup. Keep it external so the package's own files stay resolvable.
   serverExternalPackages: ["pdf-parse"],
-  /* config options here */
+  outputFileTracingRoot: path.join(__dirname, "../"),
 };
 
 export default nextConfig;
