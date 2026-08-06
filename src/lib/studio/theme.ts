@@ -123,30 +123,38 @@ export function loadTheme(): ThemeSettings {
 }
 
 export function saveTheme(t: ThemeSettings): void {
+  if (typeof window === "undefined") return;
   try {
     const raw = JSON.stringify(t);
+    if (themeCache && themeCache.raw === raw) return;
     window.localStorage.setItem(KEY, raw);
     themeCache = { raw, theme: t };
+    emit();
   } catch {
     /* noop */
   }
-  emit();
 }
 
 export function resetTheme(): void {
+  if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(KEY);
     themeCache = { raw: null, theme: DEFAULT_THEME };
+    emit();
   } catch {
     /* noop */
   }
-  emit();
 }
 
 const listeners = new Set<() => void>();
 function emit(): void {
-  listeners.forEach((l) => l());
+  listeners.forEach((l) => {
+    try {
+      l();
+    } catch {}
+  });
 }
+
 function subscribe(l: () => void): () => void {
   listeners.add(l);
   return () => {
@@ -163,7 +171,9 @@ export function fontStack(font: ThemeFont): string {
 }
 
 export function googleFontHref(font: ThemeFont): string | null {
-  return FONT_OPTIONS.find((f) => f.id === font)?.google ? `https://fonts.googleapis.com/css2?family=${FONT_OPTIONS.find((f) => f.id === font)!.google}&display=swap` : null;
+  return FONT_OPTIONS.find((f) => f.id === font)?.google
+    ? `https://fonts.googleapis.com/css2?family=${FONT_OPTIONS.find((f) => f.id === font)!.google}&display=swap`
+    : null;
 }
 
 export function radiusValue(radius: ThemeRadius): string {
