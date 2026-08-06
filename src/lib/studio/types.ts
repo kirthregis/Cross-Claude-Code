@@ -158,6 +158,7 @@ export interface StudioSettings {
   youtubeApiKey: string;
   spotifyClientId: string;
   spotifyClientSecret: string;
+  spotifyArtistId: string;
 }
 
 export const DEFAULT_SETTINGS: StudioSettings = {
@@ -181,6 +182,7 @@ export const DEFAULT_SETTINGS: StudioSettings = {
   audioOutputDevice: "",
   youtubeApiKey: "",
   spotifyClientId: "",
+  spotifyArtistId: "",
   spotifyClientSecret: "",
 };
 
@@ -194,3 +196,4 @@ export interface AssistantDecision {
   reply: string;
   action?: { type: "navigate"; to: string } | { type: "createProject"; name: string; kind: ProjectKind };
 }
+

@@ -1,55 +1,26 @@
-import { NextResponse } from "next/server";
-import { getGig, updateGigStage } from "@/lib/db";
-import { pitch, quoteFor, contactStrategy, negotiationPlaybook } from "@/lib/outreach";
-import { registerProfileLoader } from "@/lib/profile-store";
-import { GigStage } from "@/lib/types";
-
-registerProfileLoader();
+﻿import { NextResponse } from "next/server";
+import { getGig, updateGigStage, saveGigs, getGigs } from "@/lib/db";
+import type { GigStage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const g = getGig(id);
-  if (!g) return NextResponse.json({ error: "not found" }, { status: 404 });
-
-  const strategy = contactStrategy(g);
-  const quote = quoteFor(g);
-  const playbook = negotiationPlaybook(g);
-
-  return NextResponse.json({
-    gig: g,
-    quote,
-    playbook,
-    strategy,
-    pitches: {
-      whatsapp: pitch(g),
-      instagram_dm: pitch(g),
-      email: pitch(g),
-    },
-  });
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  const gig = getGig(params.id);
+  if (!gig) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ gig });
 }
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const g = getGig(id);
-  if (!g) return NextResponse.json({ error: "not found" }, { status: 404 });
-
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
-    const body = await req.json();
-    const { stage, feeAed, notes, venueName } = body;
-
-    if (stage) {
-      updateGigStage(id, stage as GigStage, { feeAed, notes, venueName });
-    }
-
-    return NextResponse.json({ ok: true, id });
+    const body = await req.json() as { stage?: GigStage; feeAed?: number; notes?: string };
+    const gigs = getGigs();
+    const idx = gigs.findIndex(g => g.id === params.id);
+    if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (body.stage) gigs[idx].stage = body.stage;
+    if (body.feeAed !== undefined) gigs[idx].feeAed = body.feeAed;
+    if (body.notes !== undefined) gigs[idx].notes = body.notes;
+    saveGigs(gigs);
+    return NextResponse.json({ ok: true, gig: gigs[idx] });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 400 });
   }

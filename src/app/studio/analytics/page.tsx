@@ -1,4 +1,5 @@
 ﻿"use client";
+import { Suspense } from "react";
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
@@ -12,7 +13,7 @@ import {
 } from "@/lib/studio/analytics";
 import Link from "next/link";
 
-export default function AnalyticsPage() {
+function AnalyticsPageInner() {
   const settings = useSettings();
   const searchParams = useSearchParams();
 
@@ -307,5 +308,13 @@ export default function AnalyticsPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-zinc-500 text-sm animate-pulse">Loading analytics…</div>}>
+      <AnalyticsPageInner />
+    </Suspense>
   );
 }
