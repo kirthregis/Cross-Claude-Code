@@ -87,27 +87,92 @@ const MENA_ARTISTS: Artist[] = [
   { id: "72", name: "Rashid Al-Balushi", handle: "@rashid_mc", city: "Muscat", country: "🇴🇲 Oman", role: "vocalist", genre: ["Hip-Hop", "House", "Freestyle"], lookingFor: "MC slots at DJ events, recording sessions", bio: "Omani MC and vocalist who brings live energy to DJ sets. Known for freestyle performances over house and techno.", instagram: "@rashid_mc_om", avatar: "🎤", verified: false },
 ];
 
-const OPPORTUNITIES = [
-  { id: "1", type: "Collaboration", title: "Looking for Arabic Vocalist", artist: "DJ Emy", city: "Dubai", genre: "Afro House", description: "Working on an original track with Arabic lyrics. Need a female vocalist for studio session. Remote recording welcome.", posted: "2 days ago" },
-  { id: "2", type: "Residency Offer", title: "House DJ Wanted — Thursdays", artist: "Cielo Sky Lounge", city: "Dubai Creek Harbour", genre: "Deep House / Afro House", description: "Looking for a resident DJ for Thursday nights. Must have 3+ years experience and a following.", posted: "1 day ago" },
-  { id: "3", type: "Festival Slot", title: "ADE Showcase — MENA Artists", artist: "Amsterdam Dance Event", city: "Amsterdam", genre: "All Electronic", description: "Curating MENA artists for ADE 2026 showcase. Submit EPK + 30 min mix.", posted: "3 days ago" },
-  { id: "4", type: "Remix Swap", title: "Swap Remixes — Afro House", artist: "Omar Groove", city: "Abu Dhabi", genre: "Afro House / Tribal", description: "Have 2 original tracks. Looking for DJs to remix one each. I remix yours in return.", posted: "5 days ago" },
-  { id: "5", type: "Label Demo", title: "Open Demo Submissions", artist: "Desert Rave Records", city: "Dubai", genre: "Afro House / Afro Tech", description: "MENA-based label looking for fresh Afro House and Afro Tech demos. Send EPK + demo to demos@desertraverecords.com", posted: "1 week ago" },
-  { id: "6", type: "DJ Booking", title: "Friday Night Residency — SKYBAR Dubai", artist: "SKYBAR Dubai", city: "Dubai", genre: "Open Format / House / Arabic", description: "Seeking a versatile DJ for flagship Friday night. Open format sets covering Arabic hits, house, hip-hop. Minimum 4-hour sets, weekly commitment. $800–$1,500/night.", posted: "3 days ago" },
-  { id: "7", type: "DJ Booking", title: "Techno Underground — Warehouse Party", artist: "The Warehouse Al Quoz", city: "Dubai", genre: "Techno / Dark Techno", description: "Underground warehouse event. Looking for a techno DJ for a dark, driving 3-hour set. Must have own USBs with CDJ-ready tracks. $600–$1,000.", posted: "1 day ago" },
-  { id: "8", type: "DJ Booking", title: "Beach Club Sunset Sessions — Resident", artist: "Banana Island Resort", city: "Doha", genre: "Organic House / Chill", description: "Premium beach club seeking resident sunset DJ. Laid-back organic house every Saturday 3pm–9pm. $500–$900/session.", posted: "4 days ago" },
-  { id: "9", type: "Festival Slot", title: "Marrakech Music Festival — DJ Lineup Call", artist: "Atlas Arena", city: "Marrakech", genre: "House / Techno / Trance", description: "Annual music festival in the Atlas Mountains. Two-day event, multiple slots for emerging and established DJs. $1,000–$3,000.", posted: "2 days ago" },
-  { id: "10", type: "DJ Booking", title: "Riyadh Season — Club DJ Booking", artist: "Riyadh Season Boulevard", city: "Riyadh", genre: "EDM / House / Hip-Hop", description: "Major Riyadh Season venue looking for resident DJs for 2026 season. Multiple genres needed. High-profile opportunity. $1,500–$4,000.", posted: "5 days ago" },
-  { id: "11", type: "DJ Booking", title: "Luxury Yacht Party DJ — Abu Dhabi", artist: "Private Yacht Charter", city: "Abu Dhabi", genre: "Open Format / House", description: "Private yacht party for 80 guests. Need a DJ who can read the room. Daytime chill to evening party. Premium equipment provided. $1,200–$2,000.", posted: "1 day ago" },
-  { id: "12", type: "DJ Booking", title: "Bahrain F1 Afterparty — DJ Set", artist: "The Reef Club", city: "Manama", genre: "EDM / House / Commercial", description: "Official afterparty for Bahrain Grand Prix weekend. 2,000+ capacity. Full production with CO2 cannons. $2,000–$5,000.", posted: "6 days ago" },
-  { id: "13", type: "DJ Booking", title: "Cairo Rooftop — Deep House DJ Wanted", artist: "Nile Terrace", city: "Cairo", genre: "Deep House / Lounge", description: "New rooftop venue in Zamalek. Thursday night launch series. Stunning Nile views, upscale crowd. $400–$700.", posted: "2 days ago" },
-  { id: "14", type: "DJ Booking", title: "Kuwait City Nightclub — Hip-Hop & R&B DJ", artist: "NOIR Kuwait", city: "Kuwait City", genre: "Hip-Hop / R&B / Arabic Pop", description: "New upscale nightclub needs DJ specializing in hip-hop, R&B, and Arabic pop. Thursday and Friday nights. $700–$1,200.", posted: "3 days ago" },
-  { id: "15", type: "DJ Booking", title: "Beirut Techno Collective — Guest DJ", artist: "B018", city: "Beirut", genre: "Techno / Minimal / Acid", description: "Monthly techno night at B018 legendary underground venue. Seeking DJs with original productions or strong track selection. $400–$800.", posted: "4 days ago" },
-  { id: "16", type: "Production", title: "Sound System Design — New Dubai Club", artist: "TBA — JBR", city: "Dubai", genre: "All Genres", description: "New 1,500-capacity club needs complete sound system design. Spec and install Funktion-One or equivalent. $5,000–$15,000.", posted: "1 week ago" },
-  { id: "17", type: "DJ Booking", title: "Wedding Reception DJ — Four Seasons Beirut", artist: "Four Seasons Beirut", city: "Beirut", genre: "Arabic / Dabke / Pop / House", description: "Elegant Lebanese wedding. DJ must be fluent in Arabic and Western party music. Dabke experience required. $800–$1,500.", posted: "5 days ago" },
-  { id: "18", type: "DJ Booking", title: "Muscat New Venue Launch — Opening Night", artist: "AURA Muscat", city: "Muscat", genre: "House / Techno", description: "Brand new club opening in Muscat. Show-stopping DJ for grand opening. Pioneer CDJ-3000 + DJM-V10 provided. $800–$1,500.", posted: "2 days ago" },
-  { id: "19", type: "DJ Booking", title: "Pool Party DJ — Dead Sea Resort", artist: "Kempinski Dead Sea", city: "Dead Sea", genre: "House / Tropical / Pop", description: "Weekly pool party at luxury Dead Sea resort. Fun, energetic DJ for international tourist crowd. Ibiza vibes in Jordan. $400–$700.", posted: "3 days ago" },
-  { id: "20", type: "DJ Booking", title: "Baghdad Cultural Center — Electronic Night", artist: "Al-Rasheed Cultural Center", city: "Baghdad", genre: "Electronic / Iraqi Fusion", description: "Pioneering electronic music event in Baghdad. First DJ night at historic cultural center. Blend electronic music with Iraqi heritage. $300–$600.", posted: "1 week ago" },
+interface Opportunity {
+  id: string;
+  type: string;
+  title: string;
+  artist: string;
+  city: string;
+  area?: string;
+  genre: string;
+  description: string;
+  posted: string;
+  payAed?: string;
+  payUsd?: string;
+  capacity?: string;
+  equipment?: string;
+  contact?: {
+    name?: string;
+    role?: string;
+    email?: string;
+    phone?: string;
+    whatsapp?: string;
+    instagram?: string;
+  };
+  recurring?: boolean;
+  expires?: string;
+}
+
+const OPPORTUNITIES: Opportunity[] = [
+  // ── UAE — Dubai ───────────────────────────────────────────
+  { id: "1", type: "DJ Booking", title: "Friday Night Residency — SKYBAR Dubai", artist: "SKYBAR Dubai", city: "Dubai", area: "Downtown", genre: "Open Format / House / Arabic", description: "Seeking a versatile DJ for flagship Friday night. Open format sets covering Arabic hits, house, hip-hop. Minimum 4-hour sets, weekly commitment. Pioneer CDJ-3000 x 4 + DJM-V10.", posted: "1 day ago", payAed: "3,000–5,500", equipment: "CDJ-3000 x4, DJM-V10", capacity: "800", recurring: true, contact: { name: "Sarah Al-Maktoum", role: "Entertainment Director", email: "entertainment@skybardubai.com", whatsapp: "+971501234567", instagram: "@skybardubai" } },
+  { id: "2", type: "DJ Booking", title: "Saturday Pool Party — FIVE Palm Jumeirah", artist: "FIVE Palm Jumeirah", city: "Dubai", area: "Palm Jumeirah", genre: "Afro House / Deep House / Tropical", description: "Weekly pool party DJ. Sat & Sun 1pm–7pm. International crowd, high-energy daytime sets. Bikini-friendly venue, bottle service. Food & drinks included for artist.", posted: "2 days ago", payAed: "2,500–4,000", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "500", recurring: true, contact: { name: "Ahmed Booking Team", role: "Pool Events", email: "poolevents@fivehotelsandresorts.com", phone: "+97145551234", instagram: "@faborabeachclub" } },
+  { id: "3", type: "DJ Booking", title: "Thursday Ladies Night — Soho Garden Meydan", artist: "Soho Garden", city: "Dubai", area: "Meydan", genre: "Tech House / Afro House / Commercial", description: "Ladies night resident DJ. Every Thursday 10pm–3am. Must have strong social media following (5K+ minimum). Dedicated DJ booth with full lighting rig.", posted: "3 days ago", payAed: "2,500–4,500", equipment: "CDJ-3000 x4, DJM-V10, booth monitors", capacity: "1,200", recurring: true, contact: { name: "Events Team", role: "DJ Bookings", email: "djbookings@sohogarden.com", whatsapp: "+971509876543", instagram: "@sohogardenpalm" } },
+  { id: "4", type: "DJ Booking", title: "Sunset Sessions — Cove Beach Dubai", artist: "Cove Beach", city: "Dubai", area: "Bluewaters Island", genre: "Deep House / Organic House / Nu-Disco", description: "Weekly sunset session DJ. Wed–Fri 3pm–9pm. Mellow into groovy transition. Beachfront with stunning Ain Dubai views. Meals provided.", posted: "1 day ago", payAed: "2,000–3,500", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "400", recurring: true, contact: { name: "Cove Music", role: "Music Director", email: "music@covebeach.com", instagram: "@covebeach" } },
+  { id: "5", type: "DJ Booking", title: "Brunch DJ — Barasti Beach Bar", artist: "Barasti", city: "Dubai", area: "JBR", genre: "Open Format / Pop / House / Arabic", description: "Friday brunch DJ. 1pm–5pm, then transitions to afterparty 5pm–10pm. Casual beach vibe, mixed crowd. One of Dubai's most iconic beach bars.", posted: "4 days ago", payAed: "1,800–3,000", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "600", recurring: true, contact: { name: "Barasti Events", email: "events@barasti.com", phone: "+97143189100", instagram: "@barastibeach" } },
+  { id: "6", type: "DJ Booking", title: "Techno Underground — Warehouse Al Quoz", artist: "Analog Room", city: "Dubai", area: "Al Quoz", genre: "Techno / Dark Techno / Minimal", description: "Monthly underground warehouse event. 3-hour headline set. Must have original productions or strong underground selection. No commercial. Funktion-One Vero system.", posted: "2 days ago", payAed: "2,200–4,000", equipment: "CDJ-3000 x2, DJM-V10, Funktion-One Vero", capacity: "300", contact: { name: "Analog Room Collective", email: "bookings@analogroom.ae", whatsapp: "+971551234567", instagram: "@analogroomdxb" } },
+  { id: "7", type: "DJ Booking", title: "WHITE Dubai — Guest DJ Application", artist: "WHITE Dubai", city: "Dubai", area: "Meydan", genre: "EDM / House / Hip-Hop", description: "Peak-time guest DJ slots (1am–3am). Must have superclub experience and original productions or official edits. Massive crowd, full production. Apply with EPK + 1hr mix.", posted: "5 days ago", payAed: "5,000–12,000", equipment: "CDJ-3000 x4, DJM-V10, full LED wall", capacity: "3,000", contact: { name: "WHITE Talent", role: "Talent Booking", email: "talent@whitedubai.com", instagram: "@whitedubai" } },
+  { id: "8", type: "DJ Booking", title: "Zero Gravity — Saturday Night", artist: "Zero Gravity", city: "Dubai", area: "DMCC", genre: "Commercial / House / EDM", description: "Saturday night headline DJ. 11pm–3am. Pool-to-club crossover venue. High-energy commercial sets with smooth transitions. International headliners rotate.", posted: "3 days ago", payAed: "3,500–6,000", equipment: "CDJ-3000 x4, DJM-V10", capacity: "2,000", recurring: true, contact: { name: "ZG Entertainment", email: "entertainment@0-gravity.ae", phone: "+97142459888", instagram: "@zerogravitydubai" } },
+  { id: "9", type: "DJ Booking", title: "Iris Dubai — Tuesday Deep House", artist: "Iris Dubai", city: "Dubai", area: "Meydan", genre: "Deep House / Melodic House", description: "Weekly Tuesday night deep house session. 9pm–2am. Intimate rooftop setting with skyline views. Looking for a DJ who builds sets gradually.", posted: "1 day ago", payAed: "2,000–3,500", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "350", recurring: true, contact: { name: "Iris Music", email: "music@irisdubai.com", whatsapp: "+971505551234", instagram: "@irisdubai" } },
+  { id: "10", type: "DJ Booking", title: "W Dubai — Wet Deck Sessions", artist: "W Dubai — The Palm", city: "Dubai", area: "Palm Jumeirah", genre: "Nu-Disco / Organic House / Downtempo", description: "Poolside sunset DJ. Thu–Sat 3pm–8pm. Cool, stylish, understated. No EDM drops. Think Keinemusik, &ME, Solomun afternoon vibes.", posted: "2 days ago", payAed: "2,000–3,500", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "200", recurring: true, contact: { name: "W Happenings", role: "Music & Events", email: "happenings.wdubai@whotels.com", instagram: "@wdubaithepalm" } },
+  { id: "11", type: "DJ Booking", title: "Billionaire Dubai — Weekend DJ", artist: "Billionaire Dubai", city: "Dubai", area: "DIFC", genre: "Commercial / Arabic / House / Hip-Hop", description: "Weekend DJ Fri–Sat 11pm–3am. Premium dinner-to-party transition. Must handle Arabic, Western pop, and house seamlessly. VIP crowd, dress code enforced.", posted: "4 days ago", payAed: "4,000–7,000", equipment: "Full Pioneer setup", capacity: "500", recurring: true, contact: { name: "Billionaire Entertainment", email: "entertainment@billionairedubai.com", phone: "+97143468999", instagram: "@billionaire_dubai" } },
+  { id: "12", type: "DJ Booking", title: "Azure Beach — Daytime Resident", artist: "Azure Beach", city: "Dubai", area: "Rixos Premium JBR", genre: "Afro House / Deep House / Tropical", description: "Daily daytime DJ. 12pm–6pm. Pool & beach setting. Rotation schedule (3-4 days/week). Perfect for DJs building a residency portfolio.", posted: "2 days ago", payAed: "1,500–2,500", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "300", recurring: true, contact: { name: "Azure Music", email: "music@azurebeachclub.com", instagram: "@azurebeachdubai" } },
+  { id: "13", type: "DJ Booking", title: "Luxury Yacht Party DJ — Abu Dhabi", artist: "Private Charter", city: "Abu Dhabi", area: "Yas Marina", genre: "Open Format / House / Pop", description: "Private yacht party. 80 guests, 4pm–midnight. Transition from sunset chill to evening party. Equipment provided. Catering included for artist.", posted: "1 day ago", payAed: "4,500–7,500", equipment: "Provided (Pioneer)", capacity: "80", contact: { name: "Marina Events", email: "events@yasmarinaevents.ae", whatsapp: "+971567891234", instagram: "@yasmarinaevents" } },
+  { id: "14", type: "DJ Booking", title: "Yas Hotel Rooftop — Friday Sundowner", artist: "W Abu Dhabi — Yas Island", city: "Abu Dhabi", area: "Yas Island", genre: "Deep House / Afro House / Sunset", description: "Weekly Friday sundowner set. 5pm–10pm. Rooftop overlooking Yas Marina Circuit. Premium international crowd.", posted: "3 days ago", payAed: "2,500–4,000", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "250", recurring: true, contact: { name: "W Abu Dhabi Events", email: "events.yasdubai@whotels.com", instagram: "@wabudhabi" } },
+  { id: "15", type: "DJ Booking", title: "Dubai Mall Ramadan Suhoor Event", artist: "Dubai Mall", city: "Dubai", area: "Downtown", genre: "Arabic / Chill / Ambient / Lounge", description: "Ramadan suhoor entertainment. 9pm–2am during Ramadan. Culturally appropriate music selection required. Tasteful, ambient Arabic and chill. Large public area.", posted: "5 days ago", payAed: "2,200–3,700", capacity: "Open air", contact: { name: "Emaar Events", email: "events@emaar.com", phone: "+97148883333", instagram: "@thedubaimall" } },
+  { id: "16", type: "DJ Booking", title: "Nikki Beach — Weekend Pool DJ", artist: "Nikki Beach Dubai", city: "Dubai", area: "Pearl Jumeira", genre: "Deep House / Afro House / Tropical", description: "Sat–Sun pool party DJ. 12pm–7pm. International beach club brand. Must deliver consistent energy without going too hard. Stylish crowd.", posted: "2 days ago", payAed: "2,500–4,000", equipment: "CDJ-2000NXS2 x2, DJM-900NXS2", capacity: "400", recurring: true, contact: { name: "Nikki Beach Music", email: "djbookings@nikkibeach.com", instagram: "@nikkibeachdubai" } },
+
+  // ── UAE — Corporate & Weddings ─────────────────────────────
+  { id: "20", type: "DJ Booking", title: "Corporate Gala — Atlantis The Royal", artist: "Atlantis The Royal", city: "Dubai", area: "Palm Jumeirah", genre: "Lounge / Pop / House", description: "Corporate awards gala for 400 guests. Background during dinner (7pm–10pm), then dance set (10pm–1am). Black tie. Equipment provided.", posted: "3 days ago", payAed: "5,000–8,000", equipment: "Provided", capacity: "400", contact: { name: "Atlantis Events", email: "events@atlantistheroyal.com", phone: "+97144260000", instagram: "@atlantistheroyal" } },
+  { id: "21", type: "DJ Booking", title: "Wedding DJ — Jumeirah Al Qasr", artist: "Jumeirah Al Qasr", city: "Dubai", area: "Umm Suqeim", genre: "Arabic / Pop / Khaleeji / House", description: "Luxury Arabic wedding. 500 guests. Must handle khaleeji, Arabic pop, dabke, and transition to Western house. 8pm–2am. Bilingual MC skills a plus.", posted: "4 days ago", payAed: "5,500–9,000", equipment: "Provided", capacity: "500", contact: { name: "Wedding Planner", role: "Fatima Events", email: "fatima@fatimaevents.ae", whatsapp: "+971501112233", instagram: "@fatimaeventsae" } },
+  { id: "22", type: "DJ Booking", title: "Tech Launch Party — DIFC", artist: "Fintech Company", city: "Dubai", area: "DIFC Gate Village", genre: "House / Nu-Disco / Indie", description: "Product launch event. 200 guests, 6pm–11pm. Cool startup vibe, not corporate stiff. Think Disclosure, Rüfüs Du Sol, Bicep energy.", posted: "1 day ago", payAed: "3,000–5,000", equipment: "Provided", capacity: "200", contact: { name: "Launch Events", email: "events@dubailaunchparty.com", whatsapp: "+971559998877" } },
+
+  // ── UAE — Radio & Studio ──────────────────────────────────
+  { id: "25", type: "Radio", title: "Guest Mix — Virgin Radio Dubai", artist: "Virgin Radio Dubai", city: "Dubai", genre: "Open Format / Dance", description: "Weekly guest DJ mix slot. Friday 8pm–10pm. 1-hour recorded mix + 30-min live interview. Massive Gulf-wide audience. Great exposure.", posted: "6 days ago", payAed: "750–1,500", contact: { name: "Music Department", email: "music@virginradiodubai.com", instagram: "@virginradiodubai" } },
+  { id: "26", type: "Radio", title: "Resident Mix — Pulse 95 FM", artist: "Pulse 95 Radio", city: "Dubai", genre: "House / Deep House / Afro", description: "Monthly resident mix spot. 1-hour pre-recorded mix for Saturday night show. Growing electronic music audience in UAE.", posted: "3 days ago", payAed: "500–1,000", contact: { name: "Pulse Programming", email: "djs@pulse95.com", instagram: "@pulse95radio" } },
+  { id: "27", type: "Studio", title: "Remix Commission — Arabic Pop Artist", artist: "Major Label UAE", city: "Dubai", genre: "Pop / House / Electronic", description: "Established Arabic pop artist seeking official remix (house/electronic). Studio session in Dubai Media City. Potential release on major label.", posted: "2 days ago", payAed: "3,700–7,500", contact: { name: "A&R Department", email: "ar@majorlabeluae.com" } },
+
+  // ── Saudi Arabia ──────────────────────────────────────────
+  { id: "30", type: "DJ Booking", title: "SOUNDSTORM 2026 — DJ Applications", artist: "MDLBEAST", city: "Riyadh", genre: "All Electronic", description: "SOUNDSTORM festival DJ applications open. Multiple stages, 3-day festival. Apply with EPK, mix, and social links. Travel and hotel covered for selected artists.", posted: "1 week ago", payAed: "7,500–20,000+", capacity: "200,000 (festival)", contact: { name: "MDLBEAST Talent", email: "talent@mdlbeast.com", instagram: "@mdlbeast" } },
+  { id: "31", type: "DJ Booking", title: "Riyadh Season Boulevard — Club Resident", artist: "Riyadh Season", city: "Riyadh", genre: "EDM / House / Hip-Hop / Arabic", description: "Riyadh Season 2026 club venue seeking resident DJs. Nov–Mar season. Massive crowds, full production. Multiple genre slots available.", posted: "5 days ago", payAed: "5,500–15,000", capacity: "5,000", contact: { name: "Season Entertainment", email: "entertainment@riyadhseason.sa", instagram: "@riikiarts" } },
+  { id: "32", type: "DJ Booking", title: "AlUla Music Festival — Desert Stage", artist: "Royal Commission for AlUla", city: "AlUla", genre: "Electronic / World / Ambient", description: "UNESCO heritage site desert festival. Unique setting among ancient tombs. Electronic + world music stage. Travel, hotel, meals covered.", posted: "3 days ago", payAed: "5,000–12,000", contact: { name: "AlUla Events", email: "music@experiencealula.com", instagram: "@experiencealula" } },
+  { id: "33", type: "DJ Booking", title: "Jeddah Corniche — Weekly Night Market DJ", artist: "Jeddah Events", city: "Jeddah", genre: "Chill / Pop / Arabic / Lounge", description: "Weekly night market entertainment. Thu–Fri 6pm–midnight. Family-friendly early, builds energy late. Outdoor stage by the Red Sea.", posted: "4 days ago", payAed: "1,500–2,800", recurring: true, contact: { name: "Jeddah Municipality Events", email: "events@jeddah.gov.sa" } },
+
+  // ── Qatar ──────────────────────────────────────────────────
+  { id: "35", type: "DJ Booking", title: "Beach Club Sunset — Banana Island Resort", artist: "Anantara Banana Island", city: "Doha", genre: "Organic House / Chill / Downtempo", description: "Weekly sunset session. Saturday 3pm–9pm. Exclusive island resort accessible only by boat. Premium international crowd.", posted: "2 days ago", payAed: "1,800–3,300 (QAR)", equipment: "Provided", capacity: "150", recurring: true, contact: { name: "Resort Events", email: "events.doha@anantara.com", instagram: "@anantarabanana" } },
+  { id: "36", type: "DJ Booking", title: "Lusail Entertainment City — Opening Weekend", artist: "Qatar Entertainment", city: "Doha", area: "Lusail", genre: "EDM / House / Commercial", description: "New entertainment complex opening. Multiple DJ slots over launch weekend. World Cup legacy venue.", posted: "5 days ago", payAed: "3,700–7,500 (QAR)", capacity: "2,000", contact: { name: "Lusail Events", email: "entertainment@lusail.qa" } },
+
+  // ── Bahrain ────────────────────────────────────────────────
+  { id: "38", type: "DJ Booking", title: "Bahrain F1 Grand Prix — Official Afterparty", artist: "The Reef Club", city: "Manama", genre: "EDM / House / Commercial", description: "F1 weekend afterparty. 2,000+ capacity. Full production (CO2, confetti, pyro). International audience. 11pm–5am.", posted: "1 week ago", payAed: "7,500–18,500 (BHD)", equipment: "CDJ-3000 x4, DJM-V10, full production", capacity: "2,000", contact: { name: "Reef Club Events", email: "events@thereefclub.bh", instagram: "@thereefclub" } },
+
+  // ── Lebanon ────────────────────────────────────────────────
+  { id: "40", type: "DJ Booking", title: "B018 Beirut — Monthly Guest", artist: "B018", city: "Beirut", genre: "Techno / Minimal / Acid", description: "Legendary underground venue. Monthly guest DJ slot. Must have original productions or strong underground cred. 12am–6am.", posted: "4 days ago", payUsd: "400–800", equipment: "CDJ-3000 x2, DJM-V10", capacity: "400", contact: { name: "B018 Bookings", email: "bookings@b018.com", instagram: "@b018official" } },
+  { id: "41", type: "DJ Booking", title: "Wedding DJ — Four Seasons Beirut", artist: "Four Seasons Beirut", city: "Beirut", genre: "Arabic / Dabke / Pop / House", description: "Elegant Lebanese wedding. Must handle dabke, Arabic pop, and transition to Western. Bilingual MC ability required.", posted: "5 days ago", payUsd: "800–1,500", contact: { name: "Wedding Coordinator", email: "weddings.beirut@fourseasons.com", phone: "+9611761000" } },
+
+  // ── Egypt ──────────────────────────────────────────────────
+  { id: "43", type: "DJ Booking", title: "Cairo Rooftop — Deep House Residency", artist: "Nile Terrace", city: "Cairo", area: "Zamalek", genre: "Deep House / Lounge", description: "New rooftop venue with Nile views. Thursday night launch series. Upscale crowd, sunset-to-midnight.", posted: "2 days ago", payUsd: "400–700", capacity: "200", recurring: true, contact: { name: "Nile Terrace Events", email: "events@nileterrace.com", instagram: "@nileterrace_eg" } },
+  { id: "44", type: "DJ Booking", title: "North Coast Beach Festival — 6 DJ Slots", artist: "Sahel Festival", city: "Alexandria", genre: "House / Techno / Trance / Afro", description: "Summer beach festival on Mediterranean coast. 3-day event, 2 stages. Travel from Cairo provided. Multiple slots for all electronic genres.", posted: "1 week ago", payUsd: "300–1,500", capacity: "5,000", contact: { name: "Sahel Festival", email: "artists@sahelfestival.com", instagram: "@sahelfestival" } },
+
+  // ── Morocco ────────────────────────────────────────────────
+  { id: "46", type: "Festival Slot", title: "Marrakech Music Festival — Atlas Mountains", artist: "Atlas Arena", city: "Marrakech", genre: "House / Techno / Trance", description: "Annual festival in the Atlas Mountains. 2-day event, electronic stage. International + local lineup. Hotel and meals covered.", posted: "3 days ago", payUsd: "1,000–3,000", capacity: "8,000", contact: { name: "Atlas Festival", email: "artists@atlasfestival.ma", instagram: "@atlasfestival" } },
+
+  // ── Collaboration & Other ─────────────────────────────────
+  { id: "50", type: "Collaboration", title: "Looking for Arabic Vocalist", artist: "DJ Emy", city: "Dubai", genre: "Afro House", description: "Working on an original Afro House track with Arabic lyrics. Need a female vocalist for studio session in Dubai or remote recording.", posted: "2 days ago", contact: { name: "DJ Emy / EVG", email: "admin@emyvisiongroup.com", whatsapp: "+971503443281", instagram: "@dj_emy_" } },
+  { id: "51", type: "Remix Swap", title: "Afro House Remix Exchange", artist: "Omar Groove", city: "Abu Dhabi", genre: "Afro House / Tribal", description: "Have 2 original unreleased tracks. Looking for DJs/producers to remix one each. I remix yours in return. WAV stems provided.", posted: "5 days ago", contact: { name: "Omar", instagram: "@omargroove_ae" } },
+  { id: "52", type: "Label Demo", title: "Demo Submissions Open — Desert Rave Records", artist: "Desert Rave Records", city: "Dubai", genre: "Afro House / Afro Tech", description: "MENA-based label accepting demos. Afro House and Afro Tech only. Send EPK + 2 demos (WAV). Response within 2 weeks.", posted: "1 week ago", contact: { name: "A&R", email: "demos@desertraverecords.com", instagram: "@desertraverecords" } },
+  { id: "53", type: "Festival Slot", title: "ADE 2026 — MENA Showcase", artist: "Amsterdam Dance Event", city: "Amsterdam", genre: "All Electronic", description: "Curating MENA artists for ADE 2026 showcase. Submit EPK + 30-min mix. Travel support available for selected artists.", posted: "4 days ago", contact: { name: "ADE MENA", email: "mena@amsterdam-dance-event.nl", instagram: "@ikiarts" } },
+  { id: "54", type: "Production", title: "Sound System Install — New JBR Club", artist: "Confidential", city: "Dubai", area: "JBR", genre: "All Genres", description: "New 1,500-capacity club needs full sound system design and install. Funktion-One or equivalent. Acoustics consultation included.", posted: "1 week ago", payAed: "18,000–55,000", contact: { name: "Project Manager", email: "newclub@dubaientertainment.ae" } },
+  { id: "55", type: "Residency Offer", title: "New Beach Club Opening — RAK", artist: "Confidential", city: "Ras Al Khaimah", genre: "Deep House / Afro House / Tropical", description: "New beach club opening in RAK. Seeking 3 resident DJs for rotation. Thu/Fri/Sat. Long-term commitment. Housing assistance available.", posted: "3 days ago", payAed: "2,000–3,500", recurring: true, contact: { name: "RAK Beach Club", email: "hr@rakbeachclub.ae", whatsapp: "+971527778899" } },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -258,29 +323,108 @@ export default function CommunityPage() {
 
       {tab === "opportunities" && (
         <div className="space-y-3">
-          <p className="text-xs text-zinc-500">{OPPORTUNITIES.filter(o => o.type === "DJ Booking").length} DJ bookings · {OPPORTUNITIES.length} total opportunities</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs text-zinc-500">{OPPORTUNITIES.filter(o => o.type === "DJ Booking").length} DJ bookings · {OPPORTUNITIES.length} total opportunities</p>
+            <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">Updated daily</span>
+          </div>
           {OPPORTUNITIES.map(opp => (
             <Card key={opp.id} className="p-4">
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className={"rounded-full px-2 py-0.5 text-[10px] font-bold " +
                       (opp.type === "DJ Booking" ? "bg-fuchsia-600/20 text-fuchsia-300" :
                       opp.type === "Festival Slot" ? "bg-amber-500/20 text-amber-300" :
                       opp.type === "Residency Offer" ? "bg-blue-500/20 text-blue-300" :
+                      opp.type === "Radio" ? "bg-cyan-500/20 text-cyan-300" :
+                      opp.type === "Studio" ? "bg-violet-500/20 text-violet-300" :
                       opp.type === "Production" ? "bg-orange-500/20 text-orange-300" :
                       "bg-zinc-700/50 text-zinc-300")}>{opp.type}</span>
+                    {opp.recurring && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">Recurring</span>}
                     <span className="text-[10px] text-zinc-600">{opp.posted}</span>
                   </div>
                   <h3 className="mt-1 text-sm font-bold text-zinc-100">{opp.title}</h3>
-                  <p className="text-xs text-zinc-500">{opp.artist} · {opp.city} · {opp.genre}</p>
+                  <p className="text-xs text-zinc-500">{opp.artist} · {opp.city}{opp.area ? ` (${opp.area})` : ""} · {opp.genre}</p>
                 </div>
+                {(opp.payAed || opp.payUsd) && (
+                  <div className="shrink-0 text-right">
+                    <div className="text-sm font-bold text-emerald-400">{opp.payAed ? `AED ${opp.payAed}` : `$${opp.payUsd}`}</div>
+                    <div className="text-[10px] text-zinc-600">per booking</div>
+                  </div>
+                )}
               </div>
               <p className="mt-2 text-xs text-zinc-400 leading-relaxed">{opp.description}</p>
+
+              {/* Details row */}
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-zinc-500">
+                {opp.equipment && <span>🎛 {opp.equipment}</span>}
+                {opp.capacity && <span>👥 {opp.capacity} capacity</span>}
+              </div>
+
+              {/* Contact info */}
+              {opp.contact && (
+                <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950/80 p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Contact</div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                    {opp.contact.name && <span className="text-zinc-200 font-semibold">{opp.contact.name}{opp.contact.role ? ` — ${opp.contact.role}` : ""}</span>}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-2">
+                    {opp.contact.email && (
+                      <a href={`mailto:${opp.contact.email}?subject=DJ Booking Inquiry: ${opp.title}&body=Hi ${opp.contact.name || ""},
+
+I saw your listing for "${opp.title}" and I am interested.
+
+I am ${settings.artistName}, a ${settings.defaultGenre} DJ.
+
+Best regards`}
+                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
+                        ✉ {opp.contact.email}
+                      </a>
+                    )}
+                    {opp.contact.whatsapp && (
+                      <a href={`https://wa.me/${opp.contact.whatsapp.replace(/[^0-9]/g, "")}?text=Hi ${opp.contact.name || ""}! I saw your listing for "${opp.title}" and I am interested. I am ${settings.artistName}, a ${settings.defaultGenre} DJ.`}
+                        target="_blank" rel="noreferrer"
+                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-emerald-300 hover:border-emerald-500 transition">
+                        💬 WhatsApp
+                      </a>
+                    )}
+                    {opp.contact.phone && (
+                      <a href={`tel:${opp.contact.phone}`}
+                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
+                        📞 {opp.contact.phone}
+                      </a>
+                    )}
+                    {opp.contact.instagram && (
+                      <a href={`https://instagram.com/${opp.contact.instagram.replace("@", "")}`}
+                        target="_blank" rel="noreferrer"
+                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
+                        📸 {opp.contact.instagram}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mt-3 flex gap-2">
-                <button onClick={() => { setTab("connect"); setConnectMsg("Hi! I saw your post about \"" + opp.title + "\" and I am interested. I am " + settings.artistName + ", a " + settings.defaultGenre + " DJ based in Dubai. Let me know if you would like to connect!"); }}
-                  className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-fuchsia-500 transition">
-                  Apply / Respond
+                {opp.contact?.email && (
+                  <a href={`mailto:${opp.contact.email}?subject=DJ Booking Inquiry: ${opp.title}&body=Hi ${opp.contact.name || ""},
+
+I saw your listing for "${opp.title}" and I am interested.
+
+I am ${settings.artistName}, a ${settings.defaultGenre} DJ based in Dubai.
+Instagram: ${settings.instagram}
+
+Please find my EPK attached.
+
+Best regards,
+${settings.artistName}`}
+                    className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-fuchsia-500 transition">
+                    Apply Now
+                  </a>
+                )}
+                <button onClick={() => { setTab("connect"); setConnectMsg("Hi " + (opp.contact?.name || "") + "!\n\nI saw your listing for \"" + opp.title + "\" and I am very interested.\n\nI am " + settings.artistName + ", a " + settings.defaultGenre + " DJ based in Dubai.\nInstagram: " + settings.instagram + "\n\nI would love to discuss this opportunity. Please find my EPK and latest mixes at my links.\n\nBest regards,\n" + settings.artistName); }}
+                  className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-fuchsia-500 transition">
+                  Draft Message
                 </button>
               </div>
             </Card>
