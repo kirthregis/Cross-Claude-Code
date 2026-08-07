@@ -8,7 +8,7 @@ import { StudioGuide } from "@/components/studio/StudioGuide";
 import { FeedbackBox } from "@/components/studio/FeedbackBox";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
 import type { ProjectKind } from "@/lib/studio/types";
-import { createProject, deleteProject, useSettings, saveSettings, useProjects } from "@/lib/studio/store";
+import { createProject, deleteProject, upsertProject, useSettings, saveSettings, useProjects } from "@/lib/studio/store";
 import { getEpkPortraitDataUrl } from "@/lib/studio/epk-store";
 
 export default function StudioHome() {
@@ -25,6 +25,7 @@ export default function StudioHome() {
 
   const makeProject = (projectName: string, k: ProjectKind = kind, g = genre, m = mood, initialTab = "assistant") => {
     const p = createProject({ name: projectName, kind: k, genre: g, mood: m });
+    upsertProject(p);
     saveSettings({ ...settings, defaultKind: k, defaultGenre: g });
     router.push("/studio/p/" + p.meta.id + "?tab=" + initialTab);
   };
