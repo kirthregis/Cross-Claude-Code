@@ -5,6 +5,7 @@
 import type { RawLead } from "../types";
 import { getRegistry } from "./registry";
 import { fetchUAELeads } from "./uae";
+import { getMenaDjGigs } from "./mena-dj-gigs";
 
 export interface Source {
   id: string;
@@ -169,7 +170,19 @@ export const gigBoardSource: Source = {
   },
 };
 
+
+// ── MENA DJ Bookings (always active, curated DJ-specific gigs) ──
+export const menaDjSource: Source = {
+  id: "mena-dj",
+  label: "MENA DJ Network — Curated DJ bookings across Middle East & North Africa",
+  kind: "gig_board",
+  setup: "No setup needed — always active with DJ-specific bookings.",
+  configured: () => true,
+  async fetch() { return getMenaDjGigs(); },
+};
+
 export const ALL_SOURCES: Source[] = [
+  menaDjSource,
   uaeSource,
   registrySource,
   whatsappSource,
