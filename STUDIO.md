@@ -82,6 +82,21 @@ Settings → **Style & branding** lets her re-skin the whole app with no code:
 
 ## Music library, DJ-controller audio & one-tap sharing
 
+### Studio-grade mastering engine (free, on-device)
+The Master tab is a full mastering console:
+- **Input gain** control (-12 to +12 dB)
+- **5-band parametric EQ** (80Hz shelf, 250Hz, 1kHz, 4kHz, 12kHz shelf) — ±8dB per band
+- **Quick fixes**: one-click Rumble Cut, Cut Mud, Add Air, Mono Bass
+- **Compressor** with threshold, ratio, attack, release, and knee
+- **Soft clipper** for pre-limiter analog warmth (tanh saturation)
+- **True peak limiter** with adjustable ceiling
+- **Stereo width** (0% mono to 200% wide via mid-side)
+- **Triangular dither** for 16-bit export
+- **8 presets**: Streaming, Apple Music, Club/PA, SoundCloud, Warm, Clean, DJ Mix, Radio
+- Every slider/toggle auto-saves to localStorage on change
+- Mastered WAV auto-saves to IndexedDB + Library
+- On return visit, mastered audio reloads from IndexedDB — no re-mastering needed
+
 - **Library tab** (`/studio/library`): import her tracks (files or whole
   folders — Chrome/Edge), stored on-device in IndexedDB, play them with a
   built-in player. Free legal sources are built in: Internet Archive

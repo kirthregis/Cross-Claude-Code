@@ -125,6 +125,72 @@ All user data persists on-device. Nothing is uploaded to any server. The app wor
 ### Known Limitation
 The raw uploaded mix file (before mastering) is held in RAM as an AudioBuffer. If the DJ refreshes before clicking "Master Mix Now", they must re-upload the file. This is by design — a 66-minute WAV is ~700MB, too large for IndexedDB. After mastering, the mastered WAV (~100MB compressed) is persisted in IndexedDB permanently.
 
+
+## STUDIO-GRADE MASTERING ENGINE
+
+Free, runs entirely on-device via Web Audio API. No plugins, no subscriptions, no internet required.
+
+### Signal Chain
+```
+Input Gain → 30Hz Rumble HP → 5-Band Parametric EQ → Compressor → Soft Clipper → Limiter → Stereo Width → Mono Bass → Makeup Gain → True Peak Ceiling → Dither
+```
+
+### 5-Band Parametric EQ
+| Band | Frequency | Type | Range |
+|------|-----------|------|-------|
+| 1 | 80 Hz | Low Shelf | ±8 dB |
+| 2 | 250 Hz | Peaking (Q=1.2) | ±8 dB |
+| 3 | 1 kHz | Peaking (Q=0.8) | ±8 dB |
+| 4 | 4 kHz | Peaking (Q=1.0) | ±8 dB |
+| 5 | 12 kHz | High Shelf | ±8 dB |
+
+### Quick Fix Toggles
+- **Rumble Cut** — 30Hz highpass, removes sub-bass garbage
+- **Cut Mud** — -3dB at 250Hz, cleans up common DJ mix muddiness
+- **Add Air** — +2dB at 12kHz shelf, adds sparkle/presence
+- **Mono Bass** — narrows low frequencies to mono for club/PA compatibility
+
+### Compressor
+- Threshold: -30 to -6 dB
+- Ratio: 1.2:1 to 8.0:1
+- Attack: 1 to 100 ms
+- Release: 50 to 500 ms
+- Knee: 0 to 30 dB
+
+### Soft Clipper
+- Toggle on/off
+- Drive: 0.05 to 0.8
+- Pre-limiter tanh saturation for analog warmth/punch
+
+### Limiter & Output
+- Limiter Drive: 0 to 1.5 (tanh soft-knee)
+- True Peak Ceiling: -3.0 to -0.1 dBTP
+- Stereo Width: 0% (mono) to 200% (extra wide) via mid-side processing
+- Triangular Dither for 16-bit export quality
+
+### 8 Mastering Presets
+| Preset | Target LUFS | Use Case |
+|--------|-------------|----------|
+| Streaming | -14 | Spotify, YouTube, Apple Music |
+| Apple Music | -16 | Wider dynamic range for Sound Check |
+| Club / PA | -9 | Loud, punchy, compressed for big speakers |
+| SoundCloud | -10 | Louder for SoundCloud's transcoding |
+| Warm & Punchy | -14 | Soft clipping + bass warmth |
+| Clean & Transparent | -14 | Minimal processing, just normalization |
+| DJ Mix Master | -14 | Optimized for long DJ sets |
+| Radio / Podcast | -16 | Heavy compression for broadcast |
+
+### Technical Implementation
+- **Rendering:** OfflineAudioContext at 48kHz stereo
+- **Loudness:** ITU-R BS.1770-4 K-weighted measurement with absolute + relative gating
+- **True Peak:** 4x linear oversampled estimation
+- **EQ:** Web Audio BiquadFilterNode (lowshelf, peaking, highshelf)
+- **Compressor:** Web Audio DynamicsCompressorNode
+- **Limiter/Clipper:** WaveShaperNode with tanh curve, 4x oversampled
+- **Stereo:** Sample-level mid-side processing
+- **Dither:** Per-sample triangular probability density noise
+- **Export:** Tagged WAV (RIFF INFO chunks) at 48kHz, 16 or 24-bit
+
 ## COMPANY & ENTITY DETAILS ON FILE
 - **Artist:** Imen Mannai (professionally known as **DJ Emy**)
 - **Management Entity:** Emy Vision Group FZC (trading as **Emy Vision Group**)
