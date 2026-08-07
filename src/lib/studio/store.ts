@@ -1,11 +1,29 @@
 /**
- * EMY Studio — persistence.
+ * EMY Studio — persistence layer.
  *
- * Project metadata + settings live in localStorage (survives restarts,
- * offline-first). Large blobs (artwork, exported masters) live in IndexedDB
- * keyed by project id; the audio file itself is re-imported from her machine
- * each session by design — a 66-minute mix in the browser is held in memory
- * while the project is open, not duplicated to disk.
+ * STORAGE MAP (all on-device, nothing uploaded):
+ *
+ * localStorage:
+ *   emy-studio-projects-v1  → Project[] (metadata, master params/results, release, tracklist, collabs, links)
+ *   emy-studio-settings-v1  → StudioSettings (artist name, keys, audio device, theme)
+ *
+ * IndexedDB "emy-studio" → "blobs" object store:
+ *   emy-studio-art:{id}     → Cover artwork dataUrl (3000×3000 JPEG)
+ *   emy-master:{id}         → Mastered WAV blob (24-bit/48kHz) — auto-saved after mastering
+ *   emy-export:{id}:{bits}bit → Exported WAV blob — auto-saved on export
+ *
+ * IndexedDB "emy-studio-library" (see library-store.ts):
+ *   tracks store            → Audio file blobs (imported + mastered + exported)
+ *   meta store              → Track metadata
+ *
+ * IndexedDB "emy-studio-epk" (see epk-store.ts):
+ *   files store             → EPK PDF + portrait photo blobs
+ *
+ * RAM only (not persisted):
+ *   Raw uploaded mix AudioBuffer — too large (~700MB for 66min WAV) for IndexedDB
+ *   After mastering, the mastered WAV IS persisted to IndexedDB automatically
+ *
+ * Audio playback routes through user-selected device via AudioContext.setSinkId()
  */
 
 "use client";

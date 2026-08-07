@@ -18,19 +18,33 @@ finished mix (mp3/wav/m4a…)
         │
         ▼  Master tab        ← EQ, compression, limiting, loudness to -14 LUFS,
         │                       rendered ON THIS DEVICE (works with no internet)
+        │                       Saves to: localStorage (params/results) + IndexedDB (WAV) + Library
+        │                       Plays through: selected audio device (DJ controller, monitors)
+        │
         ▼  Export WAV        ← 48 kHz, 16/24-bit, tags embedded, loudness-normalized
+        │                       Saves to: user-chosen folder (File System API) + IndexedDB + Library
+        │
+        ▼  Tracklist tab     ← timestamp, artist, track title, label for every track in the set
+        │                       Saves to: localStorage (auto-save per keystroke)
+        │                       Formats: YouTube/SoundCloud, 1001Tracklists, Markdown
         │
         ▼  Artwork tab       ← Gemini-designed cover (online) or offline templates
         │                       3000×3000, platform-perfect
-        ▼  Release tab       ← title, description, tags, category — all platform limits baked in
+        │                       Saves to: IndexedDB (persists) + localStorage (metadata)
+        │
+        ▼  Release tab       ← title, description (with tracklist), tags, category
+        │                       Auto-saves every edit to localStorage
         │
         ▼  Check tab         ← PASS/WARN/FAIL report for YouTube, Instagram, or a label
+        │                       Verifies: loudness, true peak, artwork, title, tags, tracklist
         │
         ▼  Handoff           ← export WAV + cover, open YouTube Studio, paste, upload
 ```
 
-Nothing leaves her device: audio is processed in the browser, artwork is
-stored on the device, her Gemini key stays on the device.
+Nothing leaves her device: audio is processed in the browser, mastered files
+are saved to IndexedDB (survives refresh and browser restart), artwork is
+stored in IndexedDB, her Gemini key stays in localStorage. All data persists
+offline. Audio plays through her selected output device (DJ controller, monitors).
 
 ---
 
