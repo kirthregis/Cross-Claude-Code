@@ -22,7 +22,7 @@ export function StudioNav() {
     <header className="sticky top-0 z-40 border-b border-zinc-800 bg-black">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 gap-2">
         <Link href="/studio" className="flex items-center gap-2 shrink-0">
-          <span className="brand-grad flex h-8 w-8 items-center justify-center rounded-lg text-sm font-black text-white">E</span>
+          <img src="/icon.svg" alt="EMY Studio" className="h-8 w-8 rounded-lg" />
           <span className="hidden text-base font-extrabold text-white sm:block">EMY STUDIO</span>
         </Link>
         <nav className="flex items-center gap-1 overflow-x-auto min-w-0 py-0.5">
