@@ -18,7 +18,7 @@ interface Props {
 
 export function MasterPanel({ project, onChanged }: Props) {
   const settings = loadSettings();
-  const [params, setParams] = useState<MasterParams>(project.masterParams || DEFAULT_MASTER_PARAMS);
+  const [params, setParams] = useState<MasterParams>({ ...DEFAULT_MASTER_PARAMS, ...project.masterParams });
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [masteredBuffer, setMasteredBuffer] = useState<AudioBuffer | null>(null);
   const [rendering, setRendering] = useState(false);
