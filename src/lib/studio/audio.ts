@@ -6,6 +6,7 @@
  * -> Compressor (12 dB knee) -> Soft-knee limiter (tanh) -> Makeup gain -> True Peak Ceiling.
  *
  * Renders on-device in 48 kHz stereo OfflineAudioContext with true-peak & BS.1770-4 measurement.
+ * Plays through the user-selected audio output device (DJ controller, studio monitors, etc.).
  */
 
 import {
@@ -22,6 +23,22 @@ export async function getAudioContext(): Promise<AudioContext> {
     await ctx.resume();
   }
   return ctx;
+}
+
+/**
+ * Route an AudioContext to the user's selected output device.
+ * Uses setSinkId when available (Chrome/Edge).
+ */
+async function routeToDevice(ctx: AudioContext, deviceId: string): Promise<void> {
+  if (!deviceId) return;
+  const ctxAny = ctx as AudioContext & { setSinkId?: (id: string) => Promise<void> };
+  if (typeof ctxAny.setSinkId === "function") {
+    try {
+      await ctxAny.setSinkId(deviceId);
+    } catch {
+      /* fallback to default output */
+    }
+  }
 }
 
 export async function decodeAudioFile(file: File | Blob): Promise<AudioBuffer> {
@@ -189,6 +206,7 @@ export async function renderMaster(
 
 /**
  * Real-time A/B Master Player (Original vs Processed).
+ * Routes audio to the user-selected output device (DJ controller, monitors, etc).
  */
 export class MasteringPlayer {
   private ctx: AudioContext | null = null;
@@ -200,14 +218,27 @@ export class MasteringPlayer {
   private startOffsetSec = 0;
   private startTime = 0;
   private mode: "original" | "mastered" = "mastered";
+  private deviceId = "";
 
   async init(raw: AudioBuffer, mastered?: AudioBuffer) {
     this.stop();
     this.rawBuffer = raw;
     this.masteredBuffer = mastered ?? null;
     this.ctx = await getAudioContext();
+    // Route to user-selected device
+    if (this.deviceId) {
+      await routeToDevice(this.ctx, this.deviceId);
+    }
     this.gainNode = this.ctx.createGain();
     this.gainNode.connect(this.ctx.destination);
+  }
+
+  /** Set the audio output device (call before play, or re-inits context) */
+  async setOutputDevice(deviceId: string) {
+    this.deviceId = deviceId;
+    if (this.ctx && deviceId) {
+      await routeToDevice(this.ctx, deviceId);
+    }
   }
 
   setMasteredBuffer(buf: AudioBuffer) {

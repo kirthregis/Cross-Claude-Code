@@ -7,7 +7,8 @@ import { decodeAudioFile, renderMaster, MasteringPlayer } from "@/lib/studio/aud
 import { formatBytes, formatDuration } from "@/lib/studio/dsp";
 import { wavBlob, type WavTags } from "@/lib/studio/wav";
 import { notify, speak } from "@/lib/studio/speech";
-import { loadSettings, upsertProject } from "@/lib/studio/store";
+import { loadSettings, upsertProject, putBlob } from "@/lib/studio/store";
+import { saveLibraryTrack } from "@/lib/studio/library-store";
 import { Button, Card, SectionLabel } from "./ui";
 
 interface Props {
@@ -32,13 +33,17 @@ export function MasterPanel({ project, onChanged }: Props) {
   const [volume, setVolume] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize player once
+  // Initialize player and route to user-selected audio output device
   useEffect(() => {
-    playerRef.current = new MasteringPlayer();
+    const p = new MasteringPlayer();
+    if (settings.audioOutputDevice) {
+      void p.setOutputDevice(settings.audioOutputDevice);
+    }
+    playerRef.current = p;
     return () => {
       playerRef.current?.stop();
     };
-  }, []);
+  }, [settings.audioOutputDevice]);
 
   // Update time tracker loop
   useEffect(() => {
@@ -148,7 +153,30 @@ export function MasterPanel({ project, onChanged }: Props) {
       });
       onChanged();
 
-      notify("Mastering complete", `"${project.meta.name}" is mastered to ${result.outputLufs.toFixed(1)} LUFS.`);
+      // Auto-save mastered WAV to device (IndexedDB) so it persists across sessions
+      try {
+        const ch0Out = result.renderedBuffer.getChannelData(0);
+        const ch1Out = result.renderedBuffer.numberOfChannels > 1 ? result.renderedBuffer.getChannelData(1) : ch0Out;
+        const autoTags: WavTags = {
+          title: project.meta.name,
+          artist: settings.artistName || "DJ EMY",
+          genre: project.meta.genre || "Afro House",
+          album: "EMY Studio Master",
+          comment: `Mastered via EMY Studio to ${result.outputLufs.toFixed(1)} LUFS`,
+        };
+        const autoBlob = wavBlob([ch0Out, ch1Out], result.renderedBuffer.sampleRate, 24, autoTags);
+        const blobKey = `emy-master:${project.meta.id}`;
+        void putBlob(blobKey, autoBlob);
+        // Also save to Music Library so DJ can find it there
+        const cleanN = project.meta.name.replace(/[^a-zA-Z0-9_ -]/g, "_");
+        const masterFile = new File([autoBlob], `${cleanN}_MASTER_24bit.wav`, { type: "audio/wav" });
+        void saveLibraryTrack(masterFile);
+        masterResult.exportSizeBytes = autoBlob.size;
+      } catch {
+        /* auto-save best effort */
+      }
+
+      notify("Mastering complete — saved to device", `"${project.meta.name}" is mastered to ${result.outputLufs.toFixed(1)} LUFS. Auto-saved to your Library.`);
       speak(
         `Mastering finished at ${result.outputLufs.toFixed(1)} LUFS with ${result.gainAppliedDb > 0 ? "+" : ""}${result.gainAppliedDb.toFixed(1)} dB boost. Check the A/B comparison.`,
         settings.soundOn,
@@ -185,7 +213,7 @@ export function MasterPanel({ project, onChanged }: Props) {
     playerRef.current?.seek(sec);
   };
 
-  const exportWavFile = (bits: 16 | 24) => {
+  const exportWavFile = async (bits: 16 | 24) => {
     const buf = masteredBuffer ?? audioBuffer;
     if (!buf) {
       setError("Load an audio file first.");
@@ -204,15 +232,63 @@ export function MasterPanel({ project, onChanged }: Props) {
     };
 
     const blob = wavBlob([ch0, ch1], buf.sampleRate, bits, tags);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
     const cleanName = project.meta.name.replace(/[^a-zA-Z0-9_-]/g, "_");
-    a.download = `${cleanName}_48kHz_${bits}bit.wav`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fileName = `${cleanName}_48kHz_${bits}bit.wav`;
+
+    // 1. Try File System Access API (Chrome/Edge) — lets user pick save location
+    const win = window as unknown as { showSaveFilePicker?: (opts: unknown) => Promise<{ createWritable: () => Promise<{ write: (data: Blob) => Promise<void>; close: () => Promise<void> }> }> };
+    if (typeof win.showSaveFilePicker === "function") {
+      try {
+        const handle = await win.showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{ description: "WAV Audio", accept: { "audio/wav": [".wav"] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        speak("Exported and saved to your device.", settings.soundOn, "en-US", settings.voiceGender);
+      } catch {
+        // User cancelled — fall through to classic download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } else {
+      // 2. Fallback: classic browser download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // 3. Always save to IndexedDB for persistence
+    const blobKey = `emy-export:${project.meta.id}:${bits}bit`;
+    void putBlob(blobKey, blob);
+
+    // 4. Always save to Library so DJ can find and play it
+    const exportFile = new File([blob], fileName, { type: "audio/wav" });
+    void saveLibraryTrack(exportFile);
+
+    // 5. Update project metadata
+    upsertProject({
+      ...project,
+      master: {
+        ...project.master!,
+        exportSizeBytes: blob.size,
+        [`exportedWav${bits}` as const]: true,
+      },
+      meta: { ...project.meta, updatedAt: Date.now() },
+    });
+    onChanged();
   };
 
   const duration = audioBuffer?.duration || project.audio?.durationSec || 0;
@@ -573,7 +649,7 @@ export function MasterPanel({ project, onChanged }: Props) {
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Button
-            onClick={() => exportWavFile(24)}
+            onClick={() => void exportWavFile(24)}
             disabled={!audioBuffer && !project.master}
             className="flex-1 !py-3 font-bold"
           >
@@ -581,7 +657,7 @@ export function MasterPanel({ project, onChanged }: Props) {
           </Button>
           <Button
             variant="ghost"
-            onClick={() => exportWavFile(16)}
+            onClick={() => void exportWavFile(16)}
             disabled={!audioBuffer && !project.master}
             className="flex-1 !py-3 font-bold"
           >
