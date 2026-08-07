@@ -42,8 +42,11 @@ export function MasterPanel({ project, onChanged }: Props) {
           try {
             const buf = await decodeAudioFile(blob);
             setMasteredBuffer(buf);
+            // Also set as audioBuffer so the player can init and play
+            if (!audioBuffer) setAudioBuffer(buf);
             if (playerRef.current) {
-              playerRef.current.setMasteredBuffer(buf);
+              await playerRef.current.init(buf, buf);
+              playerRef.current.setMode("mastered");
             }
           } catch {
             /* master blob corrupt, DJ needs to re-master */
