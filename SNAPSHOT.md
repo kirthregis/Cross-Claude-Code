@@ -44,3 +44,16 @@ Or just download the matching zip and unzip it anywhere.
 
 After every completed build: `git commit` + `git tag studio-<n>` + push tag +
 `git archive` a fresh zip. Update this table each time.
+
+## August 2026 — Studio-Grade Mastering Engine
+- Commit: `1bfec7c` (Full UI for all studio-grade mastering controls)
+- 5-band parametric EQ, compressor with full controls, soft clipper, stereo width, mono bass, dither
+- 8 mastering presets (Streaming, Apple, Club, SoundCloud, Warm, Clean, DJ Mix, Radio)
+- 22 UI controls, every one verified: UI → save → engine → persist → reload
+- Tracklist Builder tab added to project editor
+- createProject auto-saves (root cause fix for project-not-found bug)
+- Release edits auto-save on every change
+- Mastered WAV persists in IndexedDB, reloads on return visit
+- Audio routes to user-selected device (DJ controller, monitors)
+- MENA community: 52 members across 14 countries, 30 DJ gigs
+- Logo restored: burnt orange background, black concentric circles

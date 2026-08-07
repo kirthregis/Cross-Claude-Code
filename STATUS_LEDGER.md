@@ -68,6 +68,31 @@ Every piece of data has a defined home. Nothing is RAM-only except the raw uploa
 12. 30 DJ gigs via MENA DJ Network sweep source
 13. Logo: burnt orange, black circles (original)
 
+### Studio-Grade Mastering Engine (Installed)
+Free, on-device, no plugins needed. Full signal chain:
+
+**Signal Chain (in order):**
+1. Input Gain (-12 to +12 dB)
+2. 30 Hz Rumble Highpass Filter
+3. 5-Band Parametric EQ: 80Hz shelf, 250Hz peak, 1kHz peak, 4kHz peak, 12kHz shelf
+4. Mud Cut toggle (-3dB at 250Hz)
+5. Air Boost toggle (+2dB at 12kHz)
+6. Compressor (threshold, ratio, attack, release, knee — all adjustable)
+7. Soft Clipper (pre-limiter analog warmth, tanh saturation)
+8. True Peak Limiter (tanh soft-knee, adjustable ceiling)
+9. Stereo Width (0% mono to 200% extra wide, mid-side processing)
+10. Mono Bass (narrows low frequencies for club/PA)
+11. Makeup Gain (auto-calculated to hit target LUFS)
+12. True Peak Ceiling Clamp
+13. Triangular Dither (16-bit export)
+
+**8 Presets:** Streaming (-14), Apple Music (-16), Club/PA (-9), SoundCloud (-10), Warm & Punchy, Clean & Transparent, DJ Mix Master, Radio/Podcast
+
+**22 UI Controls — every one verified:**
+- UI slider/toggle → updateParam() → setParams (React state) + upsertProject (localStorage) + onChanged (parent refresh)
+- On return visit: useState inits with { ...DEFAULT_MASTER_PARAMS, ...project.masterParams }
+- Old projects auto-get new defaults, new values overlay saved ones
+
 ## DESIGN RULES
 1. DO NOT change logo, colors, fonts, or design unless explicitly requested
 2. DO NOT create separate apps — everything is EMY Studio at /studio
