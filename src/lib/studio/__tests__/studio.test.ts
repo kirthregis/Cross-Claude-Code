@@ -3,6 +3,7 @@ import { applyBiquad, biquadHighPass, biquadHighShelf, biquadLowShelf, biquadPea
 import { buildDescription, buildFileName, buildRelease, buildTags, buildTitle, checksSummary, runComplianceChecks, youtubeHandoff } from "../release";
 import { replyForIntent, routeCommand, summarizeProject } from "../assistant";
 import { createProject } from "../store";
+import { DEFAULT_MASTER_PARAMS } from "../types";
 import { DEFAULT_SETTINGS, type Project, type ProjectMeta } from "../types";
 import { encodeWav } from "../wav";
 
@@ -184,7 +185,7 @@ describe("release", () => {
     const p = makeProject({
       audio: { fileName: "mix.mp3", sizeBytes: 1000, durationSec: 3600, sampleRate: 44100, channels: 2 },
       master: {
-        params: { targetLufs: -14, lowGainDb: 0, midGainDb: 0, highGainDb: 0, rumbleFilter: true, compThreshold: -16, compRatio: 2, limiterDrive: 0.5, ceilingDb: -1 },
+        params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14, compRatio: 2, limiterDrive: 0.5 },
         inputLufs: -20,
         outputLufs: -14.2,
         inputTruePeakDb: -6,
