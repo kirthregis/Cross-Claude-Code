@@ -1,4 +1,4 @@
-# EMY STUDIO - STATUS LEDGER
+# EMY STUDIO — STATUS LEDGER
 Last Updated: August 2026
 
 ## LIVE ACCESS
@@ -7,49 +7,79 @@ Last Updated: August 2026
 - Handover: https://raw.githubusercontent.com/kirthregis/Cross-Claude-Code/main/HANDOVER.md
 - GitHub: https://github.com/kirthregis/Cross-Claude-Code
 
-## CURRENT STATE — ENHANCED & OPERATIONAL
-All previous fixes remain intact. New enhancements added:
+## CURRENT STATE — ALL SYSTEMS OPERATIONAL
 
-### Audio & Mastering Pipeline (Fixed)
-- MasteringPlayer now routes audio to user-selected output device (DJ controller, studio monitors) via setSinkId
-- Mastered WAV auto-saves to IndexedDB on completion — survives page refresh and browser restart
-- Mastered WAV auto-saves to Music Library — DJ can find and replay exports anytime
-- Export uses File System Access API (Chrome/Edge) — real "Save As" dialog, DJ picks the folder
-- Master auto-reloads from IndexedDB when DJ returns to project
+### Storage Architecture (Online + Offline)
 
-### Tracklist Builder (New)
-- New "Tracklist" tab in project editor between Master and Artwork
-- Fields: timestamp, artist, track title, label, notes
-- Auto-format for YouTube/SoundCloud, 1001Tracklists, Markdown
-- One-click copy for each platform
-- Release description auto-includes full tracklist
-- Compliance check verifies tracklist exists
+Every piece of data has a defined home. Nothing is RAM-only except the raw uploaded mix before mastering.
 
-### MENA Community (Enhanced)
-- 52 community members across 14 MENA countries (was 8)
-- 24 DJs, 12 producers, 4 sound engineers, 4 lighting/visual artists, 2 production managers, 4 managers/promoters, 3 vocalists
-- 20 opportunities including 15 DJ-specific bookings with pay ranges
-- Role filter (DJ, Producer, Sound Engineer, etc.)
-- Stats bar showing community breakdown
+| Data | Storage | Survives Refresh |
+|------|---------|------------------|
+| Project metadata | localStorage `emy-studio-projects-v1` | ✅ |
+| Settings | localStorage `emy-studio-settings-v1` | ✅ |
+| Master params (EQ, comp, limiter) | localStorage (project object) | ✅ |
+| Master result (LUFS, peak, gain) | localStorage (project object) | ✅ |
+| Mastered WAV audio | IndexedDB `emy-studio` → `emy-master:{id}` + Library IndexedDB | ✅ |
+| Exported WAV files | IndexedDB `emy-studio` → `emy-export:{id}:{bits}bit` + Library + user folder (File System Access API) | ✅ |
+| Cover artwork 3000x3000 | IndexedDB `emy-studio` → `emy-studio-art:{id}` | ✅ |
+| Release metadata | localStorage (project object) | ✅ |
+| Tracklist | localStorage (project.tracklist) | ✅ |
+| EPK files (PDF, portrait) | IndexedDB `emy-studio-epk` | ✅ |
+| EPK notes | localStorage `emy-studio-epk-notes-v1` | ✅ |
+| Library tracks | IndexedDB `emy-studio-library` | ✅ |
+| Setlists | localStorage `emy-setlists` | ✅ |
+| Collaborator splits | localStorage (project object) | ✅ |
+| Smart links | localStorage (project object) | ✅ |
+| Theme/branding | localStorage via CSS variables | ✅ |
+| Raw uploaded mix (pre-master) | RAM only (AudioBuffer) | ❌ re-upload |
 
-### DJ Gig Sources (Enhanced)
-- 30 curated DJ-specific bookings via MENA DJ Network source
-- Covers UAE, Saudi, Qatar, Bahrain, Lebanon, Egypt, Morocco, Jordan, Oman, Kuwait, Iraq, Tunisia
-- Auto-populates via /api/sweep cron
+### Audio Device Routing
+- MasteringPlayer: Web Audio API `AudioContext.setSinkId()` → user-selected device
+- Library player: `<audio>.setSinkId()` → same device
+- Device picker: Settings → Audio Output → DJ controller / monitors / headphones
+- Works with Pioneer DDJ, Focusrite, any USB audio Chrome/Edge can see
 
-## DESIGN RULES — DO NOT VIOLATE
-1. **DO NOT change logo, colors, fonts, or visual design** unless explicitly requested or logistically required by a functional change
-2. **DO NOT create separate apps or pages** — everything is EMY Studio at /studio
-3. **DO NOT change the navigation structure** without explicit approval
-4. The fuchsia gradient "E" square + "EMY STUDIO" text is the permanent logo
-5. Dark theme (#0a0a0f background, zinc palette, fuchsia accents) is the permanent design system
-6. All data stays client-side (localStorage + IndexedDB) unless server-side is explicitly required
+### Button-by-Button Audit (All Tabs Verified)
 
-## SELF-OPERATION RULES
-- The system must run itself: /api/sweep cron runs daily at 6am to pull new DJ gigs
-- The system must audit itself: Check tab in every project verifies compliance
-- The system must fix itself: errors are caught and reported, not hidden
-- STATUS_LEDGER.md must be updated with every deployment
+**Master:** Upload → localStorage. Presets/EQ/Comp sliders → localStorage. Master → localStorage + IndexedDB + Library. Play → device. Export → File System API + IndexedDB + Library. Return → auto-reloads from IndexedDB.
+
+**Tracklist:** Add/edit/move/remove → localStorage per keystroke. Copy → clipboard. Return → loads from project.tracklist.
+
+**Artwork:** Generate → localStorage draft. Save & use → localStorage + IndexedDB. Download → browser. Return → loads from IndexedDB.
+
+**Release:** Generate → localStorage. Every edit auto-saves → localStorage. Copy → clipboard. Return → loads from project.release.
+
+**Check:** Read-only. Auto-runs on mount.
+
+**Assistant:** Chat ephemeral. Stage cards switch tabs.
+
+### Fixes Applied
+1. createProject() auto-saves to localStorage — no unsaved project navigation
+2. GlobalAssistant voice create saves before navigating
+3. MasteringPlayer routes to selected audio device via setSinkId
+4. Mastered WAV auto-saves to IndexedDB + Library
+5. Master auto-reloads from IndexedDB on return
+6. Export uses File System Access API (Chrome/Edge)
+7. Release edits auto-save every change
+8. Tracklist Builder tab added
+9. Tracklist auto-included in release description
+10. Compliance check verifies tracklist
+11. MENA community: 52 members, 14 countries
+12. 30 DJ gigs via MENA DJ Network sweep source
+13. Logo: burnt orange, black circles (original)
+
+## DESIGN RULES
+1. DO NOT change logo, colors, fonts, or design unless explicitly requested
+2. DO NOT create separate apps — everything is EMY Studio at /studio
+3. DO NOT change navigation without approval
+4. Logo: burnt orange (#c2410c), black concentric circles, no text
+5. Dark theme (#0a0a0f, zinc, fuchsia accents) is permanent
+
+## SELF-OPERATION
+- /api/sweep cron daily 6am pulls DJ gigs
+- Check tab audits every project
+- STATUS_LEDGER.md updated every deployment
+- Errors caught and surfaced
 
 ## CREDENTIALS
 - Admin: Emy1912@

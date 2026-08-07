@@ -1,8 +1,13 @@
 /**
  * EMY Studio — music library.
  *
- * Tracks she imports live in IndexedDB (blobs) so they survive restarts and
- * work offline. Playback is on-device; nothing is uploaded anywhere.
+ * STORAGE: IndexedDB "emy-studio-library"
+ *   tracks store → audio file blobs (imported music + mastered exports + WAV exports)
+ *   meta store   → LibraryTrack metadata (name, size, type, duration, addedAt)
+ *
+ * All data on-device, survives refresh/restart, works offline.
+ * Mastered WAVs and exported WAVs are auto-saved here by MasterPanel.
+ * Playback routes to user-selected audio device via setSinkId.
  * (client-only module — never import from server code)
  */
 

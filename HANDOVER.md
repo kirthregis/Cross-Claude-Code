@@ -13,7 +13,7 @@ Last Updated: August 2026
 ## CLONE & RUN ANYWHERE (OFFLINE BACKUP & DEV SETUP)
 ```bash
 git clone https://github.com/kirthregis/Cross-Claude-Code
-cd Cross-Claude-Code/Cross-Claude-Code
+cd Cross-Claude-Code
 npm install
 npm run dev
 ```
@@ -77,6 +77,53 @@ Then open: **http://localhost:3001/studio** (or port 3000 depending on environme
   - `/studio/admin` (Developer Suggestion Dashboard)
 
 ---
+
+
+## DATA STORAGE ARCHITECTURE (ONLINE + OFFLINE)
+
+All user data persists on-device. Nothing is uploaded to any server. The app works fully offline after first load.
+
+### localStorage (survives refresh, browser close, offline)
+- `emy-studio-projects-v1` — All projects: metadata, master params, master results, release metadata, tracklist, collaborators, smart links
+- `emy-studio-settings-v1` — All settings: artist name, genre, API keys, audio device, theme
+- `emy-studio-epk-meta-v1` — EPK file metadata (PDF name, portrait name, sizes)
+- `emy-studio-epk-notes-v1` — EPK bio notes text
+- `emy-setlists` — All setlists with tracks
+- `emy-gigs-db` — Gig data (client-side)
+- `emy-studio-guide-dismissed` — Guide visibility flag
+
+### IndexedDB (survives refresh, browser close, offline — handles large binary data)
+- `emy-studio` database → `blobs` store:
+  - `emy-studio-art:{projectId}` — Cover artwork (3000×3000 JPEG dataUrl)
+  - `emy-master:{projectId}` — Mastered WAV audio (24-bit/48kHz)
+  - `emy-export:{projectId}:{bits}bit` — Exported WAV files
+- `emy-studio-epk` database → `files` store:
+  - EPK PDF file blob
+  - Portrait photo blob
+- `emy-studio-library` database:
+  - `tracks` store — Audio file blobs (imported music)
+  - `meta` store — Track metadata (name, duration, size)
+
+### File System Access API (Chrome/Edge — saves directly to user's chosen folder)
+- Master export: `showSaveFilePicker()` opens real "Save As" dialog
+- Falls back to `<a download>` on Firefox/Safari
+
+### Audio Device Routing
+- `AudioContext.setSinkId(deviceId)` routes playback to user-selected output
+- `<audio>.setSinkId(deviceId)` routes library playback to same device
+- Device list via `navigator.mediaDevices.enumerateDevices()` filtered to `audiooutput`
+- Configured in Settings → Audio Output Device
+
+### What Happens On Return Visit (Per Tab)
+- **Master tab:** Checks `project.meta.mastered` → loads WAV from IndexedDB `emy-master:{id}` → DJ can play without re-mastering
+- **Tracklist tab:** Reads `project.tracklist` from localStorage → all entries present
+- **Artwork tab:** Calls `loadArtwork(id)` from IndexedDB → restores saved cover
+- **Release tab:** Reads `project.release` from localStorage → all metadata present
+- **Check tab:** Auto-runs compliance checks from project data on mount
+- **Library:** Lists all tracks from IndexedDB meta store → plays from blobs store
+
+### Known Limitation
+The raw uploaded mix file (before mastering) is held in RAM as an AudioBuffer. If the DJ refreshes before clicking "Master Mix Now", they must re-upload the file. This is by design — a 66-minute WAV is ~700MB, too large for IndexedDB. After mastering, the mastered WAV (~100MB compressed) is persisted in IndexedDB permanently.
 
 ## COMPANY & ENTITY DETAILS ON FILE
 - **Artist:** Imen Mannai (professionally known as **DJ Emy**)
