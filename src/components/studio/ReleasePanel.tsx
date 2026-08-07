@@ -109,8 +109,10 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
         <input
           value={meta.title}
           onChange={(e) => {
-            setMeta({ ...meta, title: e.target.value });
-            setDirty(true);
+            const updated = { ...meta, title: e.target.value };
+            setMeta(updated);
+            setDirty(false);
+            persist(updated);
           }}
           className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm font-semibold text-zinc-100 focus:border-fuchsia-500 focus:outline-none"
         />
@@ -123,8 +125,10 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
         <textarea
           value={meta.description}
           onChange={(e) => {
-            setMeta({ ...meta, description: e.target.value });
-            setDirty(true);
+            const updated = { ...meta, description: e.target.value };
+            setMeta(updated);
+            setDirty(false);
+            persist(updated);
           }}
           rows={10}
           className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-[13px] leading-relaxed text-zinc-200 focus:border-fuchsia-500 focus:outline-none"
@@ -160,7 +164,7 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <label className="block">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Category</span>
-            <select value={meta.category} onChange={(e) => setMeta({ ...meta, category: e.target.value as ReleaseMeta["category"] })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
+            <select value={meta.category} onChange={(e) => { const u = { ...meta, category: e.target.value as ReleaseMeta["category"] }; setMeta(u); persist(u); }} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
               <option>Music</option>
               <option>Entertainment</option>
               <option>People & Blogs</option>
@@ -168,14 +172,14 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
           </label>
           <label className="block">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Made for kids</span>
-            <select value={meta.madeForKids} onChange={(e) => setMeta({ ...meta, madeForKids: e.target.value as ReleaseMeta["madeForKids"] })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
+            <select value={meta.madeForKids} onChange={(e) => { const u = { ...meta, madeForKids: e.target.value as ReleaseMeta["madeForKids"] }; setMeta(u); persist(u); }} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
               <option value="no">No</option>
               <option value="yes">Yes</option>
             </select>
           </label>
           <label className="block">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Visibility</span>
-            <select value={meta.visibility} onChange={(e) => setMeta({ ...meta, visibility: e.target.value as ReleaseMeta["visibility"] })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
+            <select value={meta.visibility} onChange={(e) => { const u = { ...meta, visibility: e.target.value as ReleaseMeta["visibility"] }; setMeta(u); persist(u); }} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
               <option value="public">Public</option>
               <option value="unlisted">Unlisted</option>
               <option value="private">Private</option>
