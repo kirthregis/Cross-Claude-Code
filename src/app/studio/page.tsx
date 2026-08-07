@@ -10,11 +10,14 @@ import { Button, Card, SectionLabel } from "@/components/studio/ui";
 import type { ProjectKind } from "@/lib/studio/types";
 import { createProject, deleteProject, upsertProject, useSettings, saveSettings, useProjects } from "@/lib/studio/store";
 import { getEpkPortraitDataUrl } from "@/lib/studio/epk-store";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "@/components/studio/ArabicToggle";
 
 export default function StudioHome() {
   const router = useRouter();
   const projects = useProjects();
   const settings = useSettings();
+  const { arabic } = useArabic();
   const [showForm, setShowForm] = useState(false);
   const [epkPortrait, setEpkPortrait] = useState<string | null>(null);
   useEffect(() => { void getEpkPortraitDataUrl().then(u => setEpkPortrait(u)); }, []);
@@ -34,10 +37,10 @@ export default function StudioHome() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">Your studio, one place</h1>
-          <p className="mt-1 max-w-xl text-sm text-zinc-400">Master the mix, design the cover, package the release, pass the platform checks — no engineer, no designer, no hours of grunt work.</p>
+          <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">{t("studio_title", arabic)}</h1>
+          <p className="mt-1 max-w-xl text-sm text-zinc-400">{t("studio_subtitle", arabic)}</p>
         </div>
-        <Button onClick={() => setShowForm(v => !v)}>{showForm ? "Cancel" : "+ New project"}</Button>
+        <Button onClick={() => setShowForm(v => !v)}>{showForm ? t("cancel", arabic) : t("new_project", arabic)}</Button>
       </div>
 
       <Link href="/studio/epk" className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-3 transition brand-hover-border">
@@ -55,7 +58,7 @@ export default function StudioHome() {
 
       {showForm && (
         <Card className="p-4 sm:p-5">
-          <SectionLabel>New project</SectionLabel>
+          <SectionLabel>{t("new_project", arabic)}</SectionLabel>
           <form className="mt-3 grid gap-3 sm:grid-cols-2" onSubmit={e => { e.preventDefault(); if (!name.trim()) return; makeProject(name.trim()); }}>
             <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Project name — e.g. Afro House Mix 2026"
               className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none sm:col-span-2" />
@@ -80,15 +83,15 @@ export default function StudioHome() {
 
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <SectionLabel>Projects</SectionLabel>
+          <SectionLabel>{t("projects", arabic)}</SectionLabel>
           <span className="text-[11px] text-zinc-600">{projects.length} total</span>
         </div>
         {projects.length === 0 ? (
           <Card className="flex flex-col items-center gap-2 p-8 text-center">
             <div className="text-3xl">💿</div>
-            <div className="text-sm font-semibold text-zinc-300">No projects yet</div>
-            <p className="max-w-sm text-xs text-zinc-500">Create a project, drop in your mix, and the studio takes it from raw file to upload-ready release.</p>
-            <Button className="mt-2" onClick={() => setShowForm(true)}>+ Start a project</Button>
+            <div className="text-sm font-semibold text-zinc-300">{t("no_projects", arabic)}</div>
+            <p className="max-w-sm text-xs text-zinc-500">{t("no_projects_desc", arabic)}</p>
+            <Button className="mt-2" onClick={() => setShowForm(true)}>{t("start_project", arabic)}</Button>
           </Card>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -99,9 +102,9 @@ export default function StudioHome() {
 
       <div className="grid gap-3 sm:grid-cols-3">
         {[
-          { icon: "🎛", title: "Master in-browser", text: "EQ, compression, limiting and loudness to -14 LUFS — on the device, no internet needed.", tab: "master" as const },
-          { icon: "🎨", title: "Cover art in seconds", text: "AI-designed covers (Gemini or fal.ai) or offline templates, exported at 3000×3000.", tab: "artwork" as const },
-          { icon: "📦", title: "Release-ready", text: "Title, description, tags, checks — formatted so YouTube and labels accept it first time.", tab: "release" as const },
+          { icon: "🎚", title: "Master your mix", text: "5-band EQ, compressor, soft clipper, limiter, stereo width — studio-grade, on-device.", tab: "master" as const },
+          { icon: "🎨", title: "Cover artwork", text: "AI-designed covers (Gemini or fal.ai) or offline templates, exported at 3000×3000.", tab: "artwork" as const },
+          { icon: "📦", title: "Release & publish", text: "Title, description, tracklist, tags, checks — formatted for YouTube and labels.", tab: "release" as const },
         ].map(f => (
           <button key={f.title} onClick={() => {
             if (projects.length === 0) {
