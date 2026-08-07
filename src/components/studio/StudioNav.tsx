@@ -1,22 +1,25 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "./ArabicToggle";
 import { NotificationBell } from "./NotificationBell";
 import { ArabicToggle } from "./ArabicToggle";
 import { GlobalVoiceButton } from "./GlobalVoice";
 
 export function StudioNav() {
   const path = usePathname();
+  const { arabic } = useArabic();
   const tabs = [
-    { href: "/studio", label: "Studio" },
-    { href: "/studio/library", label: "Library" },
-    { href: "/studio/epk", label: "EPK" },
-    { href: "/studio/gigradar", label: "GigRadar" },
-    { href: "/studio/planner", label: "Planner" },
-    { href: "/studio/analytics", label: "Analytics" },
-    { href: "/studio/distribute", label: "Distribute" },
-    { href: "/studio/community", label: "Community" },
-    { href: "/studio/settings", label: "Settings" },
+    { href: "/studio", label: t("studio", arabic) },
+    { href: "/studio/library", label: t("library", arabic) },
+    { href: "/studio/epk", label: t("epk", arabic) },
+    { href: "/studio/gigradar", label: t("gigradar", arabic) },
+    { href: "/studio/planner", label: t("planner", arabic) },
+    { href: "/studio/analytics", label: t("analytics", arabic) },
+    { href: "/studio/distribute", label: t("distribute", arabic) },
+    { href: "/studio/community", label: t("community", arabic) },
+    { href: "/studio/settings", label: t("settings", arabic) },
   ];
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-800 bg-black">
