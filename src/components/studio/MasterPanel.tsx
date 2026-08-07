@@ -459,140 +459,108 @@ export function MasterPanel({ project, onChanged }: Props) {
         </Card>
       )}
 
-      {/* DSP Mastering Chain Settings */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Equalization */}
+      {/* DSP Mastering Chain — Studio Grade */}
+      <div className="grid gap-4 sm:grid-cols-2">
+
+        {/* Input & Quick Fixes */}
         <Card className="p-4">
-          <SectionLabel>3-Band EQ & Clean Air</SectionLabel>
+          <SectionLabel>Input & Quick Fix</SectionLabel>
           <div className="mt-3 space-y-3">
             <div>
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Low Sub (90 Hz)</span>
-                <span className="font-mono text-zinc-200">{params.lowGainDb > 0 ? "+" : ""}{params.lowGainDb} dB</span>
+                <span className="text-zinc-400">Input Gain</span>
+                <span className="font-mono text-zinc-200">{params.inputGainDb > 0 ? "+" : ""}{params.inputGainDb} dB</span>
               </div>
-              <input
-                type="range"
-                min={-6}
-                max={6}
-                step={0.5}
-                value={params.lowGainDb}
-                onChange={(e) => updateParam("lowGainDb", parseFloat(e.target.value))}
-                className="w-full accent-fuchsia-500"
-              />
+              <input type="range" min={-12} max={12} step={0.5} value={params.inputGainDb} onChange={(e) => updateParam("inputGainDb", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
+            </div>
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800">
+              <label className="flex items-center gap-1.5 text-xs text-zinc-300"><input type="checkbox" checked={params.rumbleFilter} onChange={(e) => updateParam("rumbleFilter", e.target.checked)} className="accent-fuchsia-500" /><span>Rumble Cut</span></label>
+              <label className="flex items-center gap-1.5 text-xs text-zinc-300"><input type="checkbox" checked={params.mudCut} onChange={(e) => updateParam("mudCut", e.target.checked)} className="accent-fuchsia-500" /><span>Cut Mud</span></label>
+              <label className="flex items-center gap-1.5 text-xs text-zinc-300"><input type="checkbox" checked={params.airBoost} onChange={(e) => updateParam("airBoost", e.target.checked)} className="accent-fuchsia-500" /><span>Add Air</span></label>
+              <label className="flex items-center gap-1.5 text-xs text-zinc-300"><input type="checkbox" checked={params.monoBass} onChange={(e) => updateParam("monoBass", e.target.checked)} className="accent-fuchsia-500" /><span>Mono Bass</span></label>
+            </div>
+          </div>
+        </Card>
+
+        {/* 5-Band Parametric EQ */}
+        <Card className="p-4">
+          <SectionLabel>5-Band Parametric EQ</SectionLabel>
+          <div className="mt-3 space-y-2">
+            {([
+              { key: "lowGainDb" as const, label: "80 Hz", desc: "Low Shelf" },
+              { key: "lowMidGainDb" as const, label: "250 Hz", desc: "Low-Mid" },
+              { key: "midGainDb" as const, label: "1 kHz", desc: "Mid" },
+              { key: "highMidGainDb" as const, label: "4 kHz", desc: "Presence" },
+              { key: "highGainDb" as const, label: "12 kHz", desc: "Air Shelf" },
+            ] as const).map(band => (
+              <div key={band.key}>
+                <div className="flex justify-between text-xs">
+                  <span className="text-zinc-400">{band.label} <span className="text-zinc-600">{band.desc}</span></span>
+                  <span className="font-mono text-zinc-200">{(params[band.key] ?? 0) > 0 ? "+" : ""}{params[band.key] ?? 0} dB</span>
+                </div>
+                <input type="range" min={-8} max={8} step={0.5} value={params[band.key] ?? 0} onChange={(e) => updateParam(band.key, parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Compressor */}
+        <Card className="p-4">
+          <SectionLabel>Compressor</SectionLabel>
+          <div className="mt-3 space-y-2">
+            <div>
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">Threshold</span><span className="font-mono text-zinc-200">{params.compThreshold} dB</span></div>
+              <input type="range" min={-30} max={-6} step={1} value={params.compThreshold} onChange={(e) => updateParam("compThreshold", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
             </div>
             <div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Mid Punch (1 kHz)</span>
-                <span className="font-mono text-zinc-200">{params.midGainDb > 0 ? "+" : ""}{params.midGainDb} dB</span>
-              </div>
-              <input
-                type="range"
-                min={-6}
-                max={6}
-                step={0.5}
-                value={params.midGainDb}
-                onChange={(e) => updateParam("midGainDb", parseFloat(e.target.value))}
-                className="w-full accent-fuchsia-500"
-              />
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">Ratio</span><span className="font-mono text-zinc-200">{params.compRatio.toFixed(1)}:1</span></div>
+              <input type="range" min={1.2} max={8.0} step={0.1} value={params.compRatio} onChange={(e) => updateParam("compRatio", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
             </div>
             <div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">High Air (8 kHz)</span>
-                <span className="font-mono text-zinc-200">{params.highGainDb > 0 ? "+" : ""}{params.highGainDb} dB</span>
-              </div>
-              <input
-                type="range"
-                min={-6}
-                max={6}
-                step={0.5}
-                value={params.highGainDb}
-                onChange={(e) => updateParam("highGainDb", parseFloat(e.target.value))}
-                className="w-full accent-fuchsia-500"
-              />
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">Attack</span><span className="font-mono text-zinc-200">{params.compAttack} ms</span></div>
+              <input type="range" min={1} max={100} step={1} value={params.compAttack} onChange={(e) => updateParam("compAttack", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">Release</span><span className="font-mono text-zinc-200">{params.compRelease} ms</span></div>
+              <input type="range" min={50} max={500} step={10} value={params.compRelease} onChange={(e) => updateParam("compRelease", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">Knee</span><span className="font-mono text-zinc-200">{params.compKnee} dB</span></div>
+              <input type="range" min={0} max={30} step={1} value={params.compKnee} onChange={(e) => updateParam("compKnee", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
+            </div>
+          </div>
+        </Card>
+
+        {/* Limiter, Clipper & Stereo */}
+        <Card className="p-4">
+          <SectionLabel>Limiter, Clipper & Stereo</SectionLabel>
+          <div className="mt-3 space-y-2">
+            <div>
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">Limiter Drive</span><span className="font-mono text-zinc-200">{params.limiterDrive.toFixed(2)}</span></div>
+              <input type="range" min={0} max={1.5} step={0.05} value={params.limiterDrive} onChange={(e) => updateParam("limiterDrive", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
+            </div>
+            <div>
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">True Peak Ceiling</span><span className="font-mono text-zinc-200">{params.ceilingDb} dBTP</span></div>
+              <input type="range" min={-3.0} max={-0.1} step={0.1} value={params.ceilingDb} onChange={(e) => updateParam("ceilingDb", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
             </div>
             <label className="flex items-center gap-2 pt-2 border-t border-zinc-800 text-xs text-zinc-300">
-              <input
-                type="checkbox"
-                checked={params.rumbleFilter}
-                onChange={(e) => updateParam("rumbleFilter", e.target.checked)}
-                className="rounded accent-fuchsia-500"
-              />
-              <span>30 Hz Rumble High-Pass Filter</span>
+              <input type="checkbox" checked={params.softClipEnabled} onChange={(e) => updateParam("softClipEnabled", e.target.checked)} className="accent-fuchsia-500" />
+              <span>Soft Clipper (analog warmth)</span>
             </label>
-          </div>
-        </Card>
-
-        {/* Dynamics */}
-        <Card className="p-4">
-          <SectionLabel>Dynamics & Compression</SectionLabel>
-          <div className="mt-3 space-y-3">
-            <div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Comp Threshold</span>
-                <span className="font-mono text-zinc-200">{params.compThreshold} dB</span>
+            {params.softClipEnabled && (
+              <div>
+                <div className="flex justify-between text-xs"><span className="text-zinc-400">Clip Drive</span><span className="font-mono text-zinc-200">{params.softClipDrive.toFixed(2)}</span></div>
+                <input type="range" min={0.05} max={0.8} step={0.05} value={params.softClipDrive} onChange={(e) => updateParam("softClipDrive", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
               </div>
-              <input
-                type="range"
-                min={-30}
-                max={-6}
-                step={1}
-                value={params.compThreshold}
-                onChange={(e) => updateParam("compThreshold", parseFloat(e.target.value))}
-                className="w-full accent-fuchsia-500"
-              />
+            )}
+            <div className="pt-2 border-t border-zinc-800">
+              <div className="flex justify-between text-xs"><span className="text-zinc-400">Stereo Width</span><span className="font-mono text-zinc-200">{params.stereoWidth}%</span></div>
+              <input type="range" min={0} max={200} step={5} value={params.stereoWidth} onChange={(e) => updateParam("stereoWidth", parseFloat(e.target.value))} className="w-full accent-fuchsia-500" />
             </div>
-            <div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Comp Ratio</span>
-                <span className="font-mono text-zinc-200">{params.compRatio.toFixed(1)}:1</span>
-              </div>
-              <input
-                type="range"
-                min={1.2}
-                max={5.0}
-                step={0.1}
-                value={params.compRatio}
-                onChange={(e) => updateParam("compRatio", parseFloat(e.target.value))}
-                className="w-full accent-fuchsia-500"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Limiter & Ceiling */}
-        <Card className="p-4 sm:col-span-2 lg:col-span-1">
-          <SectionLabel>Soft Limiter & True Peak Ceiling</SectionLabel>
-          <div className="mt-3 space-y-3">
-            <div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Limiter Drive (tanh)</span>
-                <span className="font-mono text-zinc-200">{params.limiterDrive.toFixed(2)}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={1.5}
-                step={0.05}
-                value={params.limiterDrive}
-                onChange={(e) => updateParam("limiterDrive", parseFloat(e.target.value))}
-                className="w-full accent-fuchsia-500"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">True Peak Ceiling</span>
-                <span className="font-mono text-zinc-200">{params.ceilingDb} dBTP</span>
-              </div>
-              <input
-                type="range"
-                min={-2.0}
-                max={-0.3}
-                step={0.1}
-                value={params.ceilingDb}
-                onChange={(e) => updateParam("ceilingDb", parseFloat(e.target.value))}
-                className="w-full accent-fuchsia-500"
-              />
-            </div>
+            <label className="flex items-center gap-2 text-xs text-zinc-300">
+              <input type="checkbox" checked={params.ditherEnabled} onChange={(e) => updateParam("ditherEnabled", e.target.checked)} className="accent-fuchsia-500" />
+              <span>Dither (16-bit export)</span>
+            </label>
           </div>
         </Card>
       </div>
