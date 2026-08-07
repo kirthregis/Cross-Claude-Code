@@ -8,12 +8,14 @@ import { MasterPanel } from "@/components/studio/MasterPanel";
 import { ArtworkPanel } from "@/components/studio/ArtworkPanel";
 import { ReleasePanel } from "@/components/studio/ReleasePanel";
 import { CheckPanel } from "@/components/studio/CheckPanel";
+import { TracklistPanel } from "@/components/studio/TracklistPanel";
 import { AssistantPanel } from "@/components/studio/AssistantPanel";
 
-type Tab = "assistant" | "master" | "artwork" | "release" | "check";
+type Tab = "assistant" | "master" | "tracklist" | "artwork" | "release" | "check";
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "assistant", label: "Assistant", icon: "🎧" },
   { id: "master", label: "Master", icon: "🎚" },
+  { id: "tracklist", label: "Tracklist", icon: "📝" },
   { id: "artwork", label: "Artwork", icon: "🎨" },
   { id: "release", label: "Release", icon: "📦" },
   { id: "check", label: "Check", icon: "✅" },
@@ -168,6 +170,10 @@ export default function ProjectEditorClient({ id }: { id: string }) {
 
         {tab === "master" && (
           <MasterPanel project={project} onChanged={refresh} />
+        )}
+
+        {tab === "tracklist" && (
+          <TracklistPanel project={project} onChanged={refresh} />
         )}
 
         {tab === "artwork" && (

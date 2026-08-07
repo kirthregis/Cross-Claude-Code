@@ -117,6 +117,16 @@ export interface ReleaseCheck {
   fix?: string;
 }
 
+
+export interface TracklistEntry {
+  id: string;
+  timestamp: string;      // "00:00" or "01:23:45"
+  artist: string;
+  title: string;
+  label?: string;
+  notes?: string;         // "bootleg", "unreleased", "ID", etc.
+}
+
 export interface Project {
   meta: ProjectMeta;
   audio?: AudioInfo;
@@ -124,6 +134,7 @@ export interface Project {
   artwork?: ArtworkResult;
   release?: ReleaseMeta;
   masterParams: MasterParams;
+  tracklist?: TracklistEntry[];
   chatHistory: ChatTurn[];
   collaborators?: Collaborator[];
   smartLinks?: SmartLinks;

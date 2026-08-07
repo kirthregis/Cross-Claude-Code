@@ -33,6 +33,7 @@ export function buildTitle(project: Project, artistName: string): string {
 }
 
 export function buildDescription(project: Project, s: StudioSettings): string {
+  const tracklist = project.tracklist ?? [];
   const insta = s.instagram || "@dj_emy_";
   const tiktok = s.tiktok || "@djemymusic2";
   const genre = project.meta.genre || "Afro House";
@@ -56,6 +57,14 @@ export function buildDescription(project: Project, s: StudioSettings): string {
     `Follow me:`,
     `Instagram: ${insta}`,
     `TikTok: ${tiktok}`,
+    ...(tracklist.length > 0 ? [
+      ``,
+      `Tracklist:`,
+      ...tracklist.map((t) => {
+        const label = t.label ? ` [${t.label}]` : "";
+        return `${t.timestamp} - ${t.artist} - ${t.title}${label}`;
+      }),
+    ] : []),
   ].join("\n");
 }
 
@@ -179,6 +188,14 @@ export function runComplianceChecks(pkg: PackageSnapshot, platform: "youtube" | 
         ? { id: "artwork-size", label: "Cover file size", status: "pass", detail: `${(b / 1024 / 1024).toFixed(1)} MB (limit 20 MB).` }
         : { id: "artwork-size", label: "Cover file size", status: "fail", detail: `${(b / 1024 / 1024).toFixed(1)} MB — over 20 MB.`, fix: "Re-export the JPEG at higher compression." },
     );
+  }
+
+  // ---- Tracklist ----
+  const tracklist = (pkg as unknown as { tracklist?: { id: string }[] }).tracklist ?? [];
+  if (tracklist.length === 0) {
+    checks.push({ id: "tracklist", label: "Tracklist added", status: "warn", detail: "No tracklist yet — add track names and timestamps in the Tracklist tab.", fix: "Go to the Tracklist tab and add your tracks." });
+  } else {
+    checks.push({ id: "tracklist", label: "Tracklist added", status: "pass", detail: `${tracklist.length} track${tracklist.length !== 1 ? "s" : ""} in tracklist.` });
   }
 
   // ---- Text ----
