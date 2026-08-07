@@ -7,7 +7,7 @@ import { decodeAudioFile, renderMaster, MasteringPlayer } from "@/lib/studio/aud
 import { formatBytes, formatDuration } from "@/lib/studio/dsp";
 import { wavBlob, type WavTags } from "@/lib/studio/wav";
 import { notify, speak } from "@/lib/studio/speech";
-import { loadSettings, upsertProject, putBlob } from "@/lib/studio/store";
+import { loadSettings, upsertProject, putBlob, getBlob } from "@/lib/studio/store";
 import { saveLibraryTrack } from "@/lib/studio/library-store";
 import { Button, Card, SectionLabel } from "./ui";
 
@@ -32,6 +32,26 @@ export function MasterPanel({ project, onChanged }: Props) {
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // On mount, try to reload the persisted mastered audio from IndexedDB
+  useEffect(() => {
+    if (project.meta.mastered && !masteredBuffer) {
+      const blobKey = `emy-master:${project.meta.id}`;
+      void getBlob(blobKey).then(async (blob) => {
+        if (blob && blob instanceof Blob) {
+          try {
+            const buf = await decodeAudioFile(blob);
+            setMasteredBuffer(buf);
+            if (playerRef.current) {
+              playerRef.current.setMasteredBuffer(buf);
+            }
+          } catch {
+            /* master blob corrupt, DJ needs to re-master */
+          }
+        }
+      });
+    }
+  }, [project.meta.id, project.meta.mastered]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initialize player and route to user-selected audio output device
   useEffect(() => {
