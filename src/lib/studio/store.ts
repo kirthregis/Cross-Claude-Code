@@ -109,7 +109,7 @@ export function deleteProject(id: string): void {
 
 export function createProject(partial: { name: string; kind: "mix" | "track"; genre: string; mood: string }): Project {
   const now = Date.now();
-  return {
+  const project: Project = {
     meta: {
       id: newId(),
       name: partial.name,
@@ -136,6 +136,8 @@ export function createProject(partial: { name: string; kind: "mix" | "track"; ge
     },
     chatHistory: [],
   };
+  upsertProject(project);
+  return project;
 }
 
 // ---- IndexedDB blobs (artwork, in case of large exports) ----

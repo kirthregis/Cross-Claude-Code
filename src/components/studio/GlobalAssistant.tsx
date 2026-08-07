@@ -7,7 +7,7 @@ import { replyForIntent, routeCommand } from "@/lib/studio/assistant";
 import { geminiChat, isGeminiConfigured } from "@/lib/studio/gemini";
 import { getServerAiStatus, serverTextChat } from "@/lib/studio/server-ai";
 import { speak, speechSupported, startListening } from "@/lib/studio/speech";
-import { createProject, loadProjects, loadSettings } from "@/lib/studio/store";
+import { createProject, upsertProject, loadProjects, loadSettings } from "@/lib/studio/store";
 
 const QUICK = ["Master my mix", "Make the cover art", "Build the release pack", "Is it ready?", "Open the library", "Open my EPK"];
 
@@ -59,6 +59,7 @@ export function GlobalAssistant() {
         if (m && m[1]) {
           const kind: ProjectKind = /\b(track|song|single|release)\b/i.test(text) ? "track" : "mix";
           const p = createProject({ name: m[1].replace(/\.$/, "").trim(), kind, genre: settings.defaultGenre, mood: "Deep, energetic, hypnotic" });
+          upsertProject(p);
           push("assistant", `Created "${p.meta.name}" — opening it now.`, intent);
           router.push(`/studio/p/${p.meta.id}?tab=assistant`);
           setBusy(false);
