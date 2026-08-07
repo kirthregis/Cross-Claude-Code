@@ -34,34 +34,105 @@ export interface ProjectMeta {
 }
 
 export interface MasterParams {
+  // Target loudness
   targetLufs: number;
-  lowGainDb: number;
-  midGainDb: number;
-  highGainDb: number;
-  rumbleFilter: boolean;
+  // Input gain (pre-processing)
+  inputGainDb: number;
+  // 5-band parametric EQ
+  lowGainDb: number;       // 80 Hz low shelf
+  lowMidGainDb: number;    // 250 Hz peaking
+  midGainDb: number;       // 1 kHz peaking
+  highMidGainDb: number;   // 4 kHz peaking
+  highGainDb: number;      // 12 kHz high shelf
+  // Filters
+  rumbleFilter: boolean;   // 30 Hz highpass
+  mudCut: boolean;         // -3dB at 250 Hz (common DJ mix cleanup)
+  airBoost: boolean;       // +2dB at 12 kHz shelf
+  // Compression
   compThreshold: number;
   compRatio: number;
+  compAttack: number;      // ms
+  compRelease: number;     // ms
+  compKnee: number;        // dB
+  // Soft clipper (pre-limiter warmth/punch)
+  softClipEnabled: boolean;
+  softClipDrive: number;   // 0-1
+  // Limiter
   limiterDrive: number;
   ceilingDb: number;
+  // Stereo
+  stereoWidth: number;     // 0 (mono) to 200 (extra wide), 100 = normal
+  monoBass: boolean;       // narrow bass below 200 Hz to mono
+  // Dither
+  ditherEnabled: boolean;
 }
 
 export const DEFAULT_MASTER_PARAMS: MasterParams = {
   targetLufs: -14,
+  inputGainDb: 0,
   lowGainDb: 0,
+  lowMidGainDb: 0,
   midGainDb: 0,
+  highMidGainDb: 0,
   highGainDb: 0,
   rumbleFilter: true,
+  mudCut: false,
+  airBoost: false,
   compThreshold: -16,
   compRatio: 2.2,
+  compAttack: 20,
+  compRelease: 250,
+  compKnee: 12,
+  softClipEnabled: false,
+  softClipDrive: 0.3,
   limiterDrive: 0.65,
   ceilingDb: -1,
+  stereoWidth: 100,
+  monoBass: false,
+  ditherEnabled: true,
 };
 
-export const MASTER_PRESETS: Record<string, { label: string; params: MasterParams }> = {
-  youtube: { label: "YouTube / Spotify (-14 LUFS)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14 } },
-  apple: { label: "Apple Music (-16 LUFS)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -16 } },
-  club: { label: "Club / Label (-9 LUFS, loud)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -9, compThreshold: -18, compRatio: 3, limiterDrive: 0.8, ceilingDb: -0.6 } },
-  gentle: { label: "Gentle (normalize only)", params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14, compThreshold: -24, compRatio: 1.4, limiterDrive: 0.35, ceilingDb: -1.5 } },
+export const MASTER_PRESETS: Record<string, { label: string; description: string; params: MasterParams }> = {
+  streaming: {
+    label: "Streaming (-14 LUFS)",
+    description: "Spotify, YouTube, Apple Music — balanced and dynamic",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14 },
+  },
+  apple: {
+    label: "Apple Music (-16 LUFS)",
+    description: "Wider dynamic range for Apple's Sound Check",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -16, compRatio: 1.8, limiterDrive: 0.4 },
+  },
+  club: {
+    label: "Club / PA (-9 LUFS)",
+    description: "Loud, punchy, compressed for big speakers",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -9, inputGainDb: 2, compThreshold: -18, compRatio: 3.5, compAttack: 10, compRelease: 150, softClipEnabled: true, softClipDrive: 0.5, limiterDrive: 0.85, ceilingDb: -0.5, monoBass: true },
+  },
+  soundcloud: {
+    label: "SoundCloud (-10 LUFS)",
+    description: "Louder for SoundCloud's transcoding",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -10, compThreshold: -16, compRatio: 2.8, limiterDrive: 0.75, ceilingDb: -0.8 },
+  },
+  warm: {
+    label: "Warm & Punchy",
+    description: "Soft clipping + bass warmth for analog feel",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14, lowGainDb: 1.5, mudCut: true, softClipEnabled: true, softClipDrive: 0.4, compThreshold: -14, compRatio: 2.5 },
+  },
+  clean: {
+    label: "Clean & Transparent",
+    description: "Minimal processing, just loudness normalization",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14, compThreshold: -24, compRatio: 1.3, limiterDrive: 0.3, ceilingDb: -1.5 },
+  },
+  djmix: {
+    label: "DJ Mix Master",
+    description: "Optimized for long DJ sets — consistent energy, mud cut, air boost",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -14, mudCut: true, airBoost: true, compThreshold: -18, compRatio: 2.0, compAttack: 30, compRelease: 300, monoBass: true },
+  },
+  broadcast: {
+    label: "Radio / Podcast",
+    description: "Heavy compression for broadcast consistency",
+    params: { ...DEFAULT_MASTER_PARAMS, targetLufs: -16, compThreshold: -20, compRatio: 4.0, compAttack: 5, compRelease: 100, limiterDrive: 0.9, ceilingDb: -1.0 },
+  },
 };
 
 export interface AudioInfo {

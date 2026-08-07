@@ -30,6 +30,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { Project, StudioSettings } from "./types";
+import { DEFAULT_MASTER_PARAMS } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { newId } from "./id";
 
@@ -141,17 +142,7 @@ export function createProject(partial: { name: string; kind: "mix" | "track"; ge
       artworkDone: false,
       releaseDone: false,
     },
-    masterParams: {
-      targetLufs: -14,
-      lowGainDb: 0,
-      midGainDb: 0,
-      highGainDb: 0,
-      rumbleFilter: true,
-      compThreshold: -16,
-      compRatio: 2.2,
-      limiterDrive: 0.65,
-      ceilingDb: -1,
-    },
+    masterParams: { ...DEFAULT_MASTER_PARAMS },
     chatHistory: [],
   };
   upsertProject(project);
