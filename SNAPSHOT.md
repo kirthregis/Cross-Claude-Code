@@ -65,3 +65,10 @@ After every completed build: `git commit` + `git tag studio-<n>` + push tag +
 - One-click Apply (pre-filled email), WhatsApp deeplink, Draft Message
 - Regional coverage: Saudi, Qatar, Bahrain, Lebanon, Egypt, Morocco
 - GigRadar sweep source enhanced with contacts
+
+## August 2026 — Interactive Tutorial System
+- Commit: `bdb8e47`
+- Per-tab step-by-step tutorials for new DJs
+- 7 tabs covered: Master, Tracklist, Artwork, Release, Check, Library, Community
+- On by default, toggle in Settings, reset button
+- Compared with LANDR/BandLab/CloudBounce onboarding

@@ -126,6 +126,51 @@ All user data persists on-device. Nothing is uploaded to any server. The app wor
 The raw uploaded mix file (before mastering) is held in RAM as an AudioBuffer. If the DJ refreshes before clicking "Master Mix Now", they must re-upload the file. This is by design — a 66-minute WAV is ~700MB, too large for IndexedDB. After mastering, the mastered WAV (~100MB compressed) is persisted in IndexedDB permanently.
 
 
+## INTERACTIVE TUTORIAL SYSTEM
+
+### For New DJs
+Every tab shows a step-by-step tutorial on first visit. Walks the DJ through exactly what to do, which buttons to press, and why.
+
+### Tutorials Per Tab
+| Tab | Steps | Covers |
+|-----|-------|--------|
+| Master | 6 | Upload → Preset → Quick fixes → Master → A/B compare → Export |
+| Tracklist | 3 | Add tracks → Fill timestamps → Copy for platforms |
+| Artwork | 3 | Choose method → Generate → Save & download |
+| Release | 3 | Generate pack → Edit → Copy & upload |
+| Check | 2 | Choose platform → Read results |
+| Library | 3 | Import → Play → Free sources |
+| Community | 2 | Discover artists → Opportunities & contacts |
+
+### Controls
+- On by default for new users
+- "I know this already" → dismisses current tab tutorial
+- "Turn off all tutorials" → disables system-wide
+- Settings → Interactive Tutorials → toggle on/off
+- Settings → Reset all tutorials → shows them again
+- State: localStorage `emy-studio-tutorials-v1`
+
+### Competitive Comparison
+| Feature | EMY Studio | LANDR | BandLab | CloudBounce |
+|---------|-----------|-------|---------|-------------|
+| Per-tab guided tutorial | ✅ | ❌ | Partial | ❌ |
+| Step-by-step with Next/Back | ✅ | ❌ | ❌ | ❌ |
+| Pro tips per step | ✅ | ❌ | ❌ | ❌ |
+| Toggle on/off | ✅ | N/A | N/A | N/A |
+| Offline capable | ✅ | ❌ | ❌ | ❌ |
+| Free | ✅ | Paid | Free tier | Paid |
+| 5-band parametric EQ | ✅ | Style only | Basic | Style only |
+| Stereo width | ✅ | ❌ | ❌ | ❌ |
+| Soft clipper | ✅ | ❌ | ❌ | ❌ |
+| Tracklist builder | ✅ | ❌ | ❌ | ❌ |
+| DJ gig opportunities | ✅ (40+) | ❌ | ❌ | ❌ |
+| MENA community | ✅ (52 artists) | ❌ | ❌ | ❌ |
+| Audio device routing | ✅ | ❌ | ❌ | ❌ |
+| A/B comparison | ✅ | ✅ | ❌ | ✅ |
+| Release packaging | ✅ | ❌ | ❌ | ❌ |
+| Compliance checks | ✅ | ❌ | ❌ | ❌ |
+
+
 ## MENA DJ OPPORTUNITIES ENGINE
 
 40+ live DJ booking opportunities with full contact details, pay in AED, equipment specs, and one-click outreach. Located at `/studio/community` → Opportunities tab.
