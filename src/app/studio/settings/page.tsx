@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, SectionLabel, Toggle } from "@/components/studio/ui";
 import { geminiChat, isGeminiConfigured } from "@/lib/studio/gemini";
+import { loadTutorialState, setTutorialsEnabled, resetTutorials } from "@/lib/studio/tutorial";
 import { FAL_MODELS, isFalConfigured } from "@/lib/studio/fal";
 import type { ProjectKind, StudioSettings } from "@/lib/studio/types";
 import { useSettings, saveSettings } from "@/lib/studio/store";
@@ -237,6 +238,28 @@ export default function StudioSettingsPage() {
             className="mt-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2 text-xs font-semibold text-zinc-300 hover:border-fuchsia-500 transition"
           >
             🔊 Test Audio Output
+          </button>
+        </div>
+      </Card>
+
+      <Card className="p-4 sm:p-5">
+        <SectionLabel>Interactive tutorials</SectionLabel>
+        <p className="mt-1 text-xs text-zinc-500">Step-by-step guides that appear on each tab for new users.</p>
+        <div className="mt-3 space-y-2">
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2.5">
+            <span className="text-sm text-zinc-300">Show tutorials on tabs</span>
+            <input
+              type="checkbox"
+              checked={(() => { try { return loadTutorialState().enabled; } catch { return true; } })()}
+              onChange={(e) => { setTutorialsEnabled(e.target.checked); setSavedFlash(true); setTimeout(() => setSavedFlash(false), 1500); }}
+              className="accent-fuchsia-500"
+            />
+          </label>
+          <button
+            onClick={() => { resetTutorials(); setSavedFlash(true); setTimeout(() => setSavedFlash(false), 1500); }}
+            className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2 text-xs font-semibold text-zinc-300 hover:border-fuchsia-500 transition"
+          >
+            ↻ Reset all tutorials (show them again)
           </button>
         </div>
       </Card>
