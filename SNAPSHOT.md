@@ -57,3 +57,11 @@ After every completed build: `git commit` + `git tag studio-<n>` + push tag +
 - Audio routes to user-selected device (DJ controller, monitors)
 - MENA community: 52 members across 14 countries, 30 DJ gigs
 - Logo restored: burnt orange background, black concentric circles
+
+## August 2026 — MENA DJ Opportunities Engine
+- Commit: `53cd335`
+- 40+ DJ gigs with full contact info (email, WhatsApp, phone, Instagram)
+- 16 UAE venues with pay in AED, equipment specs, capacity
+- One-click Apply (pre-filled email), WhatsApp deeplink, Draft Message
+- Regional coverage: Saudi, Qatar, Bahrain, Lebanon, Egypt, Morocco
+- GigRadar sweep source enhanced with contacts
