@@ -8,11 +8,14 @@ import { getRegistry, saveRegistry, type CountryConfig } from "@/lib/sources/reg
 import { UAE_VENUES, generatePitchEmail, getGigRevenue, upsertGigRevenue, totalRevenue, getDueFollowUps, type GigRevenue, type VenueContact } from "@/lib/studio/gigradar-ai";
 import { useSettings } from "@/lib/studio/store";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "@/components/studio/ArabicToggle";
 
 const STAGES: GigStage[] = ["new", "contacted", "negotiating", "confirmed", "paid"];
 type Tab = "radar" | "venues" | "revenue" | "sources" | "add";
 
 export default function GigRadarPage() {
+  const { arabic } = useArabic();
   const settings = useSettings();
   const [tab, setTab] = useState<Tab>("radar");
   const [gigs, setGigs] = useState<Gig[]>([]);

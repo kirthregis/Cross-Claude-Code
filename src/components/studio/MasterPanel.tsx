@@ -10,6 +10,8 @@ import { notify, speak } from "@/lib/studio/speech";
 import { loadSettings, upsertProject, putBlob, getBlob } from "@/lib/studio/store";
 import { saveLibraryTrack } from "@/lib/studio/library-store";
 import { Button, Card, SectionLabel } from "./ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "./ArabicToggle";
 
 interface Props {
   project: Project;
@@ -17,6 +19,7 @@ interface Props {
 }
 
 export function MasterPanel({ project, onChanged }: Props) {
+  const { arabic } = useArabic();
   const settings = loadSettings();
   const [params, setParams] = useState<MasterParams>({ ...DEFAULT_MASTER_PARAMS, ...project.masterParams });
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);

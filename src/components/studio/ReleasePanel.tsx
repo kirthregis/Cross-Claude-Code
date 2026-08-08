@@ -6,8 +6,11 @@ import { buildRelease, buildTitle, youtubeHandoff } from "@/lib/studio/release";
 import { notify, speak } from "@/lib/studio/speech";
 import { loadSettings, upsertProject } from "@/lib/studio/store";
 import { Button, Card, SectionLabel } from "./ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "./ArabicToggle";
 
 export function ReleasePanel({ project, onChanged }: { project: Project; onChanged: () => void }) {
+  const { arabic } = useArabic();
   const settings = loadSettings();
   const [meta, setMeta] = useState<ReleaseMeta | null>(project.release ?? null);
   const [copied, setCopied] = useState<string | null>(null);

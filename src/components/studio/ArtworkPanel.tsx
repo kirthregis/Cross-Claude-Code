@@ -17,6 +17,8 @@ import { formatBytes } from "@/lib/studio/dsp";
 import { notify, speak } from "@/lib/studio/speech";
 import { loadArtwork, loadSettings, saveArtwork, saveSettings, upsertProject } from "@/lib/studio/store";
 import { Button, Card, SectionLabel } from "./ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "./ArabicToggle";
 
 interface Draft {
   dataUrl: string;
@@ -30,6 +32,7 @@ interface Draft {
 
 export function ArtworkPanel({ project, onChanged }: { project: Project; onChanged: () => void }) {
   const settings = loadSettings();
+  const { arabic } = useArabic();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saved, setSaved] = useState<Draft | null>(null);
   const [prompt, setPrompt] = useState(() => buildArtPrompt(project.meta, settings));

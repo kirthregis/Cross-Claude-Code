@@ -176,3 +176,18 @@ export function isArabic(): boolean {
     return false;
   }
 }
+
+
+// Re-export useArabic for convenience
+export { useArabic } from "@/components/studio/ArabicToggle";
+
+/**
+ * Hook: returns t() bound to current arabic state.
+ * Usage: const { t, arabic } = useT();
+ *        <h1>{t("studio_title")}</h1>
+ */
+export function useT() {
+  // We can't call useArabic here since this is a .ts not .tsx
+  // Use the raw check instead
+  return { t, isArabic };
+}

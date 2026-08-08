@@ -7,10 +7,13 @@ import { formatBytes } from "@/lib/studio/dsp";
 import { speak } from "@/lib/studio/speech";
 import { loadArtwork, loadSettings } from "@/lib/studio/store";
 import { Button, Card, SectionLabel, StatusBadge, Stepper } from "./ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "./ArabicToggle";
 
 type Platform = "youtube" | "instagram" | "label";
 
 export function CheckPanel({ project }: { project: Project }) {
+  const { arabic } = useArabic();
   const settings = loadSettings();
   const [platform, setPlatform] = useState<Platform>("youtube");
   const [checks, setChecks] = useState<ReleaseCheck[] | null>(null);
