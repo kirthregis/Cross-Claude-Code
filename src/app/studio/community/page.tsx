@@ -4,6 +4,7 @@ import { Card, SectionLabel, Button } from "@/components/studio/ui";
 import { t } from "@/lib/studio/i18n";
 import { useArabic } from "@/components/studio/ArabicToggle";
 import { useSettings } from "@/lib/studio/store";
+import { DJ_EMY } from "@/lib/artist";
 import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 
 interface Artist {
@@ -420,19 +421,13 @@ export default function CommunityPage() {
                   </div>
                   <div className="mt-1.5 flex flex-wrap gap-2">
                     {opp.contact.email && (
-                      <a href={`mailto:${opp.contact.email}?subject=DJ Booking Inquiry: ${opp.title}&body=Hi ${opp.contact.name || ""},
-
-I saw your listing for "${opp.title}" and I am interested.
-
-I am ${settings.artistName}, a ${settings.defaultGenre} DJ.
-
-Best regards`}
+                      <a href={`mailto:${opp.contact.email}?subject=${encodeURIComponent("DJ Booking Inquiry: " + opp.title + " — " + DJ_EMY.name)}`}
                         className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
                         ✉ {opp.contact.email}
                       </a>
                     )}
                     {opp.contact.whatsapp && (
-                      <a href={`https://wa.me/${opp.contact.whatsapp.replace(/[^0-9]/g, "")}?text=Hi ${opp.contact.name || ""}! I saw your listing for "${opp.title}" and I am interested. I am ${settings.artistName}, a ${settings.defaultGenre} DJ.`}
+                      <a href={`https://wa.me/${opp.contact.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hi " + (opp.contact.name || "") + "! I saw your listing for \"" + opp.title + "\" and I am interested.\n\nI am " + DJ_EMY.name + ", " + DJ_EMY.tagline + ".\n• " + DJ_EMY.selectedAppearances[0] + "\n• " + DJ_EMY.selectedAppearances[1] + "\n\nEPK: " + (DJ_EMY.epkUrl || "") + "\nIG: https://instagram.com/" + (DJ_EMY.instagram || "").replace("@","") + "\n\n" + DJ_EMY.management.contactName + " — " + DJ_EMY.management.company + "\n" + DJ_EMY.management.phone)}`}
                         target="_blank" rel="noreferrer"
                         className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-emerald-300 hover:border-emerald-500 transition">
                         💬 WhatsApp
@@ -457,22 +452,17 @@ Best regards`}
 
               <div className="mt-3 flex gap-2">
                 {opp.contact?.email && (
-                  <a href={`mailto:${opp.contact.email}?subject=DJ Booking Inquiry: ${opp.title}&body=Hi ${opp.contact.name || ""},
-
-I saw your listing for "${opp.title}" and I am interested.
-
-I am ${settings.artistName}, a ${settings.defaultGenre} DJ based in Dubai.
-Instagram: ${settings.instagram}
-
-Please find my EPK attached.
-
-Best regards,
-${settings.artistName}`}
+                  <button
+                    onClick={() => {
+                      const pitch = `Hi ${opp.contact?.name || ""},\n\nI saw your listing for "${opp.title}" and I would like to express my interest.\n\nI am ${DJ_EMY.name} (${DJ_EMY.legalName}), ${DJ_EMY.tagline}.\n\n▸ KEY CREDENTIALS:\n• ${DJ_EMY.sellingPoints[0]}\n• ${DJ_EMY.selectedAppearances[0]}\n• ${DJ_EMY.selectedAppearances[1]}\n• Bilingual: ${DJ_EMY.languages.join(" / ")}\n• Genres: ${DJ_EMY.genres.join(", ")}\n\n▸ SELECTED APPEARANCES:\n${DJ_EMY.selectedAppearances.map(a => "• " + a).join("\n")}\n\n▸ LINKS:\nEPK: ${DJ_EMY.epkUrl || ""}\nInstagram: https://instagram.com/${(DJ_EMY.instagram || "").replace("@","")}\nYouTube: ${DJ_EMY.youtube || ""}\n\n▸ MANAGEMENT:\n${DJ_EMY.management.company}\n${DJ_EMY.management.contactName} — ${DJ_EMY.management.contactRole}\nEmail: ${DJ_EMY.management.email}\nPhone/WhatsApp: ${DJ_EMY.management.phone}\nWebsite: ${DJ_EMY.management.website || ""}\n\n▸ TECH RIDER:\n${DJ_EMY.techRider.players.join(", ")}\n${DJ_EMY.techRider.mixer.join(", ")}\n\nI look forward to discussing this opportunity.\n\nBest regards,\n${DJ_EMY.management.contactName}\n${DJ_EMY.management.company}\n${DJ_EMY.management.phone}`;
+                      void navigator.clipboard.writeText(pitch);
+                      window.open(`mailto:${opp.contact?.email}?subject=${encodeURIComponent("DJ Booking Inquiry: " + opp.title + " — " + DJ_EMY.name)}`, "_blank");
+                    }}
                     className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-fuchsia-500 transition">
-                    Apply Now
-                  </a>
+                    Apply Now (opens email + copies pitch)
+                  </button>
                 )}
-                <button onClick={() => { setTab("connect"); setConnectMsg("Hi " + (opp.contact?.name || "") + "!\n\nI saw your listing for \"" + opp.title + "\" and I am very interested.\n\nI am " + settings.artistName + ", a " + settings.defaultGenre + " DJ based in Dubai.\nInstagram: " + settings.instagram + "\n\nI would love to discuss this opportunity. Please find my EPK and latest mixes at my links.\n\nBest regards,\n" + settings.artistName); }}
+                <button onClick={() => { setTab("connect"); setConnectMsg("Hi " + (opp.contact?.name || "") + "!\n\nI saw your listing for \"" + opp.title + "\" and I would like to express my interest.\n\nI am " + DJ_EMY.name + " (" + DJ_EMY.legalName + "), " + DJ_EMY.tagline + ".\n\n▸ KEY CREDENTIALS:\n• " + DJ_EMY.sellingPoints[0] + "\n• " + DJ_EMY.selectedAppearances[0] + "\n• " + DJ_EMY.selectedAppearances[1] + "\n• Bilingual: " + DJ_EMY.languages.join(" / ") + "\n• Genres: " + DJ_EMY.genres.join(", ") + "\n\n▸ LINKS:\nEPK: " + (DJ_EMY.epkUrl || "") + "\nInstagram: https://instagram.com/" + (DJ_EMY.instagram || "").replace("@","") + "\nYouTube: " + (DJ_EMY.youtube || "") + "\n\n▸ MANAGEMENT:\n" + DJ_EMY.management.company + "\n" + DJ_EMY.management.contactName + " — " + DJ_EMY.management.contactRole + "\nEmail: " + DJ_EMY.management.email + "\nPhone/WhatsApp: " + DJ_EMY.management.phone + "\nWebsite: " + (DJ_EMY.management.website || "") + "\n\nI look forward to discussing this opportunity.\n\nBest regards,\n" + DJ_EMY.management.contactName + "\n" + DJ_EMY.management.company + "\n" + DJ_EMY.management.phone); }}
                   className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-fuchsia-500 transition">
                   Draft Message
                 </button>
