@@ -1,4 +1,4 @@
-const CACHE_NAME = "emy-studio-v11-live";
+const CACHE_NAME = "emy-studio-v12-live";
 const PRECACHE_URLS = ["/icon-192.png", "/icon-512.png", "/manifest.json"];
 
 // 1. Install & immediately take over

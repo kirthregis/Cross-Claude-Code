@@ -256,13 +256,6 @@ export async function renderMaster(
     if (s1 > ceilingLinear) s1 = ceilingLinear;
     else if (s1 < -ceilingLinear) s1 = -ceilingLinear;
 
-    // Triangular dither (16-bit noise floor)
-    if (params.ditherEnabled ?? true) {
-      const dither = ((Math.random() - 0.5) + (Math.random() - 0.5)) / 32768;
-      s0 += dither;
-      s1 += dither;
-    }
-
     ch0[i] = s0;
     ch1[i] = s1;
   }

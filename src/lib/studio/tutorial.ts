@@ -12,6 +12,7 @@ export interface TutorialStep {
   title: string;
   body: string;
   tip?: string;
+  scrollTo?: string; // DOM id to scroll into view when this step shows
 }
 
 export interface TabTutorial {
@@ -75,12 +76,12 @@ export const TUTORIALS: Record<string, TabTutorial> = {
     tabId: "master", tabName: "Master",
     intro: "Let's master your mix step by step. No experience needed — the studio handles the technical stuff.",
     steps: [
-      { title: "Step 1: Upload your mix", body: "Click \"Choose Audio File\" or drag your mix file onto the upload area. The studio accepts MP3, WAV, M4A, FLAC, and AIFF. Use the highest quality file you have — WAV is best.", tip: "Export from Rekordbox or Serato as WAV (not MP3) for the best master quality." },
-      { title: "Step 2: Pick a preset", body: "Choose where this mix will be published:\n\n• Streaming (-14 LUFS) — Spotify, YouTube, Apple Music\n• Club/PA (-9 LUFS) — Big speakers, loud\n• DJ Mix Master — Optimized for long sets\n• SoundCloud (-10 LUFS) — Louder for SoundCloud's player", tip: "Not sure? Start with \"Streaming\" — it works everywhere." },
-      { title: "Step 3: Quick fixes (optional)", body: "Toggle these one-click fixes:\n\n• Rumble Cut — Removes sub-bass noise below 30Hz\n• Cut Mud — Cleans muddy 250Hz area\n• Add Air — Brightens the top end\n• Mono Bass — Makes bass mono for club speakers", tip: "For DJ mixes, \"Cut Mud\" + \"Mono Bass\" almost always improve the sound." },
-      { title: "Step 4: Master it", body: "Click \"⚡ Master Mix Now\". The studio processes your mix through:\n\nEQ → Compressor → Soft Clipper → Limiter → Stereo → Loudness\n\nTakes 10–60 seconds. Progress bar shows each stage.", tip: "The mastered file auto-saves to your device and Library. Close the browser, come back — it's still there." },
-      { title: "Step 5: Listen & compare", body: "Use the A/B player:\n• Press ▶ to play\n• Toggle \"Original\" vs \"Mastered\"\n• Seek to any part\n• Adjust volume", tip: "Listen to the loudest, quietest, and a vocal section. If all three sound balanced, the master is good." },
-      { title: "Step 6: Export", body: "Click \"Export 24-Bit WAV\" for highest quality (labels need this) or \"Export 16-Bit WAV\" for smaller files.\n\nA \"Save As\" dialog lets you pick where to save. Also auto-saves to your Library.", tip: "Always export 24-bit for your archive. You can make 16-bit copies later." },
+      { title: "Step 1: Upload your mix", scrollTo: "tutorial-upload", body: "Click \"Choose Audio File\" or drag your mix file onto the upload area. The studio accepts MP3, WAV, M4A, FLAC, and AIFF. Use the highest quality file you have — WAV is best.", tip: "Export from Rekordbox or Serato as WAV (not MP3) for the best master quality." },
+      { title: "Step 2: Pick a preset", scrollTo: "tutorial-presets", body: "Choose where this mix will be published:\n\n• Streaming (-14 LUFS) — Spotify, YouTube, Apple Music\n• Club/PA (-9 LUFS) — Big speakers, loud\n• DJ Mix Master — Optimized for long sets\n• SoundCloud (-10 LUFS) — Louder for SoundCloud's player", tip: "Not sure? Start with \"Streaming\" — it works everywhere." },
+      { title: "Step 3: Quick fixes (optional)", scrollTo: "tutorial-quickfix", body: "Toggle these one-click fixes:\n\n• Rumble Cut — Removes sub-bass noise below 30Hz\n• Cut Mud — Cleans muddy 250Hz area\n• Add Air — Brightens the top end\n• Mono Bass — Makes bass mono for club speakers", tip: "For DJ mixes, \"Cut Mud\" + \"Mono Bass\" almost always improve the sound." },
+      { title: "Step 4: Master it", scrollTo: "tutorial-master-btn", body: "Click \"⚡ Master Mix Now\". The studio processes your mix through:\n\nEQ → Compressor → Soft Clipper → Limiter → Stereo → Loudness\n\nTakes 10–60 seconds. Progress bar shows each stage.", tip: "The mastered file auto-saves to your device and Library. Close the browser, come back — it's still there." },
+      { title: "Step 5: Listen & compare", scrollTo: "tutorial-player", body: "Use the A/B player:\n• Press ▶ to play\n• Toggle \"Original\" vs \"Mastered\"\n• Seek to any part\n• Adjust volume", tip: "Listen to the loudest, quietest, and a vocal section. If all three sound balanced, the master is good." },
+      { title: "Step 6: Export", scrollTo: "tutorial-export", body: "Click \"Export 24-Bit WAV\" for highest quality (labels need this) or \"Export 16-Bit WAV\" for smaller files.\n\nA \"Save As\" dialog lets you pick where to save. Also auto-saves to your Library.", tip: "Always export 24-bit for your archive. You can make 16-bit copies later." },
     ],
   },
   tracklist: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   TUTORIALS,
   isTutorialEnabled,
@@ -25,6 +25,29 @@ export function TutorialOverlay({ tabId }: Props) {
       setVisible(false);
     }
   }, [tabId]);
+
+  // Scroll to the target element when step changes
+  useEffect(() => {
+    if (!visible || step < 0) return;
+    const tutorial = TUTORIALS[tabId];
+    if (!tutorial) return;
+    const current = tutorial.steps[step];
+    if (current?.scrollTo) {
+      // Small delay so DOM has rendered
+      const timer = setTimeout(() => {
+        const el = document.getElementById(current.scrollTo!);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Flash highlight
+          el.classList.add("ring-2", "ring-fuchsia-500", "ring-offset-2", "ring-offset-zinc-900", "rounded-lg");
+          setTimeout(() => {
+            el.classList.remove("ring-2", "ring-fuchsia-500", "ring-offset-2", "ring-offset-zinc-900", "rounded-lg");
+          }, 2000);
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [step, visible, tabId]);
 
   const tutorial = TUTORIALS[tabId];
   if (!visible || !tutorial) return null;

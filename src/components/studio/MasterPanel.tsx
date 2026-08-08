@@ -322,7 +322,7 @@ export function MasterPanel({ project, onChanged }: Props) {
       <Card className="p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <SectionLabel>Audio Source</SectionLabel>
+            <SectionLabel><span id="tutorial-upload">Audio Source</span></SectionLabel>
             {project.audio ? (
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-300">
                 <span className="font-bold text-white">{project.audio.fileName}</span>
@@ -361,7 +361,7 @@ export function MasterPanel({ project, onChanged }: Props) {
 
       {/* Target Presets */}
       <Card className="p-4 sm:p-5">
-        <SectionLabel>Mastering Targets & Presets</SectionLabel>
+        <SectionLabel><span id="tutorial-presets">Mastering Targets & Presets</span></SectionLabel>
         <p className="mt-1 text-xs text-zinc-500">
           Industry-standard integrated loudness curves tailored for streaming, club PA systems, and label distribution.
         </p>
@@ -392,7 +392,7 @@ export function MasterPanel({ project, onChanged }: Props) {
       {(audioBuffer || project.master) && (
         <Card className="p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <SectionLabel>A/B Master Audition & Preview</SectionLabel>
+            <SectionLabel><span id="tutorial-player">A/B Master Audition & Preview</span></SectionLabel>
             <div className="flex rounded-xl border border-zinc-800 bg-zinc-950 p-0.5">
               <button
                 onClick={() => handleModeChange("original")}
@@ -467,7 +467,7 @@ export function MasterPanel({ project, onChanged }: Props) {
 
         {/* Input & Quick Fixes */}
         <Card className="p-4">
-          <SectionLabel>Input & Quick Fix</SectionLabel>
+          <SectionLabel><span id="tutorial-quickfix">Input & Quick Fix</span></SectionLabel>
           <div className="mt-3 space-y-3">
             <div>
               <div className="flex justify-between text-xs">
@@ -487,7 +487,7 @@ export function MasterPanel({ project, onChanged }: Props) {
 
         {/* 5-Band Parametric EQ */}
         <Card className="p-4">
-          <SectionLabel>5-Band Parametric EQ</SectionLabel>
+          <SectionLabel><span id="tutorial-eq">5-Band Parametric EQ</span></SectionLabel>
           <div className="mt-3 space-y-2">
             {([
               { key: "lowGainDb" as const, label: "80 Hz", desc: "Low Shelf" },
@@ -509,7 +509,7 @@ export function MasterPanel({ project, onChanged }: Props) {
 
         {/* Compressor */}
         <Card className="p-4">
-          <SectionLabel>Compressor</SectionLabel>
+          <SectionLabel><span id="tutorial-compressor">Compressor</span></SectionLabel>
           <div className="mt-3 space-y-2">
             <div>
               <div className="flex justify-between text-xs"><span className="text-zinc-400">Threshold</span><span className="font-mono text-zinc-200">{params.compThreshold} dB</span></div>
@@ -536,7 +536,7 @@ export function MasterPanel({ project, onChanged }: Props) {
 
         {/* Limiter, Clipper & Stereo */}
         <Card className="p-4">
-          <SectionLabel>Limiter, Clipper & Stereo</SectionLabel>
+          <SectionLabel><span id="tutorial-limiter">Limiter, Clipper & Stereo</span></SectionLabel>
           <div className="mt-3 space-y-2">
             <div>
               <div className="flex justify-between text-xs"><span className="text-zinc-400">Limiter Drive</span><span className="font-mono text-zinc-200">{params.limiterDrive.toFixed(2)}</span></div>
@@ -578,6 +578,7 @@ export function MasterPanel({ project, onChanged }: Props) {
             </p>
           </div>
           <Button
+            id="tutorial-master-btn"
             onClick={() => void runMastering()}
             disabled={rendering}
             className="shrink-0 !py-3 !px-6 text-sm font-bold"
@@ -634,7 +635,7 @@ export function MasterPanel({ project, onChanged }: Props) {
 
       {/* Export Section */}
       <Card className="p-4 sm:p-5">
-        <SectionLabel>Label Deliverables & WAV Export</SectionLabel>
+        <SectionLabel><span id="tutorial-export">Label Deliverables & WAV Export</span></SectionLabel>
         <p className="mt-1 text-xs text-zinc-500">
           Exports tagged WAV files directly to your device. Metadata is embedded into RIFF INFO chunks.
         </p>

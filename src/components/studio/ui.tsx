@@ -21,13 +21,15 @@ export function Button({
   disabled,
   className = "",
   type = "button",
+  id,
 }: {
   children: ReactNode;
   onClick?: () => void;
   variant?: "primary" | "ghost" | "danger" | "subtle";
   disabled?: boolean;
   className?: string;
-  type?: "button" | "submit";
+  type?: "button" | "submit" | "reset";
+  id?: string;
 }) {
   const styles: Record<string, string> = {
     primary:
@@ -39,6 +41,7 @@ export function Button({
   return (
     <button
       type={type}
+      id={id}
       disabled={disabled}
       onClick={onClick}
       className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${styles[variant]} ${className}`}
