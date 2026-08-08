@@ -1,6 +1,8 @@
 "use client";
 import { useState, useCallback } from "react";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "@/components/studio/ArabicToggle";
 import { useProjects, upsertProject } from "@/lib/studio/store";
 import { newId } from "@/lib/studio/id";
 import type { SmartLinks } from "@/lib/studio/types";
@@ -35,6 +37,7 @@ const PLATFORM_ICONS: Record<string, string> = {
 type Tab = "distribution" | "splits" | "smartlinks";
 
 export default function DistributePage() {
+  const { arabic } = useArabic();
   const [tab, setTab] = useState<Tab>("distribution");
   const projects = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");

@@ -21,22 +21,22 @@ export function GlobalVoiceButton() {
     const t = text.toLowerCase();
     if (t.includes("radar") || t.includes("gig")) {
       router.push("/studio/gigradar");
-      speak("Opening Gig Radar.", settings.soundOn);
+      speak("Opening Gig Radar.", settings.soundOn, "en-US", settings.voiceGender);
     } else if (t.includes("library") || t.includes("music")) {
       router.push("/studio/library");
-      speak("Opening your music library.", settings.soundOn);
+      speak("Opening your music library.", settings.soundOn, "en-US", settings.voiceGender);
     } else if (t.includes("settings") || t.includes("theme")) {
       router.push("/studio/settings");
-      speak("Opening settings.", settings.soundOn);
+      speak("Opening settings.", settings.soundOn, "en-US", settings.voiceGender);
     } else if (t.includes("admin") || t.includes("money")) {
       router.push("/studio/admin");
-      speak("Opening admin dashboard.", settings.soundOn);
+      speak("Opening admin dashboard.", settings.soundOn, "en-US", settings.voiceGender);
     } else if (t.includes("epk") || t.includes("press")) {
       router.push("/studio/epk");
-      speak("Opening your press kit.", settings.soundOn);
+      speak("Opening your press kit.", settings.soundOn, "en-US", settings.voiceGender);
     } else {
       router.push("/studio?tab=assistant");
-      speak("Let me help you in the assistant.", settings.soundOn);
+      speak("Let me help you in the assistant.", settings.soundOn, "en-US", settings.voiceGender);
     }
   }, [router, settings.soundOn]);
 

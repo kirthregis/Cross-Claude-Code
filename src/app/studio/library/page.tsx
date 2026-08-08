@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "@/components/studio/ArabicToggle";
 import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 import {
   deleteLibraryTrack,
@@ -42,6 +44,7 @@ interface ArchiveDoc {
 }
 
 export default function LibraryPage() {
+  const { arabic } = useArabic();
   const settings = loadSettings();
   const [tracks, setTracks] = useState<LibraryTrack[]>([]);
   const [loading, setLoading] = useState(true);

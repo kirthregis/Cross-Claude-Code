@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "@/components/studio/ArabicToggle";
 import {
   getEpkBlob,
   getEpkPortraitDataUrl,
@@ -15,6 +17,7 @@ import {
 import { formatBytes } from "@/lib/studio/dsp";
 
 export default function EpkPage() {
+  const { arabic } = useArabic();
   const [pdf, setPdf] = useState<EpkFileInfo | null>(null);
   const [portrait, setPortrait] = useState<EpkFileInfo | null>(null);
   const [portraitUrl, setPortraitUrl] = useState<string | null>(null);

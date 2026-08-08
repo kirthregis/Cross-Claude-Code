@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Card, SectionLabel, Toggle } from "@/components/studio/ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "@/components/studio/ArabicToggle";
 import { geminiChat, isGeminiConfigured } from "@/lib/studio/gemini";
 import { loadTutorialState, setTutorialsEnabled, resetTutorials } from "@/lib/studio/tutorial";
 import { FAL_MODELS, isFalConfigured } from "@/lib/studio/fal";
@@ -9,6 +11,7 @@ import { useSettings, saveSettings } from "@/lib/studio/store";
 import { BACKGROUND_OPTIONS, FONT_OPTIONS, RADIUS_OPTIONS, THEME_PRESETS, downscaleLogo, resetTheme, saveTheme, useTheme, type ThemeSettings } from "@/lib/studio/theme";
 
 export default function StudioSettingsPage() {
+  const { arabic } = useArabic();
   const settings = useSettings();
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; text: string } | null>(null);

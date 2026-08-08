@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "@/components/studio/ArabicToggle";
 import { useSettings } from "@/lib/studio/store";
 import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 
@@ -191,6 +193,7 @@ const ROLE_LABELS: Record<string, string> = {
 type Tab = "discover" | "opportunities" | "connect";
 
 export default function CommunityPage() {
+  const { arabic } = useArabic();
   const settings = useSettings();
   const [tab, setTab] = useState<Tab>("discover");
   const [genreFilter, setGenreFilter] = useState("all");

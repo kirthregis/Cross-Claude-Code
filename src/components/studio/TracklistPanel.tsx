@@ -5,6 +5,8 @@ import type { Project, TracklistEntry } from "@/lib/studio/types";
 import { upsertProject } from "@/lib/studio/store";
 import { newId } from "@/lib/studio/id";
 import { Button, Card, SectionLabel } from "./ui";
+import { t } from "@/lib/studio/i18n";
+import { useArabic } from "./ArabicToggle";
 
 interface Props {
   project: Project;
@@ -12,6 +14,7 @@ interface Props {
 }
 
 export function TracklistPanel({ project, onChanged }: Props) {
+  const { arabic } = useArabic();
   const [tracks, setTracks] = useState<TracklistEntry[]>(project.tracklist ?? []);
   const [copied, setCopied] = useState(false);
 
