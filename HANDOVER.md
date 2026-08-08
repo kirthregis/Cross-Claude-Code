@@ -72,7 +72,7 @@ Then open: **http://localhost:3001/studio** (or port 3000 depending on environme
   - `/studio/epk` (Electronic Press Kit & Bio Manager)
   - `/studio/analytics` (YouTube Data API & Spotify Stats)
   - `/studio/distribute` (Royalty Splits & Smart Links)
-  - `/studio/community` (MENA Artist Network)
+  - `/studio/community` (MENA Artist Network — 52 members, 40+ DJ gigs with full contacts, 14 countries)
   - `/studio/planner` (Setlists, Riders & Business Suite)
   - `/studio/admin` (Developer Suggestion Dashboard)
 
@@ -124,6 +124,50 @@ All user data persists on-device. Nothing is uploaded to any server. The app wor
 
 ### Known Limitation
 The raw uploaded mix file (before mastering) is held in RAM as an AudioBuffer. If the DJ refreshes before clicking "Master Mix Now", they must re-upload the file. This is by design — a 66-minute WAV is ~700MB, too large for IndexedDB. After mastering, the mastered WAV (~100MB compressed) is persisted in IndexedDB permanently.
+
+
+## MENA DJ OPPORTUNITIES ENGINE
+
+40+ live DJ booking opportunities with full contact details, pay in AED, equipment specs, and one-click outreach. Located at `/studio/community` → Opportunities tab.
+
+### Opportunity Data Per Listing
+- Type (DJ Booking / Festival / Residency / Radio / Studio / Collaboration)
+- Venue name + city + area
+- Genre requirements
+- Full description with set times and requirements
+- Pay in AED (prominently displayed)
+- Equipment (CDJ/DJM model, sound system)
+- Capacity
+- Recurring badge (weekly/monthly)
+- Contact card: name, role, email (mailto: pre-filled), WhatsApp (wa.me deeplink), phone (tel:), Instagram
+
+### UAE Venues (16)
+| Venue | Area | Pay AED |
+|-------|------|---------|
+| SKYBAR Dubai | Downtown | 3,000–5,500 |
+| FIVE Palm Jumeirah | Palm | 2,500–4,000 |
+| Soho Garden | Meydan | 2,500–4,500 |
+| Cove Beach | Bluewaters | 2,000–3,500 |
+| Barasti Beach | JBR | 1,800–3,000 |
+| Analog Room Warehouse | Al Quoz | 2,200–4,000 |
+| WHITE Dubai | Meydan | 5,000–12,000 |
+| Zero Gravity | DMCC | 3,500–6,000 |
+| Iris Dubai | Meydan | 2,000–3,500 |
+| W Dubai The Palm | Palm | 2,000–3,500 |
+| Billionaire Dubai | DIFC | 4,000–7,000 |
+| Azure Beach | JBR | 1,500–2,500 |
+| Nikki Beach | Pearl Jumeira | 2,500–4,000 |
+| Atlantis The Royal | Palm | 5,000–8,000 |
+| Jumeirah Al Qasr | Umm Suqeim | 5,500–9,000 |
+| RAK Beach Club | RAK | 2,000–3,500 |
+
+### Regional: Saudi (SOUNDSTORM 7,500–20,000+, Riyadh Season, AlUla, Jeddah), Qatar (Banana Island, Lusail), Bahrain (F1 7,500–18,500), Lebanon (B018, Four Seasons), Egypt (Cairo, North Coast), Morocco (Atlas Festival)
+
+### Radio & Studio: Virgin Radio Dubai (750–1,500), Pulse 95 FM (500–1,000), Major label remix (3,700–7,500)
+
+### Outreach: "Apply Now" → pre-filled email. WhatsApp → wa.me deeplink. "Draft Message" → personalized pitch text. Contact Instagram linked.
+
+### Sweep Source: `/api/sweep` daily cron pulls 30 DJ bookings from `src/lib/sources/mena-dj-gigs.ts` into GigRadar.
 
 
 ## STUDIO-GRADE MASTERING ENGINE

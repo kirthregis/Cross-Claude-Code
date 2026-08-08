@@ -65,8 +65,10 @@ Every piece of data has a defined home. Nothing is RAM-only except the raw uploa
 9. Tracklist auto-included in release description
 10. Compliance check verifies tracklist
 11. MENA community: 52 members, 14 countries
-12. 30 DJ gigs via MENA DJ Network sweep source
-13. Logo: burnt orange, black circles (original)
+12. 40+ DJ gigs with full contact info (email, WhatsApp, phone, Instagram), pay in AED, equipment, capacity
+13. 16 UAE venues with direct booking contacts
+14. GigRadar sweep source enhanced with contact info in body text
+15. Logo: burnt orange, black circles (original)
 
 ### Studio-Grade Mastering Engine (Installed)
 Free, on-device, no plugins needed. Full signal chain:
