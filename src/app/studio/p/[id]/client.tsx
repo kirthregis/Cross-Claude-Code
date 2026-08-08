@@ -10,6 +10,7 @@ import { ReleasePanel } from "@/components/studio/ReleasePanel";
 import { CheckPanel } from "@/components/studio/CheckPanel";
 import { TracklistPanel } from "@/components/studio/TracklistPanel";
 import { AssistantPanel } from "@/components/studio/AssistantPanel";
+import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 
 type Tab = "assistant" | "master" | "tracklist" | "artwork" | "release" | "check";
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -169,23 +170,33 @@ export default function ProjectEditorClient({ id }: { id: string }) {
         )}
 
         {tab === "master" && (
+          <><TutorialOverlay tabId="master" />
           <MasterPanel project={project} onChanged={refresh} />
+          </>
         )}
 
         {tab === "tracklist" && (
+          <><TutorialOverlay tabId="tracklist" />
           <TracklistPanel project={project} onChanged={refresh} />
+          </>
         )}
 
         {tab === "artwork" && (
+          <><TutorialOverlay tabId="artwork" />
           <ArtworkPanel project={project} onChanged={refresh} />
+          </>
         )}
 
         {tab === "release" && (
+          <><TutorialOverlay tabId="release" />
           <ReleasePanel project={project} onChanged={refresh} />
+          </>
         )}
 
         {tab === "check" && (
+          <><TutorialOverlay tabId="check" />
           <CheckPanel project={project} />
+          </>
         )}
       </main>
     </div>

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
 import { useSettings } from "@/lib/studio/store";
+import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 
 interface Artist {
   id: string;
@@ -220,6 +221,7 @@ export default function CommunityPage() {
 
   return (
     <div className="space-y-5">
+      <TutorialOverlay tabId="community" />
       <div>
         <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">🌍 MENA Community</h1>
         <p className="mt-1 text-sm text-zinc-400">

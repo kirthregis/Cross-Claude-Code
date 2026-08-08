@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
+import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 import {
   deleteLibraryTrack,
   getLibraryBlob,
@@ -185,6 +186,7 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-5">
+      <TutorialOverlay tabId="library" />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
