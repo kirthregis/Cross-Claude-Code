@@ -97,6 +97,7 @@ export function encodeWav(
   const data = new Uint8Array(new ArrayBuffer(dataBytes));
   const ddv = new DataView(data.buffer);
   const scale = bitsPerSample === 24 ? 8388607 : 32767;
+  const applyDither = bitsPerSample === 16; // TPDF dither only for 16-bit
 
   for (let i = 0; i < numSamples; i++) {
     for (let c = 0; c < numChannels; c++) {
