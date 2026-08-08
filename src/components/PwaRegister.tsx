@@ -19,6 +19,13 @@ export function PwaRegister() {
         .catch(() => {
           /* offline support is best-effort */
         });
+
+      // When a new service worker activates, reload to get fresh content
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data?.type === "SW_UPDATED") {
+          window.location.reload();
+        }
+      });
     }
 
     if ("Notification" in window && Notification.permission === "default") {
