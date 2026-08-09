@@ -11,15 +11,10 @@ export function StudioNav() {
   const path = usePathname();
   const { arabic } = useArabic();
   const tabs = [
-    { href: "/studio", label: t("studio", arabic) },
-    { href: "/studio/library", label: t("library", arabic) },
-    { href: "/studio/epk", label: t("epk", arabic) },
-    { href: "/studio/gigradar", label: t("gigradar", arabic) },
-    { href: "/studio/planner", label: t("planner", arabic) },
-    { href: "/studio/analytics", label: t("analytics", arabic) },
-    { href: "/studio/distribute", label: t("distribute", arabic) },
-    { href: "/studio/community", label: t("community", arabic) },
-    { href: "/studio/settings", label: t("settings", arabic) },
+    { href: "/studio", label: arabic ? "الرئيسية" : "Home" },
+    { href: "/studio/community", label: arabic ? "فرص" : "Gigs" },
+    { href: "/studio/library", label: arabic ? "المكتبة" : "Library" },
+    { href: "/studio/settings", label: arabic ? "⚙" : "⚙" },
   ];
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-800 bg-black">
