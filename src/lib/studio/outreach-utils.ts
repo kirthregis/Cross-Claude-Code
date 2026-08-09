@@ -80,7 +80,6 @@ export { fullPitch as generatePitchText };
 
 export function openEmail(toEmail: string, contactName: string, gigTitle: string): void {
   const subject = `DJ Booking Inquiry: ${gigTitle} - ${DJ_EMY.name}`;
-  // Short body that fits within mailto URL limits (~1800 chars max)
   const body = [
     `Hi ${contactName},`,
     ``,
@@ -105,18 +104,9 @@ export function openEmail(toEmail: string, contactName: string, gigTitle: string
     `${DJ_EMY.instagram}`,
   ].join("\n");
 
-  const mailto = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-  // Use a hidden iframe to trigger mailto without navigating the page
-  // This is the only method that works reliably in PWAs, Chrome, Safari, and Firefox
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = mailto;
-  document.body.appendChild(iframe);
-  // Clean up after the OS has picked up the protocol
-  setTimeout(() => {
-    try { document.body.removeChild(iframe); } catch {}
-  }, 2000);
+  // Use Gmail compose URL directly — works in all browsers and PWAs
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(toEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl, "_blank");
 }
 
 // ── WhatsApp: opens chat with message written, ready to send ──
