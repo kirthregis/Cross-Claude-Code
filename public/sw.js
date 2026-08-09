@@ -1,4 +1,4 @@
-const CACHE_NAME = "emy-studio-v13-live";
+const CACHE_NAME = "emy-studio-v14-live";
 const PRECACHE_URLS = ["/icon-192.png", "/icon-512.png", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
