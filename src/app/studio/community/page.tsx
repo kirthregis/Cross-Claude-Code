@@ -5,7 +5,7 @@ import { t } from "@/lib/studio/i18n";
 import { useArabic } from "@/components/studio/ArabicToggle";
 import { useSettings } from "@/lib/studio/store";
 import { DJ_EMY } from "@/lib/artist";
-import { openEmailWithEpk, getPhoneLink, getInstagramLink, generatePitchText } from "@/lib/studio/outreach-utils";
+import { openEmail, openWhatsApp, openCall, openInstagramDM, detectPhone, generatePitchText } from "@/lib/studio/outreach-utils";
 import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 
 interface Artist {
@@ -417,53 +417,56 @@ export default function CommunityPage() {
               {/* Contact info */}
               {opp.contact && (
                 <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950/80 p-3">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Contact</div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Tap any button to open with message ready to send</div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                     {opp.contact.name && <span className="text-zinc-200 font-semibold">{opp.contact.name}{opp.contact.role ? ` — ${opp.contact.role}` : ""}</span>}
                   </div>
                   <div className="mt-1.5 flex flex-wrap gap-2">
                     {opp.contact.email && (
-                      <button onClick={() => openEmailWithEpk(opp.contact!.email!, opp.contact?.name || "", opp.title)}
-                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition text-left">
-                        ✉ {opp.contact.email}
+                      <button onClick={() => openEmail(opp.contact!.email!, opp.contact?.name || "", opp.title)}
+                        className="rounded-lg border border-fuchsia-500/50 bg-fuchsia-500/10 px-2.5 py-1.5 text-[11px] text-fuchsia-300 hover:bg-fuchsia-500/20 transition text-left">
+                        ✉ Email pitch to {opp.contact.name || "venue"}
                       </button>
                     )}
-                    {opp.contact.whatsapp && (() => {
-                      const pl = getPhoneLink(opp.contact!.whatsapp!, generatePitchText(opp.contact?.name || "", opp.title).slice(0, 500));
-                      return (
-                        <a href={pl.href} target="_blank" rel="noreferrer"
-                          className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-emerald-300 hover:border-emerald-500 transition">
-                          {pl.icon} {pl.label}
-                        </a>
-                      );
-                    })()}
-                    {opp.contact.phone && (() => {
-                      const pl = getPhoneLink(opp.contact!.phone!);
-                      return (
-                        <a href={pl.href} target={pl.label === "Call" ? "_self" : "_blank"} rel="noreferrer"
-                          className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
-                          {pl.icon} {pl.label}: {opp.contact!.phone}
-                        </a>
-                      );
-                    })()}
-                    {opp.contact.instagram && (() => {
-                      const ig = getInstagramLink(opp.contact!.instagram!);
-                      return (
-                        <a href={ig.href} target="_blank" rel="noreferrer"
-                          className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
-                          📸 {ig.label}
-                        </a>
-                      );
-                    })()}
+                    {opp.contact.whatsapp && (
+                      <button onClick={() => openWhatsApp(opp.contact!.whatsapp!, opp.contact?.name || "", opp.title)}
+                        className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] text-emerald-300 hover:bg-emerald-500/20 transition">
+                        💬 WhatsApp pitch to {opp.contact.name || "venue"}
+                      </button>
+                    )}
+                    {opp.contact.phone && (
+                      <button onClick={() => { if (detectPhone(opp.contact!.phone!) === "whatsapp") openWhatsApp(opp.contact!.phone!, opp.contact?.name || "", opp.title); else openCall(opp.contact!.phone!); }}
+                        className="rounded-lg border border-zinc-700 px-2.5 py-1.5 text-[11px] text-zinc-300 hover:border-fuchsia-500 hover:bg-fuchsia-500/10 transition">
+                        {detectPhone(opp.contact!.phone!) === "whatsapp" ? "💬" : "📞"} {opp.contact.phone}
+                      </button>
+                    )}
+                    {opp.contact.instagram && (
+                      <button onClick={() => openInstagramDM(opp.contact!.instagram!)}
+                        className="rounded-lg border border-zinc-700 px-2.5 py-1.5 text-[11px] text-zinc-300 hover:border-fuchsia-500 hover:bg-fuchsia-500/10 transition">
+                        📸 DM {opp.contact.instagram}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
 
               <div className="mt-3 flex gap-2">
                 {opp.contact?.email && (
+                  <button onClick={() => openEmail(opp.contact!.email!, opp.contact?.name || "", opp.title)}
+                    className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-fuchsia-500 transition">
+                    ✉ Apply Now
+                  </button>
+                )}
+                {opp.contact?.whatsapp && (
+                  <button onClick={() => openWhatsApp(opp.contact!.whatsapp!, opp.contact?.name || "", opp.title)}
+                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 transition">
+                    💬 WhatsApp
+                  </button>
+                )}
+                {false && (
                   <button
                     onClick={() => {
-                      const pitch = `Hi ${opp.contact?.name || ""},\n\nI saw your listing for "${opp.title}" and I would like to express my interest.\n\nI am ${DJ_EMY.name} (${DJ_EMY.legalName}), ${DJ_EMY.tagline}.\n\n▸ KEY CREDENTIALS:\n• ${DJ_EMY.sellingPoints[0]}\n• ${DJ_EMY.selectedAppearances[0]}\n• ${DJ_EMY.selectedAppearances[1]}\n• Bilingual: ${DJ_EMY.languages.join(" / ")}\n• Genres: ${DJ_EMY.genres.join(", ")}\n\n▸ SELECTED APPEARANCES:\n${DJ_EMY.selectedAppearances.map(a => "• " + a).join("\n")}\n\n▸ LINKS:\nEPK: ${DJ_EMY.epkUrl || ""}\nInstagram: https://instagram.com/${(DJ_EMY.instagram || "").replace("@","")}\nYouTube: ${DJ_EMY.youtube || ""}\n\n▸ MANAGEMENT:\n${DJ_EMY.management.company}\n${DJ_EMY.management.contactName} — ${DJ_EMY.management.contactRole}\nEmail: ${DJ_EMY.management.email}\nPhone/WhatsApp: ${DJ_EMY.management.phone}\nWebsite: ${DJ_EMY.management.website || ""}\n\n▸ TECH RIDER:\n${DJ_EMY.techRider.players.join(", ")}\n${DJ_EMY.techRider.mixer.join(", ")}\n\nI look forward to discussing this opportunity.\n\nBest regards,\n${DJ_EMY.management.contactName}\n${DJ_EMY.management.company}\n${DJ_EMY.management.phone}`;
+                      const pitch = `DEAD\n\nI saw your listing for "${opp.title}" and I would like to express my interest.\n\nI am ${DJ_EMY.name} (${DJ_EMY.legalName}), ${DJ_EMY.tagline}.\n\n▸ KEY CREDENTIALS:\n• ${DJ_EMY.sellingPoints[0]}\n• ${DJ_EMY.selectedAppearances[0]}\n• ${DJ_EMY.selectedAppearances[1]}\n• Bilingual: ${DJ_EMY.languages.join(" / ")}\n• Genres: ${DJ_EMY.genres.join(", ")}\n\n▸ SELECTED APPEARANCES:\n${DJ_EMY.selectedAppearances.map(a => "• " + a).join("\n")}\n\n▸ LINKS:\nEPK: ${DJ_EMY.epkUrl || ""}\nInstagram: https://instagram.com/${(DJ_EMY.instagram || "").replace("@","")}\nYouTube: ${DJ_EMY.youtube || ""}\n\n▸ MANAGEMENT:\n${DJ_EMY.management.company}\n${DJ_EMY.management.contactName} — ${DJ_EMY.management.contactRole}\nEmail: ${DJ_EMY.management.email}\nPhone/WhatsApp: ${DJ_EMY.management.phone}\nWebsite: ${DJ_EMY.management.website || ""}\n\n▸ TECH RIDER:\n${DJ_EMY.techRider.players.join(", ")}\n${DJ_EMY.techRider.mixer.join(", ")}\n\nI look forward to discussing this opportunity.\n\nBest regards,\n${DJ_EMY.management.contactName}\n${DJ_EMY.management.company}\n${DJ_EMY.management.phone}`;
                       void navigator.clipboard.writeText(pitch);
                       window.open(`mailto:${opp.contact?.email}?subject=${encodeURIComponent("DJ Booking Inquiry: " + opp.title + " — " + DJ_EMY.name)}`, "_blank");
                     }}
