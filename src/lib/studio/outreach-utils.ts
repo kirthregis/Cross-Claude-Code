@@ -76,7 +76,7 @@ function fullPitch(contactName: string, gigTitle: string): string {
 
 export { fullPitch as generatePitchText };
 
-// ── Email: opens with full message in body, ready to send ──
+// ── Email: opens Gmail compose with message written, ready to send ──
 
 export function openEmail(toEmail: string, contactName: string, gigTitle: string): void {
   const subject = `DJ Booking Inquiry: ${gigTitle} - ${DJ_EMY.name}`;
@@ -101,18 +101,11 @@ export function openEmail(toEmail: string, contactName: string, gigTitle: string
     `${DJ_EMY.phone}`,
   ].join("\n");
 
-  const mailto = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-  // Use a hidden iframe to trigger mailto without navigating the page
-  // This bypasses service worker interception and works in PWAs
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = mailto;
-  document.body.appendChild(iframe);
-  // Clean up after email client has had time to open
-  setTimeout(() => {
-    try { document.body.removeChild(iframe); } catch {}
-  }, 2000);
+  // Open Gmail compose directly - works everywhere
+  window.open(
+    `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(toEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+    "_blank"
+  );
 }
 
 // ── WhatsApp: opens chat with message written, ready to send ──
