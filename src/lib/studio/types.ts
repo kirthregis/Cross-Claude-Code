@@ -178,6 +178,14 @@ export interface ReleaseMeta {
   visibility: "public" | "unlisted" | "private";
   fileName: string;
   generatedAt: number;
+  // Label/distribution metadata
+  isrc?: string;          // International Standard Recording Code
+  upc?: string;           // Universal Product Code / barcode
+  copyright?: string;     // e.g. "© 2026 Emy Vision Group FZC"
+  pLine?: string;         // e.g. "℗ 2026 DJ Emy"
+  releaseDate?: string;   // ISO date string
+  label?: string;         // Record label name
+  catalogNumber?: string; // Label catalog number
 }
 
 export interface ReleaseCheck {

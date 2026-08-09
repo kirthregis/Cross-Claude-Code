@@ -103,6 +103,10 @@ export function buildRelease(project: Project, s: StudioSettings): ReleaseMeta {
     visibility: "unlisted",
     fileName: buildFileName(project, s, 24),
     generatedAt: Date.now(),
+    copyright: `\u00a9 ${new Date().getFullYear()} ${s.artistName || "DJ EMY"}`,
+    pLine: `\u2117 ${new Date().getFullYear()} ${s.artistName || "DJ EMY"}`,
+    releaseDate: new Date().toISOString().split("T")[0],
+    label: "Independent",
   };
 }
 
@@ -196,6 +200,21 @@ export function runComplianceChecks(pkg: PackageSnapshot, platform: "youtube" | 
     checks.push({ id: "tracklist", label: "Tracklist added", status: "warn", detail: "No tracklist yet — add track names and timestamps in the Tracklist tab.", fix: "Go to the Tracklist tab and add your tracks." });
   } else {
     checks.push({ id: "tracklist", label: "Tracklist added", status: "pass", detail: `${tracklist.length} track${tracklist.length !== 1 ? "s" : ""} in tracklist.` });
+  }
+
+  // ---- Distribution metadata ----
+  if (pkg.release) {
+    const r = pkg.release;
+    checks.push(
+      r.isrc
+        ? { id: "isrc", label: "ISRC code", status: "pass", detail: `ISRC: ${r.isrc}` }
+        : { id: "isrc", label: "ISRC code", status: platform === "label" ? "fail" : "warn", detail: "No ISRC code. Required for Spotify/Apple Music distribution.", fix: "Get an ISRC from your distributor (RouteNote, DistroKid) or enter one in the Release tab." }
+    );
+    checks.push(
+      r.copyright
+        ? { id: "copyright", label: "Copyright notice", status: "pass", detail: r.copyright }
+        : { id: "copyright", label: "Copyright notice", status: "warn", detail: "No copyright notice.", fix: "Auto-generated when you generate the release pack." }
+    );
   }
 
   // ---- Text ----
