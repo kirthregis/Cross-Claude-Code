@@ -80,8 +80,39 @@ export { fullPitch as generatePitchText };
 
 export function openEmail(toEmail: string, contactName: string, gigTitle: string): void {
   const subject = `DJ Booking Inquiry: ${gigTitle} - ${DJ_EMY.name}`;
-  const body = fullPitch(contactName, gigTitle);
-  const a = document.createElement("a"); a.href = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  // Short body that fits within mailto URL limits (~1800 chars max)
+  const body = [
+    `Hi ${contactName},`,
+    ``,
+    `I saw your listing for "${gigTitle}" and I would like to express my interest.`,
+    ``,
+    `I am ${DJ_EMY.name} (${DJ_EMY.legalName}), ${DJ_EMY.tagline}.`,
+    ``,
+    `- ${DJ_EMY.selectedAppearances[0]}`,
+    `- ${DJ_EMY.selectedAppearances[1]}`,
+    `- Genres: ${DJ_EMY.genres.slice(0, 3).join(", ")}`,
+    `- Bilingual: ${DJ_EMY.languages.join("/")}`,
+    ``,
+    `EPK: ${DJ_EMY.epkUrl}`,
+    `Instagram: https://instagram.com/${(DJ_EMY.instagram || "").replace("@", "")}`,
+    `YouTube: ${DJ_EMY.youtube}`,
+    ``,
+    `Tech: ${DJ_EMY.techRider.players[0]}, ${DJ_EMY.techRider.mixer[0]}`,
+    ``,
+    `Best regards,`,
+    `${DJ_EMY.name}`,
+    `${DJ_EMY.phone}`,
+    `${DJ_EMY.instagram}`,
+  ].join("\n");
+
+  const mailto = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  // Try window.open first (works in most browsers)
+  const w = window.open(mailto, "_self");
+  // Fallback: if window.open returns null (blocked), use location
+  if (!w) {
+    window.location.href = mailto;
+  }
 }
 
 // ── WhatsApp: opens chat with message written, ready to send ──
