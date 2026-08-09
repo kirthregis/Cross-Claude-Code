@@ -5,6 +5,7 @@ import { t } from "@/lib/studio/i18n";
 import { useArabic } from "@/components/studio/ArabicToggle";
 import { useSettings } from "@/lib/studio/store";
 import { DJ_EMY } from "@/lib/artist";
+import { openEmailWithEpk, getPhoneLink, getInstagramLink, generatePitchText } from "@/lib/studio/outreach-utils";
 import { TutorialOverlay } from "@/components/studio/TutorialOverlay";
 
 interface Artist {
@@ -421,31 +422,38 @@ export default function CommunityPage() {
                   </div>
                   <div className="mt-1.5 flex flex-wrap gap-2">
                     {opp.contact.email && (
-                      <a href={`mailto:${opp.contact.email}?subject=${encodeURIComponent("DJ Booking Inquiry: " + opp.title + " — " + DJ_EMY.name)}`}
-                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
+                      <button onClick={() => openEmailWithEpk(opp.contact!.email!, opp.contact?.name || "", opp.title)}
+                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition text-left">
                         ✉ {opp.contact.email}
-                      </a>
+                      </button>
                     )}
-                    {opp.contact.whatsapp && (
-                      <a href={`https://wa.me/${opp.contact.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hi " + (opp.contact.name || "") + "! I saw your listing for \"" + opp.title + "\" and I am interested.\n\nI am " + DJ_EMY.name + ", " + DJ_EMY.tagline + ".\n• " + DJ_EMY.selectedAppearances[0] + "\n• " + DJ_EMY.selectedAppearances[1] + "\n\nEPK: " + (DJ_EMY.epkUrl || "") + "\nIG: https://instagram.com/" + (DJ_EMY.instagram || "").replace("@","") + "\n\n" + DJ_EMY.name + "\n" + DJ_EMY.phone)}`}
-                        target="_blank" rel="noreferrer"
-                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-emerald-300 hover:border-emerald-500 transition">
-                        💬 WhatsApp
-                      </a>
-                    )}
-                    {opp.contact.phone && (
-                      <a href={`tel:${opp.contact.phone}`}
-                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
-                        📞 {opp.contact.phone}
-                      </a>
-                    )}
-                    {opp.contact.instagram && (
-                      <a href={`https://instagram.com/${opp.contact.instagram.replace("@", "")}`}
-                        target="_blank" rel="noreferrer"
-                        className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
-                        📸 {opp.contact.instagram}
-                      </a>
-                    )}
+                    {opp.contact.whatsapp && (() => {
+                      const pl = getPhoneLink(opp.contact!.whatsapp!, generatePitchText(opp.contact?.name || "", opp.title).slice(0, 500));
+                      return (
+                        <a href={pl.href} target="_blank" rel="noreferrer"
+                          className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-emerald-300 hover:border-emerald-500 transition">
+                          {pl.icon} {pl.label}
+                        </a>
+                      );
+                    })()}
+                    {opp.contact.phone && (() => {
+                      const pl = getPhoneLink(opp.contact!.phone!);
+                      return (
+                        <a href={pl.href} target={pl.label === "Call" ? "_self" : "_blank"} rel="noreferrer"
+                          className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
+                          {pl.icon} {pl.label}: {opp.contact!.phone}
+                        </a>
+                      );
+                    })()}
+                    {opp.contact.instagram && (() => {
+                      const ig = getInstagramLink(opp.contact!.instagram!);
+                      return (
+                        <a href={ig.href} target="_blank" rel="noreferrer"
+                          className="rounded-lg border border-zinc-700 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-fuchsia-500 transition">
+                          📸 {ig.label}
+                        </a>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
@@ -462,7 +470,7 @@ export default function CommunityPage() {
                     Apply Now (opens email + copies pitch)
                   </button>
                 )}
-                <button onClick={() => { setTab("connect"); setConnectMsg("Hi " + (opp.contact?.name || "") + "!\n\nI saw your listing for \"" + opp.title + "\" and I would like to express my interest.\n\nI am " + DJ_EMY.name + " (" + DJ_EMY.legalName + "), " + DJ_EMY.tagline + ".\n\n▸ KEY CREDENTIALS:\n• " + DJ_EMY.sellingPoints[0] + "\n• " + DJ_EMY.selectedAppearances[0] + "\n• " + DJ_EMY.selectedAppearances[1] + "\n• Bilingual: " + DJ_EMY.languages.join(" / ") + "\n• Genres: " + DJ_EMY.genres.join(", ") + "\n\n▸ LINKS:\nEPK: " + (DJ_EMY.epkUrl || "") + "\nInstagram: https://instagram.com/" + (DJ_EMY.instagram || "").replace("@","") + "\nYouTube: " + (DJ_EMY.youtube || "") + "\n\n▸ CONTACT:\n" + DJ_EMY.name + "\nEmail: " + DJ_EMY.email + "\nPhone/WhatsApp: " + DJ_EMY.phone + "\nInstagram: https://instagram.com/" + (DJ_EMY.instagram || "").replace("@","") + "\nManagement: " + DJ_EMY.management.company + " — " + (DJ_EMY.management.website || "") + "\n\nI look forward to discussing this opportunity.\n\nBest regards,\n" + DJ_EMY.name + "\n" + (DJ_EMY.instagram || "") + "\n" + DJ_EMY.phone); }}
+                <button onClick={() => { setTab("connect"); setConnectMsg(generatePitchText(opp.contact?.name || "", opp.title)); }}
                   className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-fuchsia-500 transition">
                   Draft Message
                 </button>
