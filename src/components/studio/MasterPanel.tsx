@@ -10,6 +10,7 @@ import { notify, speak } from "@/lib/studio/speech";
 import { loadSettings, upsertProject, putBlob, getBlob } from "@/lib/studio/store";
 import { saveLibraryTrack } from "@/lib/studio/library-store";
 import { Button, Card, SectionLabel } from "./ui";
+import { useRef as useRefCallback } from "react";
 import { t } from "@/lib/studio/i18n";
 import { useArabic } from "./ArabicToggle";
 
@@ -391,6 +392,85 @@ export function MasterPanel({ project, onChanged }: Props) {
         </div>
       </Card>
 
+      {/* Waveform + Real-time LUFS Meter */}
+      {(audioBuffer || masteredBuffer) && (
+        <Card className="p-4">
+          <SectionLabel><span id="tutorial-waveform">Waveform & Levels</span></SectionLabel>
+          <div className="mt-3 space-y-3">
+            {/* Simple waveform display using canvas */}
+            <canvas
+              ref={(canvas) => {
+                if (!canvas) return;
+                const buf = playbackMode === "mastered" && masteredBuffer ? masteredBuffer : audioBuffer;
+                if (!buf) return;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return;
+                const w = canvas.width = canvas.offsetWidth * 2;
+                const h = canvas.height = 120;
+                ctx.clearRect(0, 0, w, h);
+                const data = buf.getChannelData(0);
+                const step = Math.max(1, Math.floor(data.length / w));
+                ctx.fillStyle = "#0a0a0f";
+                ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = playbackMode === "mastered" ? "#c026d3" : "#52525b";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let i = 0; i < w; i++) {
+                  let min = 1, max = -1;
+                  for (let j = 0; j < step; j++) {
+                    const val = data[i * step + j] || 0;
+                    if (val < min) min = val;
+                    if (val > max) max = val;
+                  }
+                  const yMin = (1 + min) * h / 2;
+                  const yMax = (1 + max) * h / 2;
+                  ctx.moveTo(i, yMin);
+                  ctx.lineTo(i, yMax);
+                }
+                ctx.stroke();
+                // Draw playhead
+                if (duration > 0 && currentTime > 0) {
+                  const x = (currentTime / duration) * w;
+                  ctx.strokeStyle = "#f59e0b";
+                  ctx.lineWidth = 2;
+                  ctx.beginPath();
+                  ctx.moveTo(x, 0);
+                  ctx.lineTo(x, h);
+                  ctx.stroke();
+                }
+              }}
+              className="w-full rounded-lg border border-zinc-800"
+              style={{ height: "60px" }}
+            />
+            {/* Level meter bars */}
+            {project.master && (
+              <div className="grid grid-cols-4 gap-2">
+                <div className="rounded-lg bg-zinc-950 p-2 text-center">
+                  <div className="text-[9px] uppercase tracking-wider text-zinc-500">Input</div>
+                  <div className="mt-0.5 font-mono text-sm font-bold text-zinc-300">{project.master.inputLufs.toFixed(1)}</div>
+                  <div className="text-[9px] text-zinc-600">LUFS</div>
+                </div>
+                <div className="rounded-lg bg-zinc-950 p-2 text-center">
+                  <div className="text-[9px] uppercase tracking-wider text-zinc-500">Output</div>
+                  <div className={"mt-0.5 font-mono text-sm font-bold " + (Math.abs(project.master.outputLufs - params.targetLufs) <= 1 ? "text-emerald-400" : "text-amber-400")}>{project.master.outputLufs.toFixed(1)}</div>
+                  <div className="text-[9px] text-zinc-600">LUFS</div>
+                </div>
+                <div className="rounded-lg bg-zinc-950 p-2 text-center">
+                  <div className="text-[9px] uppercase tracking-wider text-zinc-500">Peak</div>
+                  <div className={"mt-0.5 font-mono text-sm font-bold " + (project.master.outputTruePeakDb <= -1 ? "text-emerald-400" : "text-red-400")}>{project.master.outputTruePeakDb.toFixed(1)}</div>
+                  <div className="text-[9px] text-zinc-600">dBTP</div>
+                </div>
+                <div className="rounded-lg bg-zinc-950 p-2 text-center">
+                  <div className="text-[9px] uppercase tracking-wider text-zinc-500">Gain</div>
+                  <div className="mt-0.5 font-mono text-sm font-bold text-fuchsia-400">{project.master.gainAppliedDb > 0 ? "+" : ""}{project.master.gainAppliedDb.toFixed(1)}</div>
+                  <div className="text-[9px] text-zinc-600">dB</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* Real-time A/B Player */}
       {(audioBuffer || project.master) && (
         <Card className="p-4 sm:p-5">
@@ -660,6 +740,33 @@ export function MasterPanel({ project, onChanged }: Props) {
           </Button>
         </div>
       </Card>
+
+      {/* Share / Send */}
+      {(masteredBuffer || audioBuffer) && typeof navigator !== "undefined" && "share" in navigator && (
+        <Card className="p-4">
+          <SectionLabel>Share</SectionLabel>
+          <p className="mt-1 text-xs text-zinc-500">Send your mastered mix directly via WhatsApp, email, or any app on your device.</p>
+          <div className="mt-3">
+            <Button variant="ghost" onClick={async () => {
+              const buf = masteredBuffer ?? audioBuffer;
+              if (!buf) return;
+              const ch0 = buf.getChannelData(0);
+              const ch1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : ch0;
+              const blob = wavBlob([ch0, ch1], buf.sampleRate, 16, {
+                title: project.meta.name,
+                artist: settings.artistName || "DJ EMY",
+                genre: project.meta.genre || "Afro House",
+              });
+              const file = new File([blob], `${project.meta.name.replace(/[^a-zA-Z0-9_-]/g, "_")}.wav`, { type: "audio/wav" });
+              try {
+                await navigator.share({ title: project.meta.name, files: [file] });
+              } catch { /* user cancelled or unsupported */ }
+            }}>
+              📤 Share mastered mix
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">

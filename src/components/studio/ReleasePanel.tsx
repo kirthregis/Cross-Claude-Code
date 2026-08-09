@@ -164,6 +164,43 @@ export function ReleasePanel({ project, onChanged }: { project: Project; onChang
           <div className="mt-1 font-mono text-[11px] text-zinc-600">{meta.tags.join(" ").length}/500 chars</div>
         </div>
 
+        {/* Distribution metadata */}
+        <div className="mt-4 border-t border-zinc-800/70 pt-4">
+          <SectionLabel>Distribution & Label</SectionLabel>
+          <div className="mt-2 grid gap-3 sm:grid-cols-3">
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">ISRC Code</span>
+              <input value={meta.isrc || ""} onChange={(e) => { const u = { ...meta, isrc: e.target.value }; setMeta(u); persist(u); }}
+                placeholder="e.g. USRC12345678" className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm font-mono text-zinc-200 focus:border-fuchsia-500 focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">UPC / Barcode</span>
+              <input value={meta.upc || ""} onChange={(e) => { const u = { ...meta, upc: e.target.value }; setMeta(u); persist(u); }}
+                placeholder="e.g. 0123456789012" className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm font-mono text-zinc-200 focus:border-fuchsia-500 focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Label</span>
+              <input value={meta.label || ""} onChange={(e) => { const u = { ...meta, label: e.target.value }; setMeta(u); persist(u); }}
+                placeholder="Independent" className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Copyright ©</span>
+              <input value={meta.copyright || ""} onChange={(e) => { const u = { ...meta, copyright: e.target.value }; setMeta(u); persist(u); }}
+                placeholder="© 2026 DJ Emy" className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">℗ Line</span>
+              <input value={meta.pLine || ""} onChange={(e) => { const u = { ...meta, pLine: e.target.value }; setMeta(u); persist(u); }}
+                placeholder="℗ 2026 DJ Emy" className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Release Date</span>
+              <input type="date" value={meta.releaseDate || ""} onChange={(e) => { const u = { ...meta, releaseDate: e.target.value }; setMeta(u); persist(u); }}
+                className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-fuchsia-500 focus:outline-none" />
+            </label>
+          </div>
+        </div>
+
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <label className="block">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Category</span>
