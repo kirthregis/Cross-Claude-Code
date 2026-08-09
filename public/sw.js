@@ -19,6 +19,8 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  // Never intercept protocol links
+  if (event.request.url.startsWith("mailto:") || event.request.url.startsWith("tel:") || event.request.url.startsWith("sms:")) return;
   const url = new URL(event.request.url);
   if (url.pathname.startsWith("/api/")) return;
   event.respondWith(

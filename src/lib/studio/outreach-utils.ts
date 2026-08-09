@@ -93,20 +93,26 @@ export function openEmail(toEmail: string, contactName: string, gigTitle: string
     `- Bilingual: ${DJ_EMY.languages.join("/")}`,
     ``,
     `EPK: ${DJ_EMY.epkUrl}`,
-    `Instagram: https://instagram.com/${(DJ_EMY.instagram || "").replace("@", "")}`,
-    `YouTube: ${DJ_EMY.youtube}`,
-    ``,
-    `Tech: ${DJ_EMY.techRider.players[0]}, ${DJ_EMY.techRider.mixer[0]}`,
+    `IG: https://instagram.com/${(DJ_EMY.instagram || "").replace("@", "")}`,
+    `YT: ${DJ_EMY.youtube}`,
     ``,
     `Best regards,`,
     `${DJ_EMY.name}`,
     `${DJ_EMY.phone}`,
-    `${DJ_EMY.instagram}`,
   ].join("\n");
 
-  // Use Gmail compose URL directly — works in all browsers and PWAs
-  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(toEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.open(gmailUrl, "_blank");
+  const mailto = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  // Use a hidden iframe to trigger mailto without navigating the page
+  // This bypasses service worker interception and works in PWAs
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = mailto;
+  document.body.appendChild(iframe);
+  // Clean up after email client has had time to open
+  setTimeout(() => {
+    try { document.body.removeChild(iframe); } catch {}
+  }, 2000);
 }
 
 // ── WhatsApp: opens chat with message written, ready to send ──
