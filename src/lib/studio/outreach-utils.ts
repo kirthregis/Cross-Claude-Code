@@ -81,7 +81,7 @@ export { fullPitch as generatePitchText };
 export function openEmail(toEmail: string, contactName: string, gigTitle: string): void {
   const subject = `DJ Booking Inquiry: ${gigTitle} - ${DJ_EMY.name}`;
   const body = fullPitch(contactName, gigTitle);
-  window.location.href = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const a = document.createElement("a"); a.href = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 // ── WhatsApp: opens chat with message written, ready to send ──
@@ -96,13 +96,13 @@ export function openWhatsApp(phone: string, contactName: string, gigTitle: strin
 
 export function openSMS(phone: string, contactName: string, gigTitle: string): void {
   const message = shortPitch(contactName, gigTitle);
-  window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
+  const a = document.createElement("a"); a.href = `sms:${phone}?body=${encodeURIComponent(message)}`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 // ── Phone call ──
 
 export function openCall(phone: string): void {
-  window.location.href = `tel:${phone}`;
+  const a = document.createElement("a"); a.href = `tel:${phone}`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 // ── Instagram DM: opens DM thread ──
