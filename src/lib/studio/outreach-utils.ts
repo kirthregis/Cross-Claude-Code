@@ -107,12 +107,16 @@ export function openEmail(toEmail: string, contactName: string, gigTitle: string
 
   const mailto = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-  // Try window.open first (works in most browsers)
-  const w = window.open(mailto, "_self");
-  // Fallback: if window.open returns null (blocked), use location
-  if (!w) {
-    window.location.href = mailto;
-  }
+  // Use a hidden iframe to trigger mailto without navigating the page
+  // This is the only method that works reliably in PWAs, Chrome, Safari, and Firefox
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = mailto;
+  document.body.appendChild(iframe);
+  // Clean up after the OS has picked up the protocol
+  setTimeout(() => {
+    try { document.body.removeChild(iframe); } catch {}
+  }, 2000);
 }
 
 // ── WhatsApp: opens chat with message written, ready to send ──
