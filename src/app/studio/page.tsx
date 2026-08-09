@@ -16,6 +16,9 @@ export default function StudioHome() {
   const projects = useProjects();
   const settings = useSettings();
   const { arabic } = useArabic();
+  const [showForm, setShowForm] = useState(false);
+  const [projectName, setProjectName] = useState("");
+  const [projectKind, setProjectKind] = useState<ProjectKind>("mix");
   const [epkPortrait, setEpkPortrait] = useState<string | null>(null);
   useEffect(() => { void getEpkPortraitDataUrl().then(u => setEpkPortrait(u)); }, []);
 
@@ -44,30 +47,58 @@ export default function StudioHome() {
 
       {/* TWO BIG ACTIONS — this is all she needs to see */}
       <div className="grid gap-3 sm:grid-cols-2">
-        {/* Make Music */}
-        <button
-          onClick={() => {
-            if (latestProject) {
-              router.push("/studio/p/" + latestProject.meta.id);
-            } else {
-              makeProject("My Mix");
-            }
-          }}
-          className="group relative overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-950/60 to-zinc-900 p-6 text-left transition hover:border-fuchsia-500/60 active:scale-[0.98]"
-        >
-          <div className="text-4xl">🎚</div>
-          <h2 className="mt-3 text-xl font-bold text-white">
-            {latestProject ? latestProject.meta.name : "Start a Mix"}
-          </h2>
-          <p className="mt-1 text-sm text-zinc-400">
-            {latestProject
-              ? `${latestProject.meta.mastered ? "✓ Mastered" : "Upload & master"} · ${latestProject.meta.artworkDone ? "✓ Cover" : "Make cover"} · ${latestProject.meta.releaseDone ? "✓ Release" : "Package"}`
-              : "Upload → Master → Cover → Release → Publish"}
-          </p>
-          <div className="mt-3 text-xs font-semibold text-fuchsia-400 group-hover:text-fuchsia-300">
-            {latestProject ? "Continue →" : "Create project →"}
-          </div>
-        </button>
+        {/* Create / Continue Project */}
+        {!showForm ? (
+          <button
+            onClick={() => {
+              if (latestProject) {
+                router.push("/studio/p/" + latestProject.meta.id);
+              } else {
+                setShowForm(true);
+              }
+            }}
+            className="group relative overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-950/60 to-zinc-900 p-6 text-left transition hover:border-fuchsia-500/60 active:scale-[0.98]"
+          >
+            <div className="text-4xl">🎚</div>
+            <h2 className="mt-3 text-xl font-bold text-white">
+              {latestProject ? latestProject.meta.name : "Create a Project"}
+            </h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              {latestProject
+                ? `${latestProject.meta.mastered ? "✓ Mastered" : "Upload & master"} · ${latestProject.meta.artworkDone ? "✓ Cover" : "Make cover"} · ${latestProject.meta.releaseDone ? "✓ Release" : "Package"}`
+                : "Name it → Upload → Master → Cover → Release → Publish"}
+            </p>
+            <div className="mt-3 text-xs font-semibold text-fuchsia-400 group-hover:text-fuchsia-300">
+              {latestProject ? "Continue →" : "Get started →"}
+            </div>
+          </button>
+        ) : (
+          <form
+            onSubmit={(e) => { e.preventDefault(); if (projectName.trim()) { makeProject(projectName.trim(), projectKind); setShowForm(false); setProjectName(""); } }}
+            className="rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-950/60 to-zinc-900 p-6 space-y-3"
+          >
+            <div className="text-xl font-bold text-white">Create a Project</div>
+            <input
+              autoFocus
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              placeholder="Project name — e.g. Afro House Summer Mix"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-fuchsia-500 focus:outline-none"
+            />
+            <div className="flex gap-2">
+              {(["mix", "track"] as ProjectKind[]).map(k => (
+                <button key={k} type="button" onClick={() => setProjectKind(k)}
+                  className={"flex-1 rounded-xl border px-3 py-2 text-sm font-semibold " + (projectKind === k ? "border-fuchsia-500 bg-fuchsia-500/10 text-fuchsia-300" : "border-zinc-700 bg-zinc-950 text-zinc-400")}>
+                  {k === "mix" ? "🎧 DJ Mix" : "🎵 Track"}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={!projectName.trim()} className="flex-1">Create & Start →</Button>
+              <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-zinc-700 px-4 py-2 text-xs text-zinc-400 hover:text-white">Cancel</button>
+            </div>
+          </form>
+        )}
 
         {/* Find Gigs */}
         <Link
@@ -112,10 +143,7 @@ export default function StudioHome() {
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-bold text-zinc-300">Projects</h3>
             <button
-              onClick={() => {
-                const name = prompt("Project name:");
-                if (name?.trim()) makeProject(name.trim());
-              }}
+              onClick={() => { setShowForm(true); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               className="text-xs text-fuchsia-400 hover:text-fuchsia-300"
             >
               + New
