@@ -133,7 +133,16 @@ export function openCall(phone: string): void {
 
 export function openInstagramDM(handle: string): void {
   const username = handle.replace("@", "");
-  window.open(`https://ig.me/m/${username}`, "_blank");
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    // Mobile: open Instagram app directly to profile (user taps Message)
+    window.location.href = `instagram://user?username=${username}`;
+    // Fallback if app not installed
+    setTimeout(() => { window.open(`https://www.instagram.com/${username}/`, "_blank"); }, 1500);
+  } else {
+    // Desktop: open profile page
+    window.open(`https://www.instagram.com/${username}/`, "_blank");
+  }
 }
 
 // ── Smart phone detection ──
