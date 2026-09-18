@@ -38,10 +38,25 @@ export function closeDb(): void {
 
 // ── Gig CRUD ─────────────────────────────────────────────────
 
+/**
+ * Before menaDjSource was gated (see src/lib/sources/index.ts), its 30
+ * invented gigs were fetched on every sweep, unlabeled, indistinguishable
+ * from real feed results, and saved here like any other gig. Anyone who
+ * swept even once before that fix has them sitting in their store — the
+ * fix stops new fake ones, it doesn't remove old ones. One-time cleanup,
+ * cheap to check on every read since it's a no-op once the store is clean.
+ */
+function purgeStaleFakeGigs(gigs: Gig[]): Gig[] {
+  const clean = gigs.filter((g) => !(g.sourceName === "MENA DJ Network" && !g.title.startsWith("[DEMO]")));
+  if (clean.length !== gigs.length) saveGigs(clean);
+  return clean;
+}
+
 export function getGigs(): Gig[] {
   try {
     const raw = getDbStore().getItem(GIG_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const gigs: Gig[] = raw ? JSON.parse(raw) : [];
+    return purgeStaleFakeGigs(gigs);
   } catch {
     return [];
   }
