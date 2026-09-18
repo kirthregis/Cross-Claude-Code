@@ -171,14 +171,29 @@ export const gigBoardSource: Source = {
 };
 
 
-// ── MENA DJ Bookings (always active, curated DJ-specific gigs) ──
+// ── MENA DJ Bookings — DEMO FIXTURES, NOT LEADS ────────────────
+//
+// These 30 "gigs" are invented. They were written so the dashboard "never
+// looks empty", and they carry invented venues, invented staff names and
+// invented addresses (entertainment@skybardubai.com, bookings@analogroom.ae,
+// "Sarah Al-Maktoum", +971501234567).
+//
+// On 11 Aug 2026 a batch of real outreach was sent to addresses taken from
+// this file and from the other fixture sets. Six of them bounced, on EVG's
+// only sending domain. Nothing here may be pitched.
+//
+// So it is now OFF unless GIGRADAR_DEMO=1 is set explicitly, and every lead
+// it emits is prefixed so it cannot be mistaken for a real one downstream.
 export const menaDjSource: Source = {
   id: "mena-dj",
-  label: "MENA DJ Network — Curated DJ bookings across Middle East & North Africa",
+  label: "MENA DJ Network — DEMO FIXTURES (invented; never contact)",
   kind: "gig_board",
-  setup: "No setup needed — always active with DJ-specific bookings.",
-  configured: () => true,
-  async fetch() { return getMenaDjGigs(); },
+  setup: "Demo data only. Set GIGRADAR_DEMO=1 to populate the dashboard for a walkthrough. Never pitch these.",
+  configured: () => process.env.GIGRADAR_DEMO === "1",
+  async fetch() {
+    if (process.env.GIGRADAR_DEMO !== "1") return [];
+    return getMenaDjGigs().map(l => ({ ...l, title: `[DEMO] ${l.title}` }));
+  },
 };
 
 export const ALL_SOURCES: Source[] = [
