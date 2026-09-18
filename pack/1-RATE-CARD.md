@@ -1,5 +1,5 @@
 # DJ Emy — Rate Card
-**Emy Vision Group** · admin@emyvisiongroup.com · +971 50 344 3281
+**Emy Vision Group** · admin@emyvisiongroup.com · +971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)
 
 Standard **2-hour peak-time set**. Quote the *Ask*. Expect to land near *Target*.
 **Never sign below the Floor.**

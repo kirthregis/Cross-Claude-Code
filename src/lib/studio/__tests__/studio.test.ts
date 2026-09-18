@@ -145,7 +145,7 @@ describe("release", () => {
     const p = makeProject();
     const d = buildDescription(p, DEFAULT_SETTINGS);
     expect(d).toContain("Instagram");
-    expect(d).toContain("@dj_emy_");
+    expect(d).toContain("@evgroup2026");
     expect(d).toContain("Afro House");
     expect(d.length).toBeLessThanOrEqual(5000);
   });

@@ -287,8 +287,8 @@ Input Gain → 30Hz Rumble HP → 5-Band Parametric EQ → Compressor → Soft C
 - **Registered Address:** Business Centre, Sharjah Publishing City Free Zone, Sharjah, UAE
 - **Management Contact:** Kirth — Business Development
 - **Email:** admin@emyvisiongroup.com
-- **Phone / WhatsApp:** +971 50 344 3281
-- **Artist Instagram:** @dj_emy_
+- **Phone / WhatsApp:** +971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)
+- **Artist Instagram:** @evgroup2026
 - **Management Instagram:** @evgroup2026
 - **Live Sets / YouTube:** https://youtube.com/@DJEMY-o6d
 - **EPK / Website:** https://emyvisiongroup.com

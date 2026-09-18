@@ -254,7 +254,7 @@ export interface StudioSettings {
 export const DEFAULT_SETTINGS: StudioSettings = {
   artistName: "DJ EMY",
   artistHandle: "@DJEMY",
-  instagram: "@dj_emy_",
+  instagram: "@evgroup2026",
   tiktok: "@djemymusic2",
   youtubeChannel: "https://www.youtube.com/@DJEMY-o6d",
   defaultGenre: "Afro House",

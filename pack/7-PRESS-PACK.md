@@ -18,7 +18,7 @@ and Arabic crowds. Every set is played live.
 - Private & VIP, UAE — villas, yachts, brand and cultural events
 
 ## Handles — tag all of these
-- Artist: @dj_emy_
+- Artist: @evgroup2026
 - Management: @evgroup2026 (Emy Vision Group)
 - Live sets: https://youtube.com/@DJEMY-o6d
 
@@ -48,7 +48,7 @@ All artwork, billing and content approvals go through Emy Vision Group
 ## Announcement checklist
 - [ ] Artwork received and approved
 - [ ] Name spelled correctly: **DJ Emy**
-- [ ] Artist tagged: @dj_emy_
+- [ ] Artist tagged: @evgroup2026
 - [ ] Management tagged: @evgroup2026
 - [ ] Set time correct
 - [ ] Artist reposts to story on announcement day

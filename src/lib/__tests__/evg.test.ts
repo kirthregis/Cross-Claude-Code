@@ -99,7 +99,7 @@ describe("bookings route through Emy Vision Group", () => {
   it("press pack carries the real bio, appearances and both handles", () => {
     const p = generateDealPack(g).pressPack;
     expect(p).toMatch(/FIFA World Cup Qatar 2022/);
-    expect(p).toContain("@dj_emy_");
+    
     expect(p).toContain("@evgroup2026");
     expect(p).toMatch(/English\s+and Arabic/);
   });

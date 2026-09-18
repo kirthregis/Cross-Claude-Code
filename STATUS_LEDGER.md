@@ -110,7 +110,7 @@ Free, on-device, no plugins needed. Full signal chain:
 
 ## CREDENTIALS
 - Admin: ***REDACTED-ADMIN-TOKEN***
-- Contact: Kirth - admin@emyvisiongroup.com - +971 50 344 3281
+- Contact: Kirth - admin@emyvisiongroup.com - +971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)
 
 ## CLONE TO ANY MACHINE
 ```bash

@@ -1,7 +1,7 @@
 # INVOICE INV-2026-SAMPL
 
 **From:** Emy Vision Group FZC t/a Emy Vision Group
-admin@emyvisiongroup.com · +971 50 344 3281
+admin@emyvisiongroup.com · +971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)
 Re: performance by DJ Emy
 **To:** [CLIENT LEGAL NAME], [CLIENT REGISTERED ADDRESS]
 **Date:** 02/08/2026

@@ -136,19 +136,25 @@ export const DJ_EMY: ArtistProfile = {
   ],
   languages: ["English", "Arabic"],
 
-  instagram: "@dj_emy_",
+  instagram: "@evgroup2026",
   youtube: "https://youtube.com/@DJEMY-o6d",
   epkUrl: "https://emyvisiongroup.com",
   email: "mannaiiman1@gmail.com",
-  phone: "+971 50 344 3281",
+  /**
+   * Her direct lines, published on the kit as "DJ Emy — direct". UAE first,
+   * Qatar second; she works both sides of the Gulf. Both take calls and WhatsApp.
+   */
+  phone: "+971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)",
 
   management: {
     company: "Emy Vision Group",
     legalName: "Emy Vision Group FZC",
     contactName: "Kirth",
-    contactRole: "Business Development",
+    contactRole: "Business Development Manager",
     email: "admin@emyvisiongroup.com",
-    phone: "+971 50 344 3281",
+    /** Kirth's line. The artist's own numbers sit under `phone` above and are
+     *  published alongside this, not instead of it. */
+    phone: "+971 50 660 7743",
     instagram: "@evgroup2026",
     website: "https://emyvisiongroup.com",
     tradeLicenceNo: "4427087.01",

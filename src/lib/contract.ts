@@ -295,7 +295,7 @@ ${appearances}
 ${sellingPoints}
 
 ## Handles — tag all of these
-- Artist: ${profile.instagram || "@dj_emy_"}
+- Artist: ${profile.instagram || "@evgroup2026"}
 - Management: ${profile.management.instagram || "@evgroup2026"} (${profile.management.company})
 - Live sets: ${profile.youtube || "https://youtube.com/@DJEMY-o6d"}
 

@@ -34,7 +34,7 @@ export function buildTitle(project: Project, artistName: string): string {
 
 export function buildDescription(project: Project, s: StudioSettings): string {
   const tracklist = project.tracklist ?? [];
-  const insta = s.instagram || "@dj_emy_";
+  const insta = s.instagram || "@evgroup2026";
   const tiktok = s.tiktok || "@djemymusic2";
   const genre = project.meta.genre || "Afro House";
   const kindLine =

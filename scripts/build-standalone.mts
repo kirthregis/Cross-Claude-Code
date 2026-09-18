@@ -57,7 +57,7 @@ const EVG: Edition = {
   senderName: "Emy Vision Group",
   senderLine: "Emy Vision Group",
   // Company number is Imen's line, as instructed.
-  phone: "+971 50 344 3281",
+  phone: "+971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)",
   email: "admin@emyvisiongroup.com",
   instagram: "@evgroup2026",
   website: "https://emyvisiongroup.com",
@@ -92,9 +92,9 @@ const PERSONAL: Edition = {
   outDir: "docs/emy",
   senderName: "DJ Emy",
   senderLine: "DJ Emy",
-  phone: "+971 50 344 3281",
+  phone: "+971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)",
   email: "mannaiiman1@gmail.com",
-  instagram: "@dj_emy_",
+  instagram: "@evgroup2026",
   website: "https://youtube.com/@DJEMY-o6d",
   company: [
     ["Represented by", "Emy Vision Group FZC"],
@@ -120,9 +120,9 @@ const PERSONAL: Edition = {
   backdrop: "bg.jpg",
   artist: {
     name: "DJ Emy",
-    phone: "+971 50 344 3281",
+    phone: "+971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)",
     email: "mannaiiman1@gmail.com",
-    instagram: "@dj_emy_",
+    instagram: "@evgroup2026",
   },
 };
 

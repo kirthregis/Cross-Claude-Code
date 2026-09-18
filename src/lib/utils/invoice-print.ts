@@ -58,7 +58,7 @@ export function printInvoice(fin: GigFinances, result: GigFinancesResult): void 
       <p><strong>Emy Vision Group FZC</strong><br/>
       DJ Emy — Imen Mannai<br/>
       admin@emyvisiongroup.com<br/>
-      +971 50 344 3281</p>
+      +971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)</p>
     </div>
     <div>
       <h3>Bill To</h3>
@@ -100,7 +100,7 @@ export function printInvoice(fin: GigFinances, result: GigFinancesResult): void 
 
   <div class="footer">
     <p>Payment due on receipt. Issued by Emy Vision Group FZC — emyvisiongroup.com</p>
-    <p style="margin-top:4px;">For queries: admin@emyvisiongroup.com · +971 50 344 3281</p>
+    <p style="margin-top:4px;">For queries: admin@emyvisiongroup.com · +971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)</p>
   </div>
 </body>
 </html>`;
