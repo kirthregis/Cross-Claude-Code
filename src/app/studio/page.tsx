@@ -108,7 +108,7 @@ export default function StudioHome() {
           <div className="text-4xl">💰</div>
           <h2 className="mt-3 text-xl font-bold text-white">Find DJ Gigs</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            67 bookings · UAE venues · Pay AED 1,500–12,000
+            Live UAE &amp; GCC venue feeds · Pay AED 1,500–12,000
           </p>
           <div className="mt-3 text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">
             Browse opportunities →

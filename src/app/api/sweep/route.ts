@@ -16,6 +16,12 @@ export async function GET(req: Request) {
     alerted: r.alerted,
     digested: r.digested ?? 0,
     errors: r.errors,
+    // The gigs themselves — not just counts. This route runs server-side
+    // (serverless, no durable storage between invocations), so the caller
+    // must persist these itself. Dropping this field here was why a sweep
+    // could report "12 new gigs" and the dashboard would still show nothing:
+    // the gigs were found and scored, then discarded with the response.
+    gigs: r.gigs,
     at: new Date().toISOString(),
   });
 }

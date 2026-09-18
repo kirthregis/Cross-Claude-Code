@@ -42,5 +42,8 @@ export async function POST(req: Request) {
     newGigs: r.newGigs,
     alerted: r.alerted,
     errors: r.errors,
+    // See the same field on /api/sweep — without it the caller has no way
+    // to know what was actually created, only how many.
+    gigs: r.gigs,
   });
 }

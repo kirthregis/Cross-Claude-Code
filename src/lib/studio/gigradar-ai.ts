@@ -12,9 +12,20 @@ export interface VenueContact {
   bookingNotes: string;
   avgPayAed: number;
   genres: string[];
+  /** True once someone has confirmed this address actually reaches the venue. */
+  verified: boolean;
 }
 
-export const UAE_VENUES: VenueContact[] = [
+// The venue names, areas, tiers and pay ranges below are real market research
+// (see RATE-RESEARCH.md). The email addresses are NOT — they were guessed
+// from common naming patterns (bookings@, events@venuename.com) and were
+// never confirmed against the venue. A batch of pitches sent from guessed
+// addresses of this kind (from the DEMO fixtures in src/lib/sources/mena-dj-gigs.ts)
+// bounced six times on EVG's own sending domain on 11 Aug 2026. So every
+// entry here is `verified: false` until a real reply, call, or venue website
+// confirms the address — the UI must keep warning before it lets anyone
+// pitch to an unverified one.
+const UAE_VENUES_RAW: Omit<VenueContact, "verified">[] = [
   { name: "White Dubai", area: "DIFC", tier: "superclub", email: "bookings@whitedubai.com", instagram: "@whitedubai", bookingNotes: "Friday/Saturday nights. Send mix + EPK. Reply in 1-2 weeks.", avgPayAed: 8000, genres: ["Afro House", "Tech House", "Hip Hop"] },
   { name: "Soho Garden", area: "Meydan", tier: "superclub", email: "events@sohogarden.ae", instagram: "@sohogardendxb", bookingNotes: "Multiple stages. Strong on Afro House. Send EPK first.", avgPayAed: 7000, genres: ["Afro House", "Afro Tech", "House"] },
   { name: "BASE Dubai", area: "DIFC", tier: "superclub", email: "info@basedubai.com", instagram: "@basedubai", bookingNotes: "Underground focus. Prefer demo mix. Thursday nights.", avgPayAed: 5000, genres: ["Techno", "Tech House", "Afro Tech"] },
@@ -39,6 +50,8 @@ export const UAE_VENUES: VenueContact[] = [
   { name: "Twiggy", area: "Le Meridien", tier: "beach_club", email: "twiggy.lmdp@lemeridien.com", instagram: "@twiggydubai", bookingNotes: "Pool/beach club. Family-friendly daytime, party at night.", avgPayAed: 3500, genres: ["House", "Afro House", "Commercial"] },
   { name: "Club Odyssey", area: "Sheraton JBR", tier: "superclub", email: "odyssey@sheratonjbr.com", instagram: "@clubodysseydubai", bookingNotes: "Large capacity. International touring DJs.", avgPayAed: 6000, genres: ["Tech House", "Techno", "House"] },
 ];
+
+export const UAE_VENUES: VenueContact[] = UAE_VENUES_RAW.map((v) => ({ ...v, verified: false }));
 
 export interface GigRevenue {
   gigId: string;

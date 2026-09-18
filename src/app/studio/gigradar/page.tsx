@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getGigs, updateGigStage } from "@/lib/db";
+import { getGigs, updateGigStage, upsertGig } from "@/lib/db";
 import { generateWhatsAppLink } from "@/lib/outreach";
 import { Gig, GigStage } from "@/lib/types";
 import { getRegistry, saveRegistry, type CountryConfig } from "@/lib/sources/registry";
@@ -40,10 +40,15 @@ export default function GigRadarPage() {
   const [newFeedLabel, setNewFeedLabel] = useState("");
 
   useEffect(() => {
-    setGigs(getGigs());
+    const existing = getGigs();
+    setGigs(existing);
     setCountries(getRegistry());
     setRevenueData(getGigRevenue());
     setDueFollowUps(getDueFollowUps());
+    // First visit, nothing cached yet — pull real live listings automatically
+    // instead of showing an empty dashboard until she finds the Sweep button.
+    if (existing.length === 0) void triggerSweep();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refresh = useCallback(() => {
@@ -62,6 +67,10 @@ export default function GigRadarPage() {
     try {
       const res = await fetch("/api/sweep");
       const data = await res.json();
+      // The sweep runs server-side and its storage doesn't survive between
+      // requests, so the gigs it found have to be written into THIS
+      // browser's own store here — the server can only hand them over once.
+      for (const g of (data.gigs ?? [])) upsertGig(g);
       setSweepResult("Found " + data.found + " leads. " + data.newGigs + " new gigs added.");
       refresh();
     } catch { setSweepResult("Sweep failed — check your internet connection."); }
@@ -77,7 +86,10 @@ export default function GigRadarPage() {
         body: JSON.stringify({ title: manualText.slice(0, 80), text: manualText, sourceName: "Manual Entry" }),
       });
       const data = await res.json();
-      if (data.ok) { setManualResult("✅ Added " + data.newGigs + " gig" + (data.newGigs !== 1 ? "s" : "") + "."); setManualText(""); refresh(); }
+      if (data.ok) {
+        for (const g of (data.gigs ?? [])) upsertGig(g);
+        setManualResult("✅ Added " + data.newGigs + " gig" + (data.newGigs !== 1 ? "s" : "") + "."); setManualText(""); refresh();
+      }
       else setManualResult("Could not process this lead. Try adding more detail.");
     } catch { setManualResult("Submission failed."); }
     finally { setManualSubmitting(false); }
@@ -288,9 +300,14 @@ export default function GigRadarPage() {
                     <span key={g} className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] text-zinc-400">{g}</span>
                   ))}
                 </div>
+                {!venue.verified && (
+                  <p className="mt-2 text-[10px] font-semibold text-amber-400">
+                    ⚠ Unverified address — guessed from the venue&apos;s naming pattern, never confirmed. Check the venue&apos;s own site or Instagram bio before sending anything here.
+                  </p>
+                )}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <a href={"mailto:" + venue.email} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-fuchsia-500 transition">
-                    📧 {venue.email}
+                    {venue.verified ? "📧" : "⚠️"} {venue.email}
                   </a>
                   <a href={"https://instagram.com/" + venue.instagram.replace("@", "")} target="_blank" rel="noreferrer"
                     className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-fuchsia-500 transition">
@@ -298,7 +315,7 @@ export default function GigRadarPage() {
                   </a>
                   <button onClick={() => { void generatePitch(undefined, venue); setTab("radar"); }}
                     className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-fuchsia-500 transition">
-                    ✉ Generate Pitch
+                    ✉ Draft Pitch
                   </button>
                 </div>
               </div>
