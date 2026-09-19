@@ -78,6 +78,18 @@ export default function StudioSettingsPage() {
       <StyleBrandingCard />
 
       <Card className="p-4 sm:p-5">
+        <SectionLabel>App name</SectionLabel>
+        <p className="mt-1 text-xs text-zinc-500">
+          The name shown in the header, the browser tab and the home-screen icon label when installed.
+          This is the app&apos;s own name — separate from the artist profile below. If you&apos;ve taken a
+          copy of this app for yourself, rename it to match you, e.g. &quot;MarcoStudio&quot;.
+        </p>
+        <div className="mt-3">
+          <Field label="Studio name" value={settings.studioName} onChange={v => update({ studioName: v })} />
+        </div>
+      </Card>
+
+      <Card className="p-4 sm:p-5">
         <SectionLabel>Artist profile</SectionLabel>
         <p className="mt-1 text-xs text-zinc-500">Used in release titles, descriptions and file names.</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -290,7 +302,7 @@ export default function StudioSettingsPage() {
         <div className="mt-4">
           <SectionLabel>Install as an app</SectionLabel>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Button onClick={() => void install()} disabled={!installEvt}>📲 Install EMY Studio on this device</Button>
+            <Button onClick={() => void install()} disabled={!installEvt}>📲 Install {settings.studioName} on this device</Button>
             <span className="text-xs text-zinc-500">Adds it to her home screen like a real app — offline capable, gets notifications.</span>
           </div>
         </div>

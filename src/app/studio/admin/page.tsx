@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { getRevenueStats, allStudioFeedback, setStudioFeedbackStatus, type StudioFeedback } from "@/lib/db";
 import type { RevenueStats } from "@/lib/types";
+import { useSettings } from "@/lib/studio/store";
 
 export default function AdminPage() {
+  const settings = useSettings();
   const [stats, setStats] = useState<RevenueStats | null>(null);
   const [feedbackList, setFeedbackList] = useState<StudioFeedback[]>([]);
   const [authed, setAuthed] = useState(false);
@@ -32,9 +34,9 @@ export default function AdminPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-black p-4 text-white">
         <div className="w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-900/90 p-6 text-center">
           <div className="brand-grad mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-xl font-black text-white">
-            E
+            {settings.studioName.charAt(0).toUpperCase()}
           </div>
-          <h1 className="mb-2 text-xl font-extrabold">EMY Studio Admin</h1>
+          <h1 className="mb-2 text-xl font-extrabold">{settings.studioName} Admin</h1>
           <p className="mb-5 text-xs text-zinc-500">Enter admin password to access pipeline & feedback management.</p>
           <form
             onSubmit={(e) => {

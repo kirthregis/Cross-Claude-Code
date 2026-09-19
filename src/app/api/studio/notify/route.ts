@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/studio/server-email";
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio/brand";
 
 /**
  * EMY Studio — email ping.
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
   }
   const result = await sendEmail({
     to: body.to || process.env.STUDIO_NOTIFY_TO || "",
-    subject: body.subject || "EMY Studio",
+    subject: body.subject || DEFAULT_STUDIO_NAME,
     text: body.text || "",
   });
   return NextResponse.json(result);

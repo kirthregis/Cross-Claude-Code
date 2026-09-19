@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { startListening, speechSupported } from "@/lib/studio/speech";
 import { Button, Card, SectionLabel } from "./ui";
+import { useSettings } from "@/lib/studio/store";
 
 interface FeedbackItem {
   id: string;
@@ -37,6 +38,7 @@ function getClientId(): string {
 }
 
 export function FeedbackBox() {
+  const settings = useSettings();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [reply, setReply] = useState<{ id: string; text: string; category: string } | null>(null);
@@ -114,7 +116,7 @@ export function FeedbackBox() {
     <Card id="improve" className="scroll-mt-24 p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <SectionLabel>Make EMY Studio better</SectionLabel>
+          <SectionLabel>Make {settings.studioName} better</SectionLabel>
           <p className="mt-1 text-xs text-zinc-500">
             Something you wish it did? Say it here — the app logs it, plans the change, and you can watch it go from{" "}
             <span className="text-zinc-300">Received</span> → <span className="text-amber-300">Planned</span> →{" "}

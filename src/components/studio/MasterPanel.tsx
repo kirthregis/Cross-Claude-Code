@@ -188,8 +188,8 @@ export function MasterPanel({ project, onChanged }: Props) {
           title: project.meta.name,
           artist: settings.artistName || "DJ EMY",
           genre: project.meta.genre || "Afro House",
-          album: "EMY Studio Master",
-          comment: `Mastered via EMY Studio to ${result.outputLufs.toFixed(1)} LUFS`,
+          album: `${settings.studioName} Master`,
+          comment: `Mastered via ${settings.studioName} to ${result.outputLufs.toFixed(1)} LUFS`,
         };
         const autoBlob = wavBlob([ch0Out, ch1Out], result.renderedBuffer.sampleRate, 24, autoTags);
         const blobKey = `emy-master:${project.meta.id}`;
@@ -254,8 +254,8 @@ export function MasterPanel({ project, onChanged }: Props) {
       title: project.meta.name,
       artist: settings.artistName || "DJ EMY",
       genre: project.meta.genre || "Afro House",
-      album: "EMY Studio Master",
-      comment: `Mastered via EMY Studio to ${project.master?.outputLufs.toFixed(1) ?? params.targetLufs} LUFS`,
+      album: `${settings.studioName} Master`,
+      comment: `Mastered via ${settings.studioName} to ${project.master?.outputLufs.toFixed(1) ?? params.targetLufs} LUFS`,
     };
 
     const blob = wavBlob([ch0, ch1], buf.sampleRate, bits, tags);

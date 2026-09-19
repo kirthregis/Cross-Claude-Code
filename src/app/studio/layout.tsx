@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { StudioNav } from "@/components/studio/StudioNav";
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio/brand";
 
 export const metadata: Metadata = {
-  title: "EMY Studio — DJ Emy's Production Studio",
+  title: `${DEFAULT_STUDIO_NAME} — Production Studio`,
   description: "Master your mixes, design covers, package releases. Your whole production studio, on your laptop and your phone — offline or online.",
 };
 

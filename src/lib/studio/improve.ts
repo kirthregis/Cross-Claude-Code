@@ -7,6 +7,8 @@
  * Both are pure/unit-testable here; the server route stores the result.
  */
 
+import { DEFAULT_STUDIO_NAME } from "./brand";
+
 export type SuggestionCategory = "feature" | "bug" | "design" | "content" | "other";
 
 export interface SuggestionAnalysis {
@@ -66,7 +68,7 @@ export function analyzeSuggestion(text: string): SuggestionAnalysis {
 
 export function analysisPrompt(text: string): string {
   return [
-    `You are the product manager of EMY Studio, a music-production app used by a professional DJ to master mixes, generate cover art and package releases for YouTube/labels.`,
+    `You are the product manager of ${DEFAULT_STUDIO_NAME}, a music-production app used by a professional DJ to master mixes, generate cover art and package releases for YouTube/labels.`,
     `A user just sent this improvement suggestion:`,
     `"""${text}"""`,
     ``,

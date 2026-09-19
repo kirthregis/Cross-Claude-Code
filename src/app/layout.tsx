@@ -4,12 +4,13 @@ import { PwaRegister } from "@/components/PwaRegister";
 import { GlobalAssistant } from "@/components/studio/GlobalAssistant";
 import { ThemeProvider } from "@/components/studio/ThemeProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio/brand";
 
 export const metadata: Metadata = {
-  title: "EMY Studio — DJ Emy",
+  title: DEFAULT_STUDIO_NAME,
   description: "Master your mixes, design covers, package releases. Your whole production studio — laptop and phone, offline and online.",
   manifest: "/manifest.json",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EMY Studio" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: DEFAULT_STUDIO_NAME },
   icons: {
     icon: "/icon-512.png",
     apple: "/icon-192.png",

@@ -1,6 +1,7 @@
 /**
  * EMY Studio — server-side email (Resend). Keys never reach the browser.
  */
+import { DEFAULT_STUDIO_NAME } from "./brand";
 
 export interface EmailResult {
   configured: boolean;
@@ -13,7 +14,7 @@ export async function sendEmail(opts: { to: string; subject: string; text: strin
   if (!apiKey || !opts.to.trim()) {
     return { configured: false, sent: false };
   }
-  const from = opts.from || process.env.RESEND_FROM || "EMY Studio <studio@resend.dev>";
+  const from = opts.from || process.env.RESEND_FROM || `${DEFAULT_STUDIO_NAME} <studio@resend.dev>`;
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

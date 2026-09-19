@@ -1,5 +1,6 @@
 "use client";
 import { Component, ReactNode } from "react";
+import { DEFAULT_STUDIO_NAME } from "@/lib/studio/brand";
 
 interface Props { children: ReactNode; }
 interface State { crashed: boolean; error?: string; }
@@ -25,8 +26,8 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.crashed) return this.props.children;
     return (
       <div style={{background:"#0a0a0f",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,padding:24,fontFamily:"sans-serif",color:"#fff",textAlign:"center"}}>
-        <img src="/icon-192.png" style={{width:64,borderRadius:16}} alt="EMY Studio" />
-        <div style={{fontSize:20,fontWeight:900}}>EMY Studio</div>
+        <img src="/icon-192.png" style={{width:64,borderRadius:16}} alt={DEFAULT_STUDIO_NAME} />
+        <div style={{fontSize:20,fontWeight:900}}>{DEFAULT_STUDIO_NAME}</div>
         <div style={{color:"#71717a",fontSize:14,maxWidth:320}}>Something went wrong. Your projects are safe � tap below to reload.</div>
         <button onClick={() => { this.setState({crashed:false}); window.location.reload(); }}
           style={{background:"#7c3aed",color:"#fff",padding:"10px 28px",borderRadius:12,border:"none",fontWeight:700,fontSize:14,cursor:"pointer"}}>

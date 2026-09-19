@@ -55,3 +55,4 @@ worker/.wrangler
 # EPK generator output — regenerate with scripts/epk/render.py, don't commit the PDFs/HTML
 /scripts/epk/out
 /scripts/epk/site
+/scripts/epk/.wrangler

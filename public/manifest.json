@@ -1,7 +1,7 @@
 ﻿{
-  "name": "EMY Studio",
-  "short_name": "EMY Studio",
-  "description": "DJ Emy production studio — master, artwork, release, analytics.",
+  "name": "EmyStudio",
+  "short_name": "EmyStudio",
+  "description": "DJ production studio — master, artwork, release, analytics.",
   "start_url": "/studio",
   "display": "standalone",
   "background_color": "#0a0a0f",

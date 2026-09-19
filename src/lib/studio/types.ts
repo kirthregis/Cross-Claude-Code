@@ -1,3 +1,5 @@
+import { DEFAULT_STUDIO_NAME } from "./brand";
+
 export type ProjectKind = "mix" | "track";
 export type ProjectStage = "draft" | "master" | "art" | "release" | "done";
 
@@ -227,6 +229,8 @@ export interface ChatTurn {
 }
 
 export interface StudioSettings {
+  /** The app's own name — shown in the header and browser tab. Not the artist's name (see artistName below). */
+  studioName: string;
   artistName: string;
   artistHandle: string;
   instagram: string;
@@ -252,6 +256,7 @@ export interface StudioSettings {
 }
 
 export const DEFAULT_SETTINGS: StudioSettings = {
+  studioName: DEFAULT_STUDIO_NAME,
   artistName: "DJ EMY",
   artistHandle: "@DJEMY",
   instagram: "@evgroup2026",

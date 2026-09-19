@@ -4,15 +4,17 @@ import Link from "next/link";
 import { Button, Card, SectionLabel } from "@/components/studio/ui";
 import { GUIDE_STEPS, GUIDE_QUICK_TIPS, VOICE_EXAMPLES } from "@/lib/studio/guide";
 import { useRouter } from "next/navigation";
+import { useSettings } from "@/lib/studio/store";
 
 export default function GuidePage() {
   const router = useRouter();
+  const settings = useSettings();
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
-            How to use EMY Studio
+            How to use {settings.studioName}
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-zinc-400">
             Everything from finished mix to published release in six steps. You can click your way through each one — or just tell the assistant and it opens the right screen for you.

@@ -1,4 +1,5 @@
 import type { Gig } from "./types";
+import { DEFAULT_STUDIO_NAME } from "./studio/brand";
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
@@ -83,7 +84,7 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "EMY Studio <alerts@emyvisiongroup.com>",
+          from: `${DEFAULT_STUDIO_NAME} <alerts@emyvisiongroup.com>`,
           to,
           subject,
           text: body,

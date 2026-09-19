@@ -198,14 +198,14 @@ function AnalyticsPageInner() {
             <Card className="p-5">
               <SectionLabel>Connect Spotify for Artists</SectionLabel>
               <p className="mt-2 text-sm text-zinc-400">
-                See your streams, followers, top tracks and releases directly in EMY Studio.
+                See your streams, followers, top tracks and releases directly in {settings.studioName}.
                 You need a free Spotify Developer app — takes 2 minutes.
               </p>
               <div className="mt-4 space-y-3 rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs text-zinc-400">
                 <p className="font-semibold text-zinc-300">Setup (one time):</p>
                 <ol className="list-decimal space-y-1.5 pl-4">
                   <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" className="text-fuchsia-400 hover:underline">developer.spotify.com/dashboard</a> — log in with your Spotify account.</li>
-                  <li>Click &quot;Create app&quot;. Name: &quot;EMY Studio&quot;. Redirect URI: <span className="font-mono text-zinc-300">{typeof window !== "undefined" ? window.location.origin : "https://yoursite.com"}/studio/analytics</span></li>
+                  <li>Click &quot;Create app&quot;. Name: &quot;{settings.studioName}&quot;. Redirect URI: <span className="font-mono text-zinc-300">{typeof window !== "undefined" ? window.location.origin : "https://yoursite.com"}/studio/analytics</span></li>
                   <li>Copy the <strong className="text-zinc-200">Client ID</strong> and paste it in Settings → Spotify Client ID.</li>
                   <li>Find your <strong className="text-zinc-200">Artist ID</strong>: open Spotify → your artist profile → Share → Copy link → the ID is the string after /artist/</li>
                   <li>Paste Artist ID in Settings → Spotify Artist ID.</li>
