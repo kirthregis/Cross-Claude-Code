@@ -24,6 +24,15 @@ export interface CountryConfig {
 
 const REGISTRY_KEY = "emy-source-registry";
 
+// Every feed below was checked by hand on 2026-09-19: all return 404, 405, or
+// a redirect to an HTML page — none of them are live RSS anymore (if they
+// ever were; the URLs read as plausible guesses that were never verified).
+// That was the actual reason the sweep always reported "0 leads": not a bug
+// in the fetch/parse code, dead sources it never questioned. Left here,
+// `active: false`, as real entries someone can flip back on if a working
+// replacement URL is found — not deleted, since the Sources UI already
+// supports editing a feed's URL and re-enabling it. The one live UAE source
+// right now is CareersInGulf, wired up in uae.ts.
 export const DEFAULT_COUNTRIES: CountryConfig[] = [
   {
     code: "AE",
@@ -35,45 +44,45 @@ export const DEFAULT_COUNTRIES: CountryConfig[] = [
     feeds: [
       {
         id: "platinumlist",
-        label: "Platinumlist Dubai",
+        label: "Platinumlist Dubai — confirmed dead 2026-09-19 (redirect, no feed)",
         url: "https://platinumlist.net/rss",
         kind: "rss",
-        active: true,
+        active: false,
       },
       {
         id: "timeout-dubai",
-        label: "Time Out Dubai Events",
+        label: "Time Out Dubai Events — confirmed dead 2026-09-19 (405)",
         url: "https://www.timeoutdubai.com/rss/whats-on",
         kind: "rss",
-        active: true,
+        active: false,
       },
       {
         id: "ra-dubai",
-        label: "Resident Advisor Dubai",
+        label: "Resident Advisor Dubai — confirmed dead 2026-09-19 (404, RA retired this feed format)",
         url: "https://ra.co/xml/feed.xml?area=62",
         kind: "rss",
-        active: true,
+        active: false,
       },
       {
         id: "hozpitality",
-        label: "Hozpitality UAE Jobs",
+        label: "Hozpitality UAE Jobs — confirmed dead 2026-09-19 (200 but HTML, not XML)",
         url: "https://hozpitality.com/rss/jobs.xml",
         kind: "rss",
-        active: true,
+        active: false,
       },
       {
         id: "dubai-calendar",
-        label: "Dubai Calendar",
+        label: "Dubai Calendar — confirmed dead 2026-09-19 (200 but HTML, not XML)",
         url: "https://www.visitdubai.com/en/whats-on/rss",
         kind: "rss",
-        active: true,
+        active: false,
       },
       {
         id: "gulftalent",
-        label: "Gulf Talent Entertainment",
+        label: "Gulf Talent Entertainment — confirmed dead 2026-09-19 (404)",
         url: "https://www.gulftalent.com/rss/jobs.xml?category=entertainment",
         kind: "rss",
-        active: true,
+        active: false,
       },
     ],
   },
@@ -87,17 +96,17 @@ export const DEFAULT_COUNTRIES: CountryConfig[] = [
     feeds: [
       {
         id: "qatar-events",
-        label: "Qatar Tourism Events",
+        label: "Qatar Tourism Events — confirmed dead 2026-09-19 (404)",
         url: "https://www.visitqatar.qa/rss/events",
         kind: "rss",
-        active: true,
+        active: false,
       },
       {
         id: "ra-doha",
-        label: "Resident Advisor Doha",
+        label: "Resident Advisor Doha — confirmed dead 2026-09-19 (404, RA retired this feed format)",
         url: "https://ra.co/xml/feed.xml?area=398",
         kind: "rss",
-        active: true,
+        active: false,
       },
     ],
   },
@@ -111,10 +120,10 @@ export const DEFAULT_COUNTRIES: CountryConfig[] = [
     feeds: [
       {
         id: "mdlbeast",
-        label: "MDL Beast Events",
+        label: "MDL Beast Events — confirmed dead 2026-09-19 (404)",
         url: "https://mdlbeast.com/rss",
         kind: "rss",
-        active: true,
+        active: false,
       },
     ],
   },

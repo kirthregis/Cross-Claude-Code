@@ -29,9 +29,9 @@ export function pushEmailLead(lead: RawLead) { emailBuffer.push(lead); }
 // ── UAE Live Feeds (always active, no API key needed) ────────
 export const uaeSource: Source = {
   id: "uae",
-  label: "UAE Live Booking Feeds (Platinumlist, Time Out, RA, Hozpitality)",
-  kind: "event_calendar",
-  setup: "No setup needed — feeds are active automatically.",
+  label: "CareersInGulf — Hospitality & Entertainment listings",
+  kind: "gig_board",
+  setup: "No setup needed — active automatically.",
   configured: () => true,
   fetch: fetchUAELeads,
 };
