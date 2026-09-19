@@ -64,7 +64,7 @@ export default function ProjectEditorClient({ id }: { id: string }) {
         <div className="text-center">
           <div className="text-5xl mb-4">🎵</div>
           <p className="text-2xl font-black text-white">Release not found</p>
-          <p className="mt-2 text-zinc-500 text-sm">This link only works on the device that made it — there's no shared server behind it.</p>
+          <p className="mt-2 text-zinc-500 text-sm">This link only works on the device that made it — there&apos;s no shared server behind it.</p>
         </div>
       </div>
     );
