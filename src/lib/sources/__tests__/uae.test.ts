@@ -46,3 +46,31 @@ describe("fetchUAELeads (CareersInGulf adapter)", () => {
     expect(await fetchUAELeads()).toEqual([]);
   });
 });
+
+const COCONUT_LISTING = (venue: string, url: string, pay: string, location: string, status: "open" | "closed") => `
+<a href="${url}"><strong>${venue}</strong></a><br /><small>Posted 1 month ago | 5 members applied</small><br/>Hiring 1 Full Time&nbsp;<strong>DJ</strong>, to work in <strong>${location}</strong>. The pay is <strong>${pay}</strong>&nbsp;per Month. Contract period is 3 Months.</p>
+${status === "open"
+  ? `<a href="${url}" class="btn btn-xs btn-primary">Apply now</a>`
+  : `<a href="${url}">View Job</a>&nbsp;<span class="btn btn-danger btn-xs">Closed</span>`}
+`;
+
+describe("fetchUAELeads (Coconut Jobs adapter)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("keeps an open listing with pay, location and a real apply link", async () => {
+    const html = COCONUT_LISTING("Nammos Dubai", "https://www.coconutjobs.com/job/nammos", "$4000", "Dubai, United Arab Emirates", "open");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, text: async () => html }));
+    const leads = await fetchUAELeads();
+    expect(leads).toHaveLength(1);
+    expect(leads[0].title).toBe("DJ — Nammos Dubai");
+    expect(leads[0].sourceUrl).toBe("https://www.coconutjobs.com/job/nammos");
+    expect(leads[0].body).toContain("$4000");
+    expect(leads[0].body).not.toMatch(/&nbsp;|<strong>/); // decoded and tag-stripped, not raw HTML
+  });
+
+  it("drops a closed listing — a DJ chasing it would be applying to a filled role", async () => {
+    const html = COCONUT_LISTING("Old Venue", "https://www.coconutjobs.com/job/old", "$1000", "Muscat, Oman", "closed");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, text: async () => html }));
+    expect(await fetchUAELeads()).toHaveLength(0);
+  });
+});
