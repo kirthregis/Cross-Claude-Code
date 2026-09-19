@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { getProject } from "@/lib/studio/store";
+import { getProject, loadArtwork } from "@/lib/studio/store";
 import type { Project } from "@/lib/studio/types";
 import { MasterPanel } from "@/components/studio/MasterPanel";
 import { ArtworkPanel } from "@/components/studio/ArtworkPanel";
@@ -30,6 +30,7 @@ export default function ProjectEditorClient({ id }: { id: string }) {
   const [project, setProject] = useState<Project | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [tab, setTab] = useState<Tab>((searchParams.get("tab") as Tab) ?? "assistant");
+  const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const p = getProject(id);
@@ -37,19 +38,75 @@ export default function ProjectEditorClient({ id }: { id: string }) {
     else setNotFound(true);
   }, [id]);
 
+  useEffect(() => {
+    if (!isPublic) return;
+    let alive = true;
+    loadArtwork(id).then((url) => { if (alive) setArtworkUrl(url); });
+    return () => { alive = false; };
+  }, [id, isPublic]);
+
   const refresh = useCallback(() => {
     const p = getProject(id);
     if (p) setProject({ ...p });
   }, [id]);
 
   // ── PUBLIC VIEW ──────────────────────────────────────────────────────
-  if (isPublic || (project && !getProject(id))) {
-    if (notFound) return (
+  // Real, not decorative: no data leaves the device, so this only ever
+  // renders anything on the same browser that made the project (the DJ
+  // previewing her own share link, or a fan on a device she's handed
+  // directly to) — a stranger following the URL on their own phone will
+  // land on "Release not found" below, honestly, rather than the private
+  // editor. Read-only: cover, tracklist, platform links. No mastering
+  // controls, no admin actions.
+  if (isPublic) {
+    if (notFound || !project) return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
         <div className="text-center">
           <div className="text-5xl mb-4">🎵</div>
           <p className="text-2xl font-black text-white">Release not found</p>
-          <p className="mt-2 text-zinc-500 text-sm">This link may have expired or been removed.</p>
+          <p className="mt-2 text-zinc-500 text-sm">This link only works on the device that made it — there's no shared server behind it.</p>
+        </div>
+      </div>
+    );
+
+    const links = project.smartLinks
+      ? (Object.entries(project.smartLinks) as [string, string][]).filter(([, v]) => v.trim())
+      : [];
+
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] px-4 py-10">
+        <div className="mx-auto max-w-md space-y-6 text-center">
+          {artworkUrl ? (
+            <img src={artworkUrl} alt={project.meta.name} className="mx-auto h-56 w-56 rounded-2xl object-cover shadow-2xl" />
+          ) : (
+            <div className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl bg-zinc-900 text-5xl">🎧</div>
+          )}
+          <div>
+            <h1 className="text-2xl font-black text-white">{project.meta.name}</h1>
+            <p className="mt-1 text-sm text-zinc-500">{project.meta.kind === "mix" ? "DJ Mix" : "Track"} · {project.meta.genre}</p>
+          </div>
+
+          {project.tracklist && project.tracklist.length > 0 && (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 text-left">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-500">Tracklist</p>
+              <ol className="space-y-1 text-sm text-zinc-300">
+                {project.tracklist.map((t) => (
+                  <li key={t.id}>{t.timestamp} — {t.artist} - {t.title}</li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {links.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              {links.map(([platform, url]) => (
+                <a key={platform} href={url} target="_blank" rel="noreferrer"
+                  className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 hover:border-fuchsia-500 transition">
+                  {platform.charAt(0).toUpperCase() + platform.slice(1).replace(/([A-Z])/g, " $1")}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -151,8 +208,8 @@ export default function ProjectEditorClient({ id }: { id: string }) {
 
             {/* Public page link */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Public Artist Page</p>
-              <p className="text-xs text-zinc-500 mb-3">Share this link — fans see your artwork, bio, and all platform links in one place.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Read-Only Preview</p>
+              <p className="text-xs text-zinc-500 mb-3">A clean, no-editing view of the cover, tracklist and platform links — for previewing on this device. Everything here lives in this browser only, so it won&apos;t load for someone else on their own phone.</p>
               <div className="flex items-center gap-2">
                 <input readOnly value={publicUrl}
                   className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-300" />

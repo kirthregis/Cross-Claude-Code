@@ -44,6 +44,7 @@ export function CheckPanel({ project }: { project: Project }) {
           master: project.master,
           artworkSize: artworkDims ?? undefined,
           release: project.release,
+          tracklist: project.tracklist,
         },
         pl,
       );
@@ -63,6 +64,7 @@ export function CheckPanel({ project }: { project: Project }) {
           master: project.master,
           artworkSize: artworkDims ?? undefined,
           release: project.release,
+          tracklist: project.tracklist,
         },
         platform,
       );

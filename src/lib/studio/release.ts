@@ -10,7 +10,7 @@
  * distribution guides as of 2026.
  */
 
-import type { AudioInfo, MasterResult, Project, ReleaseCheck, ReleaseMeta, StudioSettings } from "./types";
+import type { AudioInfo, MasterResult, Project, ReleaseCheck, ReleaseMeta, StudioSettings, TracklistEntry } from "./types";
 
 export const YT_TITLE_MAX = 100;
 export const YT_DESC_MAX = 5000;
@@ -127,6 +127,7 @@ export interface PackageSnapshot {
   master?: MasterResult;
   artworkSize?: { width: number; height: number; bytes: number };
   release?: ReleaseMeta;
+  tracklist?: TracklistEntry[];
 }
 
 /** Build the compliance report. Order: audio → loudness → artwork → text. */
@@ -195,7 +196,7 @@ export function runComplianceChecks(pkg: PackageSnapshot, platform: "youtube" | 
   }
 
   // ---- Tracklist ----
-  const tracklist = (pkg as unknown as { tracklist?: { id: string }[] }).tracklist ?? [];
+  const tracklist = pkg.tracklist ?? [];
   if (tracklist.length === 0) {
     checks.push({ id: "tracklist", label: "Tracklist added", status: "warn", detail: "No tracklist yet — add track names and timestamps in the Tracklist tab.", fix: "Go to the Tracklist tab and add your tracks." });
   } else {

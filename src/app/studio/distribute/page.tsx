@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
 import { t } from "@/lib/studio/i18n";
 import { useArabic } from "@/components/studio/ArabicToggle";
-import { useProjects, upsertProject } from "@/lib/studio/store";
+import { useProjects, upsertProject, useSettings } from "@/lib/studio/store";
 import { newId } from "@/lib/studio/id";
 import type { SmartLinks } from "@/lib/studio/types";
 
@@ -38,6 +38,7 @@ type Tab = "distribution" | "splits" | "smartlinks";
 
 export default function DistributePage() {
   const { arabic } = useArabic();
+  const settings = useSettings();
   const [tab, setTab] = useState<Tab>("distribution");
   const projects = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -98,8 +99,24 @@ export default function DistributePage() {
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }, [selectedProject]);
 
-  const publicUrl = selectedProject
-    ? `${typeof window !== "undefined" ? window.location.origin : ""}/studio/p/${selectedProject.meta.id}`
+  // There's no server database behind this app (everything lives in the
+  // artist's own browser storage), so there's no URL that a stranger's
+  // browser could open and see this project's data — a link to
+  // /studio/p/[id] just opens the private editor, empty, on any other
+  // device. What's actually shareable is the text: bio + the platform
+  // links she just filled in, ready to paste into an Instagram bio tool,
+  // Linktree, or a WhatsApp Business catalog description.
+  const PLATFORM_LABELS: Record<keyof SmartLinks, string> = {
+    spotify: "Spotify", appleMusic: "Apple Music", youtube: "YouTube", soundcloud: "SoundCloud", tidal: "Tidal", bandcamp: "Bandcamp",
+  };
+  const pressLinksText = selectedProject
+    ? [
+        settings.artistName || selectedProject.meta.name,
+        settings.instagram ? `Instagram: ${settings.instagram}` : null,
+        ...(Object.keys(smartLinksForm) as (keyof SmartLinks)[])
+          .filter((k) => smartLinksForm[k].trim())
+          .map((k) => `${PLATFORM_LABELS[k]}: ${smartLinksForm[k].trim()}`),
+      ].filter(Boolean).join("\n")
     : "";
 
   return (
@@ -249,7 +266,7 @@ export default function DistributePage() {
             <>
               <Card className="p-4 sm:p-5">
                 <SectionLabel>Platform Links</SectionLabel>
-                <p className="mt-1 text-xs text-zinc-500">Paste your links after you distribute. These power your public artist page.</p>
+                <p className="mt-1 text-xs text-zinc-500">Paste your links after you distribute. Feeds the copyable link list below.</p>
                 <div className="mt-3 space-y-2">
                   {(Object.keys(smartLinksForm) as (keyof SmartLinks)[]).map(key => (
                     <div key={key} className="flex items-center gap-2">
@@ -266,18 +283,16 @@ export default function DistributePage() {
                 <Button className="mt-4" onClick={saveSmartLinks}>Save Links</Button>
               </Card>
 
-              {publicUrl && (
+              {pressLinksText && (
                 <Card className="p-4 sm:p-5">
-                  <SectionLabel>Your Public Artist Page</SectionLabel>
-                  <p className="mt-1 text-xs text-zinc-500">Share this one link — fans see your artwork, bio, and all platform links in one place.</p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <input readOnly value={publicUrl}
-                      className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-300" />
-                    <Button variant="ghost" onClick={() => { void navigator.clipboard.writeText(publicUrl); }}>Copy</Button>
-                    <a href={publicUrl} target="_blank" rel="noreferrer">
-                      <Button variant="ghost">Open →</Button>
-                    </a>
-                  </div>
+                  <SectionLabel>Copy Your Links</SectionLabel>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Everything here stays on this device — there&apos;s no hosted page a fan could open. Paste this
+                    into your Instagram bio link tool, a Linktree, or a WhatsApp Business catalog instead.
+                  </p>
+                  <textarea readOnly value={pressLinksText} rows={Math.min(8, pressLinksText.split("\n").length + 1)}
+                    className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-300" />
+                  <Button variant="ghost" className="mt-2" onClick={() => { void navigator.clipboard.writeText(pressLinksText); }}>Copy</Button>
                 </Card>
               )}
             </>

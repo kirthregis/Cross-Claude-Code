@@ -196,6 +196,7 @@ describe("release", () => {
       },
       artwork: { source: "template", templateId: "midnight-gold", width: 3000, height: 3000, sizeBytes: 5 * 1024 * 1024, generatedAt: Date.now() },
       release: buildRelease(makeProject(), DEFAULT_SETTINGS),
+      tracklist: [{ id: "t1", timestamp: "00:00", artist: "Black Coffee", title: "Wish You Were Here" }],
     });
     const checks = runComplianceChecks(
       {
@@ -203,12 +204,25 @@ describe("release", () => {
         master: p.master,
         artworkSize: { width: 3000, height: 3000, bytes: 5 * 1024 * 1024 },
         release: p.release,
+        tracklist: p.tracklist,
       },
       "youtube",
     );
     expect(checks.filter((c) => c.status === "fail")).toHaveLength(0);
+    expect(checks.find((c) => c.id === "tracklist")?.status).toBe("pass");
     const s = checksSummary(checks);
     expect(s.pass).toBeGreaterThanOrEqual(6);
+  });
+
+  it("compliance: tracklist check reflects what was actually passed in, not a stale cast", () => {
+    const empty = runComplianceChecks({}, "youtube");
+    expect(empty.find((c) => c.id === "tracklist")?.status).toBe("warn");
+
+    const withTracks = runComplianceChecks(
+      { tracklist: [{ id: "t1", timestamp: "00:00", artist: "A", title: "B" }] },
+      "youtube",
+    );
+    expect(withTracks.find((c) => c.id === "tracklist")?.status).toBe("pass");
   });
 
   it("compliance flags 44100 Hz sample rate as a warning", () => {
