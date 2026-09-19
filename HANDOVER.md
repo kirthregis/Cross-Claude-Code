@@ -296,14 +296,13 @@ Input Gain → 30Hz Rumble HP → 5-Band Parametric EQ → Compressor → Soft C
 ### Settlement Banking Details:
 - **Bank:** Mashreqbank PSC (Mashreq NEO BIZ)
 - **Account Name:** EMY VISION GROUP FZC
-- **Primary AED IBAN:** ***REDACTED-IBAN***
-- **SWIFT / BIC:** ***REDACTED-SWIFT***
-- **GBP Alternate IBAN:** ***REDACTED-IBAN***
-- **USD Alternate IBAN:** ***REDACTED-IBAN***
-- **EUR Alternate IBAN:** ***REDACTED-IBAN***
-- *(Security Note: Mashreq CIF is strictly excluded from client-facing documents.)*
+- Full IBANs (AED/GBP/USD/EUR) and SWIFT/BIC: kept in the private records
+  (CONFIDENTIAL_KEYS_REGISTER.md), not in this file — this repo is public.
 
 ---
 
 ## ADMIN CREDENTIALS
-- **Studio Admin Token / Password:** `***REDACTED-ADMIN-TOKEN***`
+- **Studio Admin Token:** set via the `STUDIO_ADMIN_TOKEN` environment
+  variable in Vercel (Settings → Environment Variables) — never written here.
+  This repo is public on GitHub; if a token value was ever committed to it,
+  treat it as compromised and rotate it in Vercel.

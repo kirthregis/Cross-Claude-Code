@@ -109,7 +109,7 @@ Free, on-device, no plugins needed. Full signal chain:
 - Errors caught and surfaced
 
 ## CREDENTIALS
-- Admin: ***REDACTED-ADMIN-TOKEN***
+- Admin: set via `STUDIO_ADMIN_TOKEN` in Vercel env vars — this repo is public, never write the value here.
 - Contact: Kirth - admin@emyvisiongroup.com - +971 50 660 7743 · DJ Emy direct +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)
 
 ## CLONE TO ANY MACHINE
