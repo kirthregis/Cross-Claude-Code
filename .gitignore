@@ -51,3 +51,7 @@ worker/.wrangler
 
 # .env.example is committed for documentation (real envs stay ignored)
 !.env.example
+
+# EPK generator output — regenerate with scripts/epk/render.py, don't commit the PDFs/HTML
+/scripts/epk/out
+/scripts/epk/site
