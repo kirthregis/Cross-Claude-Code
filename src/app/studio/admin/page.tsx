@@ -11,6 +11,8 @@ export default function AdminPage() {
   const [feedbackList, setFeedbackList] = useState<StudioFeedback[]>([]);
   const [authed, setAuthed] = useState(false);
   const [pass, setPass] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [feedbackFilter, setFeedbackFilter] = useState<string>("all");
 
   const loadData = useCallback(() => {
@@ -39,10 +41,24 @@ export default function AdminPage() {
           <h1 className="mb-2 text-xl font-extrabold">{settings.studioName} Admin</h1>
           <p className="mb-5 text-xs text-zinc-500">Enter admin password to access pipeline & feedback management.</p>
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              if (pass === "***REDACTED-ADMIN-TOKEN***") setAuthed(true);
-              else alert("Invalid password");
+              setChecking(true);
+              setLoginError("");
+              try {
+                const res = await fetch("/api/studio/admin-login", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ password: pass }),
+                });
+                const data = await res.json();
+                if (res.ok && data.ok) setAuthed(true);
+                else setLoginError(data.error || "Invalid password");
+              } catch {
+                setLoginError("Could not reach the server. Try again.");
+              } finally {
+                setChecking(false);
+              }
             }}
           >
             <input
@@ -50,13 +66,15 @@ export default function AdminPage() {
               placeholder="Admin Password"
               value={pass}
               onChange={(e) => setPass(e.target.value)}
-              className="mb-4 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white focus:border-fuchsia-500 focus:outline-none"
+              className="mb-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-white focus:border-fuchsia-500 focus:outline-none"
             />
+            {loginError && <p className="mb-3 text-xs text-red-400">{loginError}</p>}
             <button
               type="submit"
-              className="w-full rounded-xl bg-fuchsia-600 py-2.5 text-sm font-bold text-white transition hover:bg-fuchsia-500"
+              disabled={checking}
+              className="mt-2 w-full rounded-xl bg-fuchsia-600 py-2.5 text-sm font-bold text-white transition hover:bg-fuchsia-500 disabled:opacity-50"
             >
-              Unlock Dashboard
+              {checking ? "Checking…" : "Unlock Dashboard"}
             </button>
           </form>
         </div>
