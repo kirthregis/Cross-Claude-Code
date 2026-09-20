@@ -53,7 +53,7 @@ describe("bookings route through Emy Vision Group", () => {
     const w = pitch(g, "whatsapp").body;
     expect(w).toContain("Emy Vision Group");
     expect(w).toContain("Kirth");
-    expect(w).toContain(DJ_EMY.management.phone);
+    expect(w).toContain(DJ_EMY.phone);
     // must NOT be written as the artist herself
     expect(w).not.toMatch(/^Hi there! DJ Emy here/);
   });
@@ -62,7 +62,7 @@ describe("bookings route through Emy Vision Group", () => {
     const e = pitch(g, "email");
     expect(e.subject).toContain("DJ Emy");
     expect(e.body).toContain("Emy Vision Group");
-    expect(e.body).toContain("admin@emyvisiongroup.com");
+    expect(e.body).toContain(DJ_EMY.email);
     expect(e.body).toMatch(/FIFA|female Afro House|100% live/i);
   });
 

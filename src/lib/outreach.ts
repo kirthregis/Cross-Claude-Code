@@ -76,7 +76,7 @@ Live sets: ${profile.youtube || "https://youtube.com/@DJEMY-o6d"}
 Shall I send over the booking confirmation?
 
 Kirth · Emy Vision Group
-${profile.management.phone}`;
+${profile.phone}`;
 
     return { body };
   }
@@ -115,7 +115,7 @@ We can hold the date for 48 hours pending confirmation. Happy to jump on a call 
 Kind regards,
 Kirth
 Business Development, Emy Vision Group
-${profile.management.phone} · ${profile.management.email}
+${profile.phone} · ${profile.email}
 ${profile.management.website || "https://emyvisiongroup.com"}`;
 
   return { subject, body };

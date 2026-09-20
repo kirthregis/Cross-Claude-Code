@@ -64,7 +64,7 @@ ${profile.management.legalName || "Emy Vision Group FZC"}, trading as ${profile.
 Trade Licence No: ${profile.management.tradeLicenceNo || "4427087.01"}
 ${profile.management.address || "Business Centre, Sharjah Publishing City Free Zone, Sharjah, United Arab Emirates"}
 Attn: ${profile.management.contactName}, ${profile.management.contactRole}
-${profile.management.email} · ${profile.management.phone}
+${profile.email} · ${profile.phone}
 
 **THE ARTIST** (performer, engaged through the Company)
 ${profile.legalName} professionally known as "${profile.name}"
@@ -208,7 +208,7 @@ export function generateInvoice(g: Gig, t: DealTerms): string {
   return `# INVOICE
 
 **From:** ${profile.management.legalName || "EMY VISION GROUP FZC"} t/a ${profile.management.company}
-${profile.management.email} · ${profile.management.phone}
+${profile.email} · ${profile.phone}
 Re: performance by ${profile.name}
 **To:** ${t.clientLegalName}, ${t.clientAddress}
 **Event:** ${g.title} — ${t.eventDate}

@@ -27,7 +27,7 @@ function shortPitch(contactName: string, gigTitle: string): string {
     `YT: ${DJ_EMY.youtube}`,
     ``,
     `${DJ_EMY.name}`,
-    `${DJ_EMY.management.phone}`,
+    `${DJ_EMY.phone}`,
   ].join("\n");
 }
 
@@ -61,7 +61,7 @@ function fullPitch(contactName: string, gigTitle: string): string {
     `CONTACT:`,
     `${DJ_EMY.name}`,
     `Email: ${DJ_EMY.email}`,
-    `Phone/WhatsApp: ${DJ_EMY.management.phone}`,
+    `Phone/WhatsApp: ${DJ_EMY.phone}`,
     `Instagram: ${DJ_EMY.instagram}`,
     `Management: ${DJ_EMY.management.company} - ${DJ_EMY.management.website || ""}`,
     ``,
@@ -70,7 +70,7 @@ function fullPitch(contactName: string, gigTitle: string): string {
     `Best regards,`,
     `${DJ_EMY.name}`,
     `${DJ_EMY.instagram}`,
-    `${DJ_EMY.management.phone}`,
+    `${DJ_EMY.phone}`,
   ].join("\n");
 }
 
@@ -98,7 +98,7 @@ export function openEmail(toEmail: string, contactName: string, gigTitle: string
     ``,
     `Best regards,`,
     `${DJ_EMY.name}`,
-    `${DJ_EMY.management.phone}`,
+    `${DJ_EMY.phone}`,
   ].join("\n");
 
   // Open Gmail compose directly - works everywhere
