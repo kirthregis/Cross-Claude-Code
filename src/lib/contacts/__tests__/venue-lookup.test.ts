@@ -1,67 +1,64 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { findVenueContact } from "../venue-lookup";
 
-const DDG_RESULTS = (links: { url: string; title: string }[]) =>
-  `<div class="results">${links
-    .map(
-      (l) =>
-        `<a class="result__a" href="//duckduckgo.com/l/?uddg=${encodeURIComponent(l.url)}&rut=abc">${l.title}</a>`,
-    )
-    .join("\n")}</div>`;
+/** A minimal fetch mock: `pages` maps a URL substring to a response body; anything else 404s. */
+function mockFetch(pages: Record<string, string>) {
+  return vi.fn(async (url: string) => {
+    const match = Object.entries(pages).find(([k]) => String(url).includes(k));
+    if (!match) return { ok: false, url, text: async () => "" };
+    return { ok: true, url, text: async () => match[1] };
+  });
+}
 
 describe("findVenueContact", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("finds a real events email and phone on the venue's own official site", async () => {
-    const search = DDG_RESULTS([
-      { url: "https://www.facebook.com/NammosDUB/", title: "Nammos Dubai - Facebook" },
-      { url: "https://www.nammos.com/dubai", title: "NAMMOS Dubai" },
-    ]);
-    const site = `<html><body>Contact us: events@nammos.ae or call +971581210000</body></html>`;
-    const fetchMock = vi.fn(async (url: string) => {
-      if (String(url).includes("duckduckgo.com")) return { ok: true, text: async () => search };
-      if (String(url).includes("nammos.com")) return { ok: true, text: async () => site };
-      return { ok: false, text: async () => "" };
-    });
-    vi.stubGlobal("fetch", fetchMock);
+  it("finds a real events email and phone on the venue's own guessed-and-confirmed site", async () => {
+    const site = `<html><body>Nammos Dubai — Contact us: events@nammos.ae or call +971581210000</body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "nammos.com": site }));
 
-    const contact = await findVenueContact("Nammos Dubai", "Dubai");
+    const contact = await findVenueContact("Nammos Dubai");
     expect(contact?.email).toBe("events@nammos.ae");
     expect(contact?.phone).toBe("+971581210000");
     expect(contact?.verified).toBe(true);
     expect(contact?.sourceUrl).toContain("nammos.com");
   });
 
-  it("skips Facebook/Instagram/aggregator results — wants the venue's own domain", async () => {
-    const search = DDG_RESULTS([
-      { url: "https://www.instagram.com/somevenue/", title: "Some Venue - Instagram" },
-      { url: "https://www.tripadvisor.com/somevenue", title: "Some Venue - Reviews" },
-    ]);
-    const fetchMock = vi.fn(async (url: string) => {
-      if (String(url).includes("duckduckgo.com")) return { ok: true, text: async () => search };
-      return { ok: true, text: async () => "<html>no contact info here</html>" };
-    });
-    vi.stubGlobal("fetch", fetchMock);
+  it("rejects a domain guess that only matches one short, common word — the false-positive case", async () => {
+    // "act.com" is a real, unrelated company that happens to own the word
+    // "act" — it must never be mistaken for "Act Restaurant, Lounge and bar"
+    // just because the word "act" appears on its homepage.
+    const unrelatedCompany = `<html><body>ACT is a mission-driven nonprofit that helps people act on their goals.</body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "act.com": unrelatedCompany, "act.ae": unrelatedCompany }));
 
-    // Both results are aggregators/social platforms, not the venue's own site
-    // — nothing left to look up, so this returns null rather than guessing.
-    const contact = await findVenueContact("Some Venue", "Dubai");
-    expect(contact).toBeNull();
+    expect(await findVenueContact("Act Restaurant, Lounge and bar")).toBeNull();
   });
 
-  it("returns null rather than a guess when the search finds nothing", async () => {
+  it("accepts the same venue once the fuller domain guess confirms two distinct words", async () => {
+    const real = `<html><body>Act Restaurant — Dubai's newest lounge and bar. Book: events@actrestaurant.com</body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "actrestaurant.com": real }));
+
+    const contact = await findVenueContact("Act Restaurant, Lounge and bar");
+    expect(contact?.email).toBe("events@actrestaurant.com");
+  });
+
+  it("accepts a single-word match when the word is distinctive, not a common dictionary word", async () => {
+    const site = `<html><body>Zouk — nightlife group. Bookings: bookings@zouk.com</body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "zouk.com": site }));
+
+    const contact = await findVenueContact("Zouk nightclub");
+    expect(contact?.email).toBe("bookings@zouk.com");
+  });
+
+  it("returns null rather than a guess when no candidate domain resolves", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, text: async () => "" })));
-    expect(await findVenueContact("Nonexistent Venue")).toBeNull();
+    expect(await findVenueContact("Sisters Lounge")).toBeNull();
   });
 
-  it("returns null when a site is found but publishes no email or phone", async () => {
-    const search = DDG_RESULTS([{ url: "https://www.somevenue.com/", title: "Some Venue" }]);
-    const fetchMock = vi.fn(async (url: string) => {
-      if (String(url).includes("duckduckgo.com")) return { ok: true, text: async () => search };
-      return { ok: true, text: async () => "<html><body>Welcome to Some Venue.</body></html>" };
-    });
-    vi.stubGlobal("fetch", fetchMock);
+  it("returns null when a confirmed site publishes no email or phone", async () => {
+    const site = `<html><body>Nammos Dubai — welcome to our beach club.</body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "nammos.com": site }));
 
-    expect(await findVenueContact("Some Venue")).toBeNull();
+    expect(await findVenueContact("Nammos Dubai")).toBeNull();
   });
 });

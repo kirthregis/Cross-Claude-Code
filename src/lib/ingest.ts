@@ -47,7 +47,7 @@ export async function processLeads(leads: RawLead[]): Promise<SweepResult> {
       const hasDirectContact = base.contacts?.some((c) => c.email || c.phone);
       if (!base.venueName || hasDirectContact) return;
       try {
-        const found = await findVenueContact(base.venueName, base.area);
+        const found = await findVenueContact(base.venueName);
         if (found) base.contacts = [found, ...(base.contacts ?? [])];
       } catch (e) {
         errors.push(`contact lookup failed for "${base.venueName}": ${e}`);

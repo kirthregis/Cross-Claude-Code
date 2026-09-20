@@ -4,18 +4,32 @@
  * guesses a pattern (no "info@venuename.com"); returns null when nothing is
  * actually found on a real page, same rule as every other source in this app.
  *
- * Verified live against Nammos Dubai on 2026-09-20: this exact method found
- * events@nammos.ae and +971581210000 on nammos.com/dubai/contact.
+ * Finding the site itself does NOT use a search engine. Verified live from
+ * this app's own Vercel deployment on 2026-09-20: DuckDuckGo (html + lite),
+ * Bing, Google, Startpage, Yandex, Brave, Ecosia, Mojeek and six public
+ * SearXNG instances are all either blocked outright or return content that
+ * can't be parsed without running JavaScript, from Vercel's serverless IP
+ * range specifically (all worked fine from a home connection) — search-engine
+ * scraping only ever looked like it worked in local testing.
+ *
+ * Instead: guess the venue's domain straight from its own name (its most
+ * distinctive word, plus the full name as one word, on .com/.ae) and fetch
+ * each candidate directly — a plain HTTPS request, nothing to block. A
+ * candidate is only accepted if the fetched page's own content confirms it's
+ * really about this venue, which is where almost all of the risk lives: a
+ * short, dictionary-word brand name (e.g. "Act Restaurant" guessing act.com)
+ * can land on a real, unrelated company that just happens to own that word.
+ * See isSpecificEnoughMatch() for the rule that guards against exactly that.
  */
 import type { Contact } from "../types";
 
 const UA = "Mozilla/5.0 (compatible; EMYStudioGigRadar/1.0; +https://emy-studio-rho.vercel.app)";
 
-async function fetchText(url: string, timeoutMs: number): Promise<string | null> {
+async function fetchText(url: string, timeoutMs: number): Promise<{ html: string; finalUrl: string } | null> {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), headers: { "User-Agent": UA } });
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), headers: { "User-Agent": UA }, redirect: "follow" });
     if (!res.ok) return null;
-    return await res.text();
+    return { html: await res.text(), finalUrl: res.url };
   } catch {
     return null;
   }
@@ -30,45 +44,89 @@ function decodeEntities(s: string): string {
     .replace(/&gt;/g, ">");
 }
 
-// Aggregators, review sites and social platforms turn up first for almost any
-// venue search — none of them is the venue's OWN contact channel, so they're
-// excluded even when nothing better is found.
-const NOT_OFFICIAL = /facebook\.com|instagram\.com|tripadvisor|zomato|timeoutdubai|dubizzle|wikipedia\.org|yelp\.com|google\.com|linkedin\.com|tiktok\.com|twitter\.com|x\.com/i;
+// Pure grammatical filler — never part of a brand name, but still fine to
+// drop from candidate words entirely (no venue is meaningfully "and.com").
+const STOPWORDS = new Set(["and", "the", "for", "with", "at"]);
 
-function resultLinks(html: string): string[] {
-  const out: string[] = [];
-  for (const m of html.matchAll(/result__a"[^>]*href="[^"]*uddg=([^&"]+)/g)) {
-    try {
-      out.push(decodeURIComponent(m[1]));
-    } catch {
-      /* malformed encoding — skip this one result, not the whole search */
+// Short/common English words that are also real, unrelated brand names — a
+// domain guess built from just ONE of these proves nothing on its own
+// (act.com is a real company, not the Dubai restaurant "Act"). Extend this
+// list as new false positives turn up rather than lowering the length
+// threshold below it.
+const AMBIGUOUS_SHORT_WORDS = new Set(["act", "base", "club", "play", "live", "home", "park", "city", "cafe", "view", "edge"]);
+
+function venueWords(venueName: string): string[] {
+  return venueName
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+}
+
+interface Candidate {
+  url: string;
+  /** The word(s) this URL was built from — what a match on this URL must confirm. */
+  words: string[];
+}
+
+/**
+ * Guesses at the venue's domain from its own name: its first word alone
+ * (e.g. "nammos"), its first two words joined (e.g. "actrestaurant" — this is
+ * usually the real pattern for a "Brand + venue-type" name), and the full
+ * name as one word, each on .com and .ae.
+ */
+function domainCandidates(words: string[]): Candidate[] {
+  if (!words.length) return [];
+  const groupings: string[][] = [[words[0]]];
+  if (words.length > 1) groupings.push([words[0], words[1]]);
+  if (words.length > 2) groupings.push(words);
+
+  const seen = new Set<string>();
+  const out: Candidate[] = [];
+  for (const group of groupings) {
+    const base = group.join("");
+    for (const tld of ["com", "ae"]) {
+      for (const url of [`https://www.${base}.${tld}`, `https://${base}.${tld}`]) {
+        if (seen.has(url)) continue;
+        seen.add(url);
+        out.push({ url, words: group });
+      }
     }
   }
   return out;
 }
 
-async function findOfficialSite(venueName: string, area?: string): Promise<string | null> {
-  const q = encodeURIComponent(`${venueName} ${area ?? "Dubai"} official website`);
-  const html = await fetchText(`https://html.duckduckgo.com/html/?q=${q}`, 8000);
-  if (!html) return null;
+/**
+ * The false-positive guard. A candidate built from two or more words (e.g.
+ * "act" + "restaurant") is accepted once the page confirms ALL of them —
+ * a real, unrelated company sharing that exact word combination is
+ * vanishingly unlikely. A candidate built from a SINGLE word is only
+ * trusted when that word is confirmed AND isn't a short, common English
+ * word a real unrelated company could equally own.
+ */
+function isSpecificEnoughMatch(html: string, candidateWords: string[]): boolean {
+  const lower = html.toLowerCase();
+  const confirmed = candidateWords.every((w) => lower.includes(w));
+  if (!confirmed) return false;
+  if (candidateWords.length >= 2) return true;
+  const [word] = candidateWords;
+  return word.length >= 4 && !AMBIGUOUS_SHORT_WORDS.has(word);
+}
 
-  const links = resultLinks(html);
-  const nameWords = venueName
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, "")
-    .split(" ")
-    .filter((w) => w.length > 3);
+async function findOfficialSite(venueName: string): Promise<string | null> {
+  const words = venueWords(venueName);
+  if (!words.length) return null;
+  const candidates = domainCandidates(words);
 
-  const candidates = links.filter((l) => !NOT_OFFICIAL.test(l));
-  const nameMatch = candidates.find((l) => {
-    try {
-      const host = new URL(l).hostname.toLowerCase();
-      return nameWords.some((w) => host.includes(w));
-    } catch {
-      return false;
+  const fetched = await Promise.all(candidates.map((c) => fetchText(c.url, 5000)));
+  for (let i = 0; i < fetched.length; i++) {
+    const f = fetched[i];
+    if (!f) continue;
+    if (isSpecificEnoughMatch(f.html, candidates[i].words)) {
+      return f.finalUrl || candidates[i].url;
     }
-  });
-  return nameMatch ?? candidates[0] ?? null;
+  }
+  return null;
 }
 
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.]+/g;
@@ -85,12 +143,14 @@ function pickBestEmail(emails: string[]): string | undefined {
 }
 
 /**
- * Looks up a venue's own published contact info via a public, no-login web
- * search plus a live fetch of its official site. Returns null rather than a
- * fabricated fallback when nothing verifiable turns up.
+ * Looks up a venue's own published contact info: guesses its domain from its
+ * name, confirms the guess against the fetched page's own content, then
+ * reads its real email/phone. Returns null rather than a fabricated fallback
+ * when nothing verifiable turns up, or when the domain guess can't be
+ * confirmed specifically enough to trust.
  */
-export async function findVenueContact(venueName: string, area?: string): Promise<Contact | null> {
-  const site = await findOfficialSite(venueName, area);
+export async function findVenueContact(venueName: string): Promise<Contact | null> {
+  const site = await findOfficialSite(venueName);
   if (!site) return null;
 
   let base: string;
@@ -106,9 +166,9 @@ export async function findVenueContact(venueName: string, area?: string): Promis
   let sourceUrl = site;
 
   for (const page of pagesToTry) {
-    const html = await fetchText(page, 6000);
-    if (!html) continue;
-    const decoded = decodeEntities(html);
+    const fetched = await fetchText(page, 6000);
+    if (!fetched) continue;
+    const decoded = decodeEntities(fetched.html);
     const pageEmails = decoded.match(EMAIL_RE) ?? [];
     const pagePhones = decoded.match(UAE_PHONE_RE) ?? [];
     if (pageEmails.length || pagePhones.length) sourceUrl = page;
