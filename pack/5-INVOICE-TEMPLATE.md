@@ -19,13 +19,13 @@ Re: performance by DJ Emy
 |---|---|
 | Account name | EMY VISION GROUP FZC |
 | Bank | Mashreqbank PSC (Mashreq NEO BIZ) |
-| IBAN | ***REDACTED-IBAN*** |
-| SWIFT/BIC | ***REDACTED-SWIFT*** |
-| Notes | AED account ***REDACTED-ACCT***. Other currencies on request: GBP/USD/EUR. |
+| IBAN | AE060330000019102008190 |
+| SWIFT/BIC | BOMLAEAD |
+| Notes | AED account 019102008190. Other currencies on request: GBP/USD/EUR. |
 *Other currencies available on request:*
-- GBP: ***REDACTED-IBAN***
-- USD: ***REDACTED-IBAN***
-- EUR: ***REDACTED-IBAN***
+- GBP: AE760330000019102008191
+- USD: AE490330000019102008192
+- EUR: AE220330000019102008193
 *Payment to Emy Vision Group only. Direct payment to the Artist does not discharge this invoice.*
 
 *Late payments accrue interest at 2% per month.*

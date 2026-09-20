@@ -1,4 +1,4 @@
-const C="emy-v1785714680307";
+const C="emy-v1789871782382";
 self.addEventListener("install",e=>{self.skipWaiting();
   e.waitUntil(caches.open(C).then(c=>c.addAll(["./","./index.html"]).catch(()=>{})))});
 self.addEventListener("activate",e=>{e.waitUntil(

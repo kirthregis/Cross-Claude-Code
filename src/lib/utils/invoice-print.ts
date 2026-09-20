@@ -92,8 +92,8 @@ export function printInvoice(fin: GigFinances, result: GigFinancesResult): void 
     <p>
       Account Name: <strong>EMY VISION GROUP FZC</strong><br/>
       Bank: Mashreqbank PSC (Mashreq NEO BIZ)<br/>
-      IBAN (AED): ***REDACTED-IBAN***<br/>
-      SWIFT: ***REDACTED-SWIFT***<br/>
+      IBAN (AED): AE060330000019102008190<br/>
+      SWIFT: BOMLAEAD<br/>
       <em>Other currencies (GBP / USD / EUR) available on request.</em>
     </p>
   </div>

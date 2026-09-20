@@ -73,13 +73,13 @@ const EVG: Edition = {
   bank: {
     accountName: "EMY VISION GROUP FZC",
     bankName: "Mashreqbank PSC (Mashreq NEO BIZ)",
-    accountNo: "***REDACTED-ACCT***",
-    iban: "***REDACTED-IBAN***",
-    swift: "***REDACTED-SWIFT***",
+    accountNo: "019102008190",
+    iban: "AE060330000019102008190",
+    swift: "BOMLAEAD",
     alternates: [
-      { currency: "GBP", iban: "***REDACTED-IBAN***" },
-      { currency: "USD", iban: "***REDACTED-IBAN***" },
-      { currency: "EUR", iban: "***REDACTED-IBAN***" },
+      { currency: "GBP", iban: "AE760330000019102008191" },
+      { currency: "USD", iban: "AE490330000019102008192" },
+      { currency: "EUR", iban: "AE220330000019102008193" },
     ],
   },
   showArtistLegalName: false,
@@ -107,13 +107,13 @@ const PERSONAL: Edition = {
   bank: {
     accountName: "EMY VISION GROUP FZC",
     bankName: "Mashreqbank PSC (Mashreq NEO BIZ)",
-    accountNo: "***REDACTED-ACCT***",
-    iban: "***REDACTED-IBAN***",
-    swift: "***REDACTED-SWIFT***",
+    accountNo: "019102008190",
+    iban: "AE060330000019102008190",
+    swift: "BOMLAEAD",
     alternates: [
-      { currency: "GBP", iban: "***REDACTED-IBAN***" },
-      { currency: "USD", iban: "***REDACTED-IBAN***" },
-      { currency: "EUR", iban: "***REDACTED-IBAN***" },
+      { currency: "GBP", iban: "AE760330000019102008191" },
+      { currency: "USD", iban: "AE490330000019102008192" },
+      { currency: "EUR", iban: "AE220330000019102008193" },
     ],
   },
   showArtistLegalName: true,
@@ -900,7 +900,7 @@ for (const [needle, what] of banned) {
 
 // Both editions settle to EVG by design — one accountable contracted party.
 // Guard instead that no PERSONAL account number ever reaches a client document.
-const PERSONAL_ACCOUNTS = ["***REDACTED-IBAN***", "***REDACTED-ACCT***"];
+const PERSONAL_ACCOUNTS = ["AE270330000019102066206", "019102066206"];
 if (!PUBLIC) {
   for (const acct of PERSONAL_ACCOUNTS) {
     if (html.includes(acct)) {

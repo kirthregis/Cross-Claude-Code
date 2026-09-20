@@ -22,7 +22,7 @@ EVG — Mashreq Bank Details
 Account Name: EMY VISION GROUP FZ-LLC
 Bank: Mashreq Bank PSC
 IBAN: AE73 0330 0000 1910 0000 000
-SWIFT: ***REDACTED-SWIFT***
+SWIFT: BOMLAEAD
 Branch: Business Bay
 `;
 
@@ -39,9 +39,9 @@ describe("IBAN", () => {
 });
 
 describe("SWIFT", () => {
-  it("prefers a labelled value", () => expect(findSwift("SWIFT: ***REDACTED-SWIFT***")).toBe("***REDACTED-SWIFT***"));
+  it("prefers a labelled value", () => expect(findSwift("SWIFT: BOMLAEAD")).toBe("BOMLAEAD"));
   it("matches BIC label", () => expect(findSwift("BIC Code - EBILAEAD")).toBe("EBILAEAD"));
-  it("falls back to shape", () => expect(findSwift("...***REDACTED-SWIFT***...")).toBe("***REDACTED-SWIFT***"));
+  it("falls back to shape", () => expect(findSwift("...BOMLAEAD...")).toBe("BOMLAEAD"));
 });
 
 describe("trade licence", () => {
@@ -86,7 +86,7 @@ describe("whole documents", () => {
     expect(d.accountName).toBe("EMY VISION GROUP FZ-LLC");
     expect(d.bankName).toMatch(/Mashreq/);
     expect(d.iban).toBe("AE730330000019100000000");
-    expect(d.swift).toBe("***REDACTED-SWIFT***");
+    expect(d.swift).toBe("BOMLAEAD");
   });
 
   it("merges licence + bank into one complete record", () => {

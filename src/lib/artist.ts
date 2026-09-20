@@ -163,9 +163,9 @@ export const DJ_EMY: ArtistProfile = {
     bank: {
       accountName: "EMY VISION GROUP FZC",
       bankName: "Mashreqbank PSC (Mashreq NEO BIZ)",
-      iban: "***REDACTED-IBAN***",
-      swift: "***REDACTED-SWIFT***",
-      notes: "AED account ***REDACTED-ACCT***. Other currencies on request: GBP/USD/EUR.",
+      iban: "AE060330000019102008190",
+      swift: "BOMLAEAD",
+      notes: "AED account 019102008190. Other currencies on request: GBP/USD/EUR.",
       /**
        * Multi-currency IBANs. Quoted on the invoice only when the client is
        * paying in that currency.
@@ -176,9 +176,9 @@ export const DJ_EMY: ArtistProfile = {
        * client. Payments only ever need account name + IBAN + SWIFT.
        */
       alternates: [
-        { currency: "GBP", iban: "***REDACTED-IBAN***" },
-        { currency: "USD", iban: "***REDACTED-IBAN***" },
-        { currency: "EUR", iban: "***REDACTED-IBAN***" },
+        { currency: "GBP", iban: "AE760330000019102008191" },
+        { currency: "USD", iban: "AE490330000019102008192" },
+        { currency: "EUR", iban: "AE220330000019102008193" },
       ],
     },
   },

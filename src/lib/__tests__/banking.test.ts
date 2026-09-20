@@ -21,8 +21,8 @@ describe("EVG entity + settlement details", () => {
     const { generateDealPack } = await import("../contract");
     const inv = generateDealPack(gig()).invoice;
     expect(inv).toContain("EMY VISION GROUP FZC");
-    expect(inv).toContain("***REDACTED-IBAN***");   // AED IBAN
-    expect(inv).toContain("***REDACTED-SWIFT***");
+    expect(inv).toContain("AE060330000019102008190");   // AED IBAN
+    expect(inv).toContain("BOMLAEAD");
     expect(inv).toMatch(/Mashreq/i);
     expect(inv).not.toMatch(/_{6,}/);                   // no blanks left
   });
@@ -30,9 +30,9 @@ describe("EVG entity + settlement details", () => {
   it("offers the other currency accounts", async () => {
     const { generateDealPack } = await import("../contract");
     const inv = generateDealPack(gig()).invoice;
-    expect(inv).toContain("***REDACTED-IBAN***");   // GBP
-    expect(inv).toContain("***REDACTED-IBAN***");   // USD
-    expect(inv).toContain("***REDACTED-IBAN***");   // EUR
+    expect(inv).toContain("AE760330000019102008191");   // GBP
+    expect(inv).toContain("AE490330000019102008192");   // USD
+    expect(inv).toContain("AE220330000019102008193");   // EUR
   });
 
   it("NEVER prints the Mashreq CIF — it is also the statement password", async () => {
@@ -56,7 +56,7 @@ describe("EVG entity + settlement details", () => {
     saveProfile({
       management: {
         tradeLicenceNo: "CN-1234567",
-        bank: { accountName: "Emy Vision Group", bankName: "Mashreq Bank", iban: "AE000000000000000000000", swift: "***REDACTED-SWIFT***" },
+        bank: { accountName: "Emy Vision Group", bankName: "Mashreq Bank", iban: "AE000000000000000000000", swift: "BOMLAEAD" },
       } as never,
     });
 
@@ -64,7 +64,7 @@ describe("EVG entity + settlement details", () => {
     const pack = generateDealPack(gig());
     expect(pack.invoice).toContain("Mashreq Bank");
     expect(pack.invoice).toContain("AE000000000000000000000");
-    expect(pack.invoice).toContain("***REDACTED-SWIFT***");
+    expect(pack.invoice).toContain("BOMLAEAD");
     expect(pack.contract).toContain("CN-1234567");
 
     const g = profileGaps().join(" ");

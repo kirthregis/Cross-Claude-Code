@@ -184,13 +184,13 @@ export function generateInvoice(g: Gig, t: DealTerms): string {
   const bank = profile.management.bank || {
     accountName: "EMY VISION GROUP FZC",
     bankName: "Mashreqbank PSC (Mashreq NEO BIZ)",
-    iban: "***REDACTED-IBAN***",
-    swift: "***REDACTED-SWIFT***",
-    notes: "AED account ***REDACTED-ACCT***. Other currencies on request: GBP/USD/EUR.",
+    iban: "AE060330000019102008190",
+    swift: "BOMLAEAD",
+    notes: "AED account 019102008190. Other currencies on request: GBP/USD/EUR.",
     alternates: [
-      { currency: "GBP", iban: "***REDACTED-IBAN***" },
-      { currency: "USD", iban: "***REDACTED-IBAN***" },
-      { currency: "EUR", iban: "***REDACTED-IBAN***" },
+      { currency: "GBP", iban: "AE760330000019102008191" },
+      { currency: "USD", iban: "AE490330000019102008192" },
+      { currency: "EUR", iban: "AE220330000019102008193" },
     ],
   };
 
@@ -198,9 +198,9 @@ export function generateInvoice(g: Gig, t: DealTerms): string {
   const balance = t.agreedFeeAed - deposit;
 
   const altLines = (bank.alternates || [
-    { currency: "GBP", iban: "***REDACTED-IBAN***" },
-    { currency: "USD", iban: "***REDACTED-IBAN***" },
-    { currency: "EUR", iban: "***REDACTED-IBAN***" },
+    { currency: "GBP", iban: "AE760330000019102008191" },
+    { currency: "USD", iban: "AE490330000019102008192" },
+    { currency: "EUR", iban: "AE220330000019102008193" },
   ])
     .map((a) => `- ${a.currency}: ${a.iban}`)
     .join("\n");
@@ -225,8 +225,8 @@ Re: performance by ${profile.name}
 |---|---|
 | Account name | ${bank.accountName || "EMY VISION GROUP FZC"} |
 | Bank | ${bank.bankName || "Mashreqbank PSC (Mashreq NEO BIZ)"} |
-| IBAN | ${bank.iban || "***REDACTED-IBAN***"} |
-| SWIFT/BIC | ${bank.swift || "***REDACTED-SWIFT***"} |
+| IBAN | ${bank.iban || "AE060330000019102008190"} |
+| SWIFT/BIC | ${bank.swift || "BOMLAEAD"} |
 | Notes | ${bank.notes || "AED account. Other currencies on request: GBP/USD/EUR."} |
 
 *Other currencies available on request:*
