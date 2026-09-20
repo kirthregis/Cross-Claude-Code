@@ -11,6 +11,7 @@ import { alert, sendMorningDigest, isDigestTime } from "./notify";
 import { upsertGig, alreadyAlerted, recordSweep } from "./db";
 import type { Gig, RawLead } from "./types";
 import { registerProfileLoader } from "./profile-store";
+import { findVenueContact } from "./contacts/venue-lookup";
 
 // Inbound leads are scored and priced — make sure saved rate overrides apply.
 registerProfileLoader();
@@ -28,17 +29,37 @@ export interface SweepResult {
 export async function processLeads(leads: RawLead[]): Promise<SweepResult> {
   const errors: string[] = [];
   const fresh: Gig[] = [];
+  const bases: Omit<Gig, "id" | "score" | "stage">[] = [];
 
   for (const lead of leads) {
     try {
-      const base = normalise(lead);
-      const s = scoreGig(base);
-      const gig: Gig = { ...base, id: nanoid(10), score: s.score, stage: "new" };
-      const { inserted } = upsertGig(gig);
-      if (inserted) fresh.push(gig);
+      bases.push(normalise(lead));
     } catch (e) {
       errors.push(`normalise failed for "${lead.title}": ${e}`);
     }
+  }
+
+  // A posting rarely states the venue's own contact — it names the venue and
+  // routes replies through the job board. Look up each venue's own published
+  // contact live so there's someone real to message, not just a listing URL.
+  await Promise.allSettled(
+    bases.map(async (base) => {
+      const hasDirectContact = base.contacts?.some((c) => c.email || c.phone);
+      if (!base.venueName || hasDirectContact) return;
+      try {
+        const found = await findVenueContact(base.venueName, base.area);
+        if (found) base.contacts = [found, ...(base.contacts ?? [])];
+      } catch (e) {
+        errors.push(`contact lookup failed for "${base.venueName}": ${e}`);
+      }
+    }),
+  );
+
+  for (const base of bases) {
+    const s = scoreGig(base);
+    const gig: Gig = { ...base, id: nanoid(10), score: s.score, stage: "new" };
+    const { inserted } = upsertGig(gig);
+    if (inserted) fresh.push(gig);
   }
 
   let alerted = 0;

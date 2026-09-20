@@ -125,10 +125,19 @@ export function generatePitch(gig: Gig): string {
   return pitch(gig, "email").body;
 }
 
+/**
+ * The WhatsApp link for THIS gig — to the venue's own number when one was
+ * found (gig.contacts, or a number stated in the posting itself), never to
+ * Emy's own management number. With no number found, wa.me still opens with
+ * the pitch pre-filled and lets her pick who to send it to, rather than
+ * silently pointing the button at the wrong person.
+ */
 export function generateWhatsAppLink(gig: Gig): string {
-  const profile = activeProfile();
   const p = pitch(gig, "whatsapp");
-  return whatsappDeepLink(profile.management.phone, p.body);
+  const contact = gig.contacts?.find((c) => c.whatsapp || c.phone);
+  const stated = !contact ? gig.body.match(/(?:\+971|00971|05)\s*\d[\d\s-]{6,12}/) : null;
+  const phone = contact?.whatsapp || contact?.phone || stated?.[0] || "";
+  return whatsappDeepLink(phone, p.body);
 }
 
 export interface ContactStrategyItem {

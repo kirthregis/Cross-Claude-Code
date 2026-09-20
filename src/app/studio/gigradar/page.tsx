@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getGigs, updateGigStage, upsertGig } from "@/lib/db";
-import { generateWhatsAppLink } from "@/lib/outreach";
+import { generateWhatsAppLink, pitch } from "@/lib/outreach";
+import { mailtoLink } from "@/lib/channels";
 import { Gig, GigStage } from "@/lib/types";
 import { getRegistry, saveRegistry, type CountryConfig } from "@/lib/sources/registry";
 import { UAE_VENUES, generatePitchEmail, getGigRevenue, upsertGigRevenue, totalRevenue, getDueFollowUps, type GigRevenue, type VenueContact } from "@/lib/studio/gigradar-ai";
@@ -133,7 +134,85 @@ export default function GigRadarPage() {
 
   const rev = totalRevenue();
   const visible = filter === "all" ? gigs : gigs.filter(g => g.stage === filter);
+  const isPrivateGig = (g: Gig) => g.venueTier === "private" || g.venueTier === "private_event";
+  const venueGigs = visible.filter(g => !isPrivateGig(g));
+  const privateGigs = visible.filter(isPrivateGig);
   const filteredVenues = venueFilter === "all" ? UAE_VENUES : UAE_VENUES.filter(v => v.tier === venueFilter);
+
+  const renderGigCard = (g: Gig) => {
+    const gigRev = revenueData.find(r => r.gigId === g.id);
+    const contact = g.contacts?.find(c => c.email || c.phone || c.whatsapp);
+    const hasWhatsapp = !!(contact?.whatsapp || contact?.phone) || /(?:\+971|00971|05)\s*\d[\d\s-]{6,12}/.test(g.body);
+    const contactHost = contact?.sourceUrl ? (() => { try { return new URL(contact.sourceUrl!).hostname; } catch { return null; } })() : null;
+    return (
+      <div key={g.id} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 hover:border-zinc-700 transition">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500">{g.sourceKind}</span>
+              <span className="text-[10px] text-zinc-600">•</span>
+              <span className="text-[10px] text-zinc-500">{new Date(g.postedAt).toLocaleDateString("en-GB")}</span>
+              {g.score > 0 && (
+                <span className={"text-[10px] font-bold " + (g.score >= 70 ? "text-green-400" : g.score >= 50 ? "text-yellow-400" : "text-zinc-500")}>
+                  Score: {g.score}
+                </span>
+              )}
+              {gigRev && <span className="text-[10px] font-bold text-fuchsia-400">💰 {gigRev.amount} {gigRev.currency}</span>}
+            </div>
+            <h3 className="text-base font-bold text-white leading-tight">{g.title}</h3>
+            <p className="text-sm text-zinc-400 line-clamp-2">{g.body}</p>
+            {g.sourceUrl && <a href={g.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-400 hover:text-blue-300">View original →</a>}
+            {contact ? (
+              <p className="text-[11px] text-emerald-400">
+                {contact.email && <>📧 {contact.email} </>}
+                {contact.phone && <>📱 {contact.phone} </>}
+                {contactHost ? <span className="text-zinc-600">· found on {contactHost}</span> : <span className="text-zinc-600">· as posted</span>}
+              </p>
+            ) : (
+              <p className="text-[11px] text-zinc-600">No direct contact found yet — use &quot;View original&quot; to apply.</p>
+            )}
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <button onClick={() => { setSelectedGig(g); void generatePitch(g); setTab("radar"); }}
+              className="flex items-center gap-1 rounded-xl bg-fuchsia-600 px-3 py-2 text-xs font-bold text-white hover:bg-fuchsia-500 transition">
+              ✉ AI Pitch
+            </button>
+            {contact?.email && (
+              <a href={mailtoLink(contact.email, pitch(g, "email").subject || `DJ Booking Enquiry — ${g.title}`, pitch(g, "email").body)}
+                className="flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-500 transition">
+                📧 Email
+              </a>
+            )}
+            {hasWhatsapp && (
+              <a href={generateWhatsAppLink(g)} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 rounded-xl bg-green-600 px-3 py-2 text-xs font-bold text-white hover:bg-green-500 transition">
+                💬 WhatsApp
+              </a>
+            )}
+            <select value={g.stage} onChange={e => handleStageChange(g.id, e.target.value as GigStage)}
+              className="rounded-xl bg-zinc-800 px-3 py-2 text-xs font-bold text-white border-none focus:ring-2 focus:ring-blue-500">
+              {STAGES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+              <option value="archived">ARCHIVE</option>
+            </select>
+          </div>
+        </div>
+        {!gigRev && (
+          <div className="mt-3 border-t border-zinc-800 pt-3">
+            <RevenueTracker gigId={g.id} onSave={refresh} />
+          </div>
+        )}
+        {gigRev && (
+          <div className="mt-3 border-t border-zinc-800 pt-3 flex items-center gap-3">
+            <span className={"text-xs rounded-full px-2 py-0.5 font-semibold " + (gigRev.paid ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300")}>
+              {gigRev.paid ? "✓ Paid" : "⏳ Pending"}
+            </span>
+            <span className="text-xs text-zinc-500">{gigRev.amount} {gigRev.currency}</span>
+            <button onClick={() => { upsertGigRevenue({ ...gigRev, paid: !gigRev.paid }); refresh(); }} className="text-xs text-zinc-600 hover:text-fuchsia-400">toggle paid</button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-5">
@@ -192,66 +271,27 @@ export default function GigRadarPage() {
             ))}
           </div>
 
-          {visible.length === 0 ? (
+          {venueGigs.length === 0 && privateGigs.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-zinc-800 p-12 text-center">
               <p className="text-zinc-500 text-sm">No gigs in this stage.</p>
               <p className="text-zinc-600 text-xs mt-2">Press &quot;Sweep Now&quot; to pull from UAE feeds, or use &quot;Add Lead&quot; to paste one manually.</p>
             </div>
           ) : (
-            visible.map(g => {
-              const gigRev = revenueData.find(r => r.gigId === g.id);
-              return (
-                <div key={g.id} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 hover:border-zinc-700 transition">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500">{g.sourceKind}</span>
-                        <span className="text-[10px] text-zinc-600">•</span>
-                        <span className="text-[10px] text-zinc-500">{new Date(g.postedAt).toLocaleDateString("en-GB")}</span>
-                        {g.score > 0 && (
-                          <span className={"text-[10px] font-bold " + (g.score >= 70 ? "text-green-400" : g.score >= 50 ? "text-yellow-400" : "text-zinc-500")}>
-                            Score: {g.score}
-                          </span>
-                        )}
-                        {gigRev && <span className="text-[10px] font-bold text-fuchsia-400">💰 {gigRev.amount} {gigRev.currency}</span>}
-                      </div>
-                      <h3 className="text-base font-bold text-white leading-tight">{g.title}</h3>
-                      <p className="text-sm text-zinc-400 line-clamp-2">{g.body}</p>
-                      {g.sourceUrl && <a href={g.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-400 hover:text-blue-300">View original →</a>}
-                    </div>
-                    <div className="flex shrink-0 flex-wrap gap-2">
-                      <button onClick={() => { setSelectedGig(g); void generatePitch(g); setTab("radar"); }}
-                        className="flex items-center gap-1 rounded-xl bg-fuchsia-600 px-3 py-2 text-xs font-bold text-white hover:bg-fuchsia-500 transition">
-                        ✉ AI Pitch
-                      </button>
-                      <a href={generateWhatsAppLink(g)} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-xl bg-green-600 px-3 py-2 text-xs font-bold text-white hover:bg-green-500 transition">
-                        💬 WhatsApp
-                      </a>
-                      <select value={g.stage} onChange={e => handleStageChange(g.id, e.target.value as GigStage)}
-                        className="rounded-xl bg-zinc-800 px-3 py-2 text-xs font-bold text-white border-none focus:ring-2 focus:ring-blue-500">
-                        {STAGES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
-                        <option value="archived">ARCHIVE</option>
-                      </select>
-                    </div>
-                  </div>
-                  {!gigRev && (
-                    <div className="mt-3 border-t border-zinc-800 pt-3">
-                      <RevenueTracker gigId={g.id} onSave={refresh} />
-                    </div>
-                  )}
-                  {gigRev && (
-                    <div className="mt-3 border-t border-zinc-800 pt-3 flex items-center gap-3">
-                      <span className={"text-xs rounded-full px-2 py-0.5 font-semibold " + (gigRev.paid ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300")}>
-                        {gigRev.paid ? "✓ Paid" : "⏳ Pending"}
-                      </span>
-                      <span className="text-xs text-zinc-500">{gigRev.amount} {gigRev.currency}</span>
-                      <button onClick={() => { upsertGigRevenue({ ...gigRev, paid: !gigRev.paid }); refresh(); }} className="text-xs text-zinc-600 hover:text-fuchsia-400">toggle paid</button>
-                    </div>
-                  )}
+            <>
+              {venueGigs.map(renderGigCard)}
+
+              <div className="pt-2">
+                <SectionLabel>🔒 Private Gigs</SectionLabel>
+                <p className="mt-1 text-xs text-zinc-500">One-off private bookings — weddings, birthdays, villa and yacht parties — detected separately from venue and job-board postings.</p>
+              </div>
+              {privateGigs.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-zinc-800 p-6 text-center">
+                  <p className="text-zinc-600 text-xs">No private gig requests found yet.</p>
                 </div>
-              );
-            })
+              ) : (
+                privateGigs.map(renderGigCard)
+              )}
+            </>
           )}
 
           {pitchEmail && selectedGig && (

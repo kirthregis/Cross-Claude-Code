@@ -10,6 +10,10 @@ export interface Contact {
   email?: string;
   instagram?: string;
   decisionPower?: number;
+  /** Where this was found — a real page fetched live, not a guess. Absent for contacts read straight out of the lead's own text. */
+  sourceUrl?: string;
+  /** True only for contacts pulled fresh from the venue's own official site — never set on a pattern guess. */
+  verified?: boolean;
 }
 
 export interface Gig {

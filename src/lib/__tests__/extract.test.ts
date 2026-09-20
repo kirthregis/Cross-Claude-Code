@@ -1,8 +1,23 @@
 import { describe, it, expect } from "vitest";
 import {
   detectBudgetAed, detectSetLength, detectSlot, detectVenueTier,
-  detectArea, detectContacts, detectEventDate, fingerprint, normalise,
+  detectArea, detectContacts, detectEventDate, detectVenueName, fingerprint, normalise,
 } from "../extract";
+
+describe("venue name extraction", () => {
+  it("reads a named venue after 'at'", () => {
+    expect(detectVenueName("DJ needed at White Dubai this Friday")).toBe("White Dubai");
+  });
+  it("reads a job-board title in 'DJ — Venue' form", () => {
+    expect(detectVenueName("DJ — Nammos Dubai")).toBe("Nammos Dubai");
+  });
+  it("reads 'Resident DJ - Venue' with a hyphen", () => {
+    expect(detectVenueName("Resident DJ - Act Restaurant, Lounge and bar")).toBe("Act Restaurant, Lounge and bar");
+  });
+  it("finds nothing when there's no venue signal", () => {
+    expect(detectVenueName("Looking for a DJ for a private party")).toBeUndefined();
+  });
+});
 
 describe("budget extraction", () => {
   it("reads AED amounts", () => {

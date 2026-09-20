@@ -200,6 +200,9 @@ export function fingerprint(g: { venueName?: string; eventDate?: string; title: 
 export function detectVenueName(text: string): string | undefined {
   const at = text.match(/\b(?:at|@)\s+([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*){0,3})/);
   if (at) return at[1].trim();
+  // Job-board title convention: "DJ — Venue Name" / "Resident DJ - Venue Name".
+  const dash = text.match(/^(?:resident\s+)?dj\s*[—–-]\s*([A-Za-z][\w'&., ]{2,60})/i);
+  if (dash) return dash[1].trim();
   return undefined;
 }
 
