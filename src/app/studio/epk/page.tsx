@@ -15,11 +15,13 @@ import {
   type EpkFileInfo,
 } from "@/lib/studio/epk-store";
 import { formatBytes } from "@/lib/studio/dsp";
+import { generatePressKitDoc, generateTechRiderDoc } from "@/lib/kit-generator";
 
 export default function EpkPage() {
   const { arabic } = useArabic();
   const [pdf, setPdf] = useState<EpkFileInfo | null>(null);
   const [portrait, setPortrait] = useState<EpkFileInfo | null>(null);
+  const [techRider, setTechRider] = useState<EpkFileInfo | null>(null);
   const [portraitUrl, setPortraitUrl] = useState<string | null>(null);
   const [notes, setNotes] = useState<string>("");
   const [savedFlash, setSavedFlash] = useState(false);
@@ -27,11 +29,13 @@ export default function EpkPage() {
   const [busy, setBusy] = useState(false);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const riderInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
     const state = await getEpkState();
     setPdf(state.pdf);
     setPortrait(state.portrait);
+    setTechRider(state.techRider);
     setNotes(state.notes);
     const url = await getEpkPortraitDataUrl();
     setPortraitUrl(url);
@@ -53,6 +57,71 @@ export default function EpkPage() {
       setBusy(false);
     }
   }, []);
+
+  const onGeneratePressKit = useCallback(async () => {
+    setBusy(true);
+    try {
+      const text = generatePressKitDoc();
+      const file = new File([text], "DJ-Emy-Press-Kit.md", { type: "text/markdown" });
+      const state = await saveEpkFile(file, "pdf");
+      setPdf(state.pdf);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1500);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  const onUploadTechRider = useCallback(async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const state = await saveEpkFile(file, "techRider");
+      setTechRider(state.techRider);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1500);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  const onGenerateTechRider = useCallback(async () => {
+    setBusy(true);
+    try {
+      const text = generateTechRiderDoc();
+      const file = new File([text], "DJ-Emy-Tech-Rider.md", { type: "text/markdown" });
+      const state = await saveEpkFile(file, "techRider");
+      setTechRider(state.techRider);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1500);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  const removeTechRider = useCallback(async () => {
+    await removeEpkFile("techRider");
+    setTechRider(null);
+  }, []);
+
+  const openTechRider = useCallback(async () => {
+    const blob = await getEpkBlob("techRider");
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }, []);
+
+  const downloadTechRider = useCallback(async () => {
+    const blob = await getEpkBlob("techRider");
+    if (!blob || !techRider) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = techRider.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }, [techRider]);
 
   const onUploadPortrait = useCallback(async (file: File | undefined) => {
     if (!file) return;
@@ -120,25 +189,28 @@ export default function EpkPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="brand-text-grad text-3xl font-extrabold tracking-tight">
-            EPK — press kit
+            EPK — press kit &amp; tech rider
           </h1>
           <p className="mt-1 max-w-xl text-sm text-zinc-400">
-            Upload her own press kit here — the PDF, the portrait, and any quick notes. It&apos;s stored on this device, ready to view or download any time.
+            Upload her own press kit, photo and tech rider here, or generate any of them straight from her profile if she doesn&apos;t have one yet. Everything is stored on this device, ready to view, download or replace any time.
           </p>
         </div>
         {savedFlash && <span className="text-xs font-semibold text-emerald-300">✓ Saved</span>}
         <Link href="/studio" className="text-xs text-zinc-500 hover:text-zinc-300">← Back to studio</Link>
       </div>
 
-      {/* EPK file */}
+      {/* EPK / press kit file */}
       <Card className="p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <SectionLabel>Her EPK file</SectionLabel>
+            <SectionLabel>Her EPK / press kit</SectionLabel>
             <p className="mt-1 text-xs text-zinc-500">PDF, text or image — the latest press kit she sends to venues and labels.</p>
           </div>
           <input ref={pdfInputRef} type="file" accept=".pdf,.txt,.md,.doc,.docx,image/*" className="hidden" onChange={(e) => void onUploadPdf(e.target.files?.[0])} />
-          <Button onClick={() => pdfInputRef.current?.click()} disabled={busy}>{pdf ? "Replace EPK" : "⬆ Upload EPK"}</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => pdfInputRef.current?.click()} disabled={busy}>{pdf ? "Replace" : "⬆ Upload"}</Button>
+            <Button variant="ghost" onClick={() => void onGeneratePressKit()} disabled={busy}>⚡ {pdf ? "Regenerate" : "Generate"} from profile</Button>
+          </div>
         </div>
 
         {pdf ? (
@@ -155,7 +227,40 @@ export default function EpkPage() {
           </div>
         ) : (
           <div className="mt-3 rounded-xl border border-dashed border-zinc-700 p-6 text-center text-xs text-zinc-500">
-            No EPK uploaded yet — tap “Upload EPK” and pick her press kit file.
+            No press kit yet — upload her own file, or tap &quot;Generate from profile&quot; to build one now from her bio and appearances.
+          </div>
+        )}
+      </Card>
+
+      {/* Tech rider */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <SectionLabel>Tech rider</SectionLabel>
+            <p className="mt-1 text-xs text-zinc-500">The equipment and booth spec sent to venues ahead of a booking.</p>
+          </div>
+          <input ref={riderInputRef} type="file" accept=".pdf,.txt,.md,.doc,.docx" className="hidden" onChange={(e) => void onUploadTechRider(e.target.files?.[0])} />
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => riderInputRef.current?.click()} disabled={busy}>{techRider ? "Replace" : "⬆ Upload"}</Button>
+            <Button variant="ghost" onClick={() => void onGenerateTechRider()} disabled={busy}>⚡ {techRider ? "Regenerate" : "Generate"} from profile</Button>
+          </div>
+        </div>
+
+        {techRider ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2.5">
+            <div className="min-w-0">
+              <div className="truncate text-[13px] font-semibold text-zinc-200">📄 {techRider.name}</div>
+              <div className="font-mono text-[10px] text-zinc-600">{formatBytes(techRider.sizeBytes)} · {new Date(techRider.addedAt).toLocaleDateString()}</div>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => void openTechRider()}>View</Button>
+              <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => void downloadTechRider()}>⬇ Download</Button>
+              <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => void removeTechRider()}>Remove</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-3 rounded-xl border border-dashed border-zinc-700 p-6 text-center text-xs text-zinc-500">
+            No tech rider yet — upload her own file, or tap &quot;Generate from profile&quot; to build one now from her saved equipment list.
           </div>
         )}
       </Card>

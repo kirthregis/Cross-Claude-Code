@@ -14,9 +14,12 @@ export interface EpkFileInfo {
   addedAt: number;
 }
 
+export type EpkFileKind = "pdf" | "portrait" | "techRider";
+
 export interface EpkState {
   pdf: EpkFileInfo | null;
   portrait: EpkFileInfo | null;
+  techRider: EpkFileInfo | null;
   notes: string;
 }
 
@@ -37,21 +40,23 @@ function idb(): Promise<IDBDatabase | null> {
   });
 }
 
-function readMeta(): { pdf: EpkFileInfo | null; portrait: EpkFileInfo | null } {
-  if (typeof window === "undefined") return { pdf: null, portrait: null };
+type MetaShape = { pdf: EpkFileInfo | null; portrait: EpkFileInfo | null; techRider: EpkFileInfo | null };
+
+function readMeta(): MetaShape {
+  if (typeof window === "undefined") return { pdf: null, portrait: null, techRider: null };
   try {
     const raw = window.localStorage.getItem(META_KEY);
-    if (!raw) return { pdf: null, portrait: null };
-    const p = JSON.parse(raw) as Partial<EpkState>;
-    return { pdf: p.pdf ?? null, portrait: p.portrait ?? null };
+    if (!raw) return { pdf: null, portrait: null, techRider: null };
+    const p = JSON.parse(raw) as Partial<MetaShape>;
+    return { pdf: p.pdf ?? null, portrait: p.portrait ?? null, techRider: p.techRider ?? null };
   } catch {
-    return { pdf: null, portrait: null };
+    return { pdf: null, portrait: null, techRider: null };
   }
 }
 
-function writeMeta(pdf: EpkFileInfo | null, portrait: EpkFileInfo | null): void {
+function writeMeta(meta: MetaShape): void {
   try {
-    window.localStorage.setItem(META_KEY, JSON.stringify({ pdf, portrait }));
+    window.localStorage.setItem(META_KEY, JSON.stringify(meta));
   } catch {
     /* noop */
   }
@@ -74,8 +79,8 @@ export function saveEpkNotes(notes: string): void {
   }
 }
 
-/** Save an uploaded EPK file (pdf) or portrait image. Returns the new state. */
-export async function saveEpkFile(file: File, kind: "pdf" | "portrait"): Promise<EpkState> {
+/** Save an uploaded or generated file for the given slot. Returns the new state. */
+export async function saveEpkFile(file: File, kind: EpkFileKind): Promise<EpkState> {
   const info: EpkFileInfo = { name: file.name, sizeBytes: file.size, type: file.type || "application/octet-stream", addedAt: Date.now() };
   const db = await idb();
   if (db) {
@@ -88,12 +93,11 @@ export async function saveEpkFile(file: File, kind: "pdf" | "portrait"): Promise
     });
   }
   const m = readMeta();
-  if (kind === "pdf") writeMeta(info, m.portrait);
-  else writeMeta(m.pdf, info);
+  writeMeta({ ...m, [kind]: info });
   return getEpkState();
 }
 
-export async function getEpkBlob(kind: "pdf" | "portrait"): Promise<Blob | null> {
+export async function getEpkBlob(kind: EpkFileKind): Promise<Blob | null> {
   const db = await idb();
   if (!db) return null;
   return new Promise((resolve) => {
@@ -105,7 +109,7 @@ export async function getEpkBlob(kind: "pdf" | "portrait"): Promise<Blob | null>
 
 export async function getEpkState(): Promise<EpkState> {
   const m = readMeta();
-  return { pdf: m.pdf, portrait: m.portrait, notes: loadEpkNotes() };
+  return { pdf: m.pdf, portrait: m.portrait, techRider: m.techRider, notes: loadEpkNotes() };
 }
 
 export async function getEpkPortraitDataUrl(): Promise<string | null> {
@@ -119,7 +123,7 @@ export async function getEpkPortraitDataUrl(): Promise<string | null> {
   });
 }
 
-export async function removeEpkFile(kind: "pdf" | "portrait"): Promise<void> {
+export async function removeEpkFile(kind: EpkFileKind): Promise<void> {
   const db = await idb();
   if (db) {
     await new Promise<void>((resolve) => {
@@ -131,6 +135,5 @@ export async function removeEpkFile(kind: "pdf" | "portrait"): Promise<void> {
     });
   }
   const m = readMeta();
-  if (kind === "pdf") writeMeta(null, m.portrait);
-  else writeMeta(m.pdf, null);
+  writeMeta({ ...m, [kind]: null });
 }
