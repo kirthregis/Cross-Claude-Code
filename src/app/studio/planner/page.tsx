@@ -91,7 +91,7 @@ export default function PlannerPage() {
       "", "SOUNDCHECK:", "  " + soundcheck,
       "", "HOSPITALITY:",
       ...hospitality.map(h => "  • " + h),
-      "", "CONTACT: mannaiiman1@gmail.com | +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)",
+      "", "CONTACT: admin@emyvisiongroup.com | +971 50 344 3281 (UAE) · +974 7476 7686 (Qatar) · +971 50 660 7743 (Kirth, backup)",
       "Trade Licence: 4427087.01 — Emy Vision Group FZC",
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/plain" });

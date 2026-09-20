@@ -49,20 +49,22 @@ describe("Afro House is her core genre", () => {
 describe("bookings route through Emy Vision Group", () => {
   const g = gig("Afro House DJ at a beach club on 14th September, 2hr peak set, AED 9,000. Contact events@venue.ae");
 
-  it("pitches from EVG, not first-person from the artist", () => {
+  it("pitches from EVG with DJ Emy as the lead contact, Kirth as backup", () => {
     const w = pitch(g, "whatsapp").body;
     expect(w).toContain("Emy Vision Group");
-    expect(w).toContain("Kirth");
     expect(w).toContain(DJ_EMY.phone);
-    // must NOT be written as the artist herself
+    expect(w).toContain("Kirth, backup");
+    // must NOT be written as the artist herself, first person
     expect(w).not.toMatch(/^Hi there! DJ Emy here/);
   });
 
-  it("email pitch carries proof points and the EVG signature", () => {
+  it("email pitch carries proof points, admin@ email, and Kirth as backup contact", () => {
     const e = pitch(g, "email");
     expect(e.subject).toContain("DJ Emy");
     expect(e.body).toContain("Emy Vision Group");
-    expect(e.body).toContain(DJ_EMY.email);
+    expect(e.body).toContain(DJ_EMY.management.email);
+    expect(e.body).toContain(DJ_EMY.phone);
+    expect(e.body).toContain("Kirth, backup");
     expect(e.body).toMatch(/FIFA|female Afro House|100% live/i);
   });
 

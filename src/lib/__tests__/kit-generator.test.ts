@@ -8,7 +8,8 @@ describe("generateTechRiderDoc", () => {
     expect(doc).toContain(DJ_EMY.techRider.mixer[0]);
     expect(doc).toContain(DJ_EMY.techRider.players[0]);
     expect(doc).toContain(DJ_EMY.techRider.monitors);
-    expect(doc).toContain(DJ_EMY.email);
+    expect(doc).toContain(DJ_EMY.phone);
+    expect(doc).toContain(DJ_EMY.management.email);
   });
 
   it("includes every hospitality rider line", () => {
@@ -25,10 +26,11 @@ describe("generatePressKitDoc", () => {
     for (const s of DJ_EMY.sellingPoints) expect(doc).toContain(s);
   });
 
-  it("names the management company, and gives her own WhatsApp/email as the booking contact", () => {
+  it("names the management company, gives her own WhatsApp as primary, admin@ email, Kirth as backup", () => {
     const doc = generatePressKitDoc();
     expect(doc).toContain(DJ_EMY.management.company);
-    expect(doc).toContain(DJ_EMY.email);
     expect(doc).toContain(DJ_EMY.phone);
+    expect(doc).toContain(DJ_EMY.management.email);
+    expect(doc).toContain("Kirth, backup");
   });
 });

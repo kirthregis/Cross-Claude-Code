@@ -39,8 +39,8 @@ ${notesList}
 ${hospitalityList}
 
 ## Contact for technical questions
-${p.management.contactName}, ${p.management.contactRole} — ${p.management.company}
-${p.email} · ${p.phone}
+${p.name} — ${p.management.company}
+${p.phone} · ${p.management.phone} (Kirth, backup) · ${p.management.email}
 
 *Generated from ${p.name}'s current profile on ${new Date().toLocaleDateString("en-GB")}. Replace this file any time by uploading her own tech rider, or regenerate after her equipment needs change.*
 `;
@@ -74,7 +74,7 @@ ${sellingPoints}
 - Artist Instagram: ${p.instagram ?? "—"}
 - Live sets: ${p.youtube ?? "—"}
 - Management: ${p.management.company} (${p.management.instagram ?? p.management.email})
-- Booking enquiries: ${p.email} · ${p.phone}
+- Booking enquiries: ${p.phone} · ${p.management.phone} (Kirth, backup) · ${p.management.email}
 
 ## Approvals
 All artwork, billing and content approvals go through ${p.management.company}, not to the Artist directly.

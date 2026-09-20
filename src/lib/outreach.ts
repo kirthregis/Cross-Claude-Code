@@ -62,7 +62,7 @@ export function pitch(
     }
 
     const dateStr = gig.eventDate || "your upcoming date";
-    const body = `Hi there — Kirth here from Emy Vision Group, representing DJ Emy.
+    const body = `Hi there — reaching out from Emy Vision Group on behalf of DJ Emy.
 
 Saw you're booking for ${dateStr}. DJ Emy is available and it's exactly her sound.
 
@@ -75,8 +75,8 @@ Live sets: ${profile.youtube || "https://youtube.com/@DJEMY-o6d"}
 
 Shall I send over the booking confirmation?
 
-Kirth · Emy Vision Group
-${profile.phone}`;
+DJ Emy · Emy Vision Group
+${profile.phone} · ${profile.management.phone} (Kirth, backup)`;
 
     return { body };
   }
@@ -85,7 +85,7 @@ ${profile.phone}`;
   const subject = `DJ Emy — availability for ${gig.eventDate || gig.title}`;
   const body = `Dear Booking Team,
 
-I'm Kirth, Business Development at Emy Vision Group. We represent and manage DJ Emy, a GCC-based Afro House, Afro Tech, Tribal DJ.
+Reaching out from Emy Vision Group. We represent and manage DJ Emy, a GCC-based Afro House, Afro Tech, Tribal DJ.
 
 I understand you're programming for ${gig.eventDate || gig.title}. DJ Emy is available and the brief is a direct match.
 
@@ -113,9 +113,9 @@ EPK and full-length mixes: ${profile.epkUrl || "https://emyvisiongroup.com"}
 We can hold the date for 48 hours pending confirmation. Happy to jump on a call if easier.
 
 Kind regards,
-Kirth
-Business Development, Emy Vision Group
-${profile.phone} · ${profile.email}
+DJ Emy
+Emy Vision Group
+${profile.phone} · ${profile.management.phone} (Kirth, backup) · ${profile.management.email}
 ${profile.management.website || "https://emyvisiongroup.com"}`;
 
   return { subject, body };
