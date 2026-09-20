@@ -32,7 +32,26 @@ export function instagramDeepLink(handle: string): string {
 }
 
 export function mailtoLink(to: string, subject: string, body: string): string {
-  return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  // Windows' registered mailto handler (Outlook desktop specifically) silently
+  // fails or truncates on long mailto: URLs — verified: a real ~1500-char pitch
+  // body already produces a 2355-char URL, past the ~2083-char limit that
+  // ShellExecute has enforced on Windows since the IE era. Cap the body so the
+  // full URL stays safely under that regardless of subject/address length.
+  const MAX_URL_LEN = 1800;
+  const overhead = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=`.length;
+  const budget = Math.max(0, MAX_URL_LEN - overhead);
+  let encodedBody = encodeURIComponent(body);
+  if (encodedBody.length > budget) {
+    // Trim the plain text first (not the encoded string, to avoid cutting
+    // mid-escape-sequence), leaving room for a note that it was shortened.
+    const suffix = "\n\n[Message shortened to open reliably by email — full pitch available via Copy/AI Pitch.]";
+    let plain = body;
+    while (encodeURIComponent(plain + suffix).length > budget && plain.length > 0) {
+      plain = plain.slice(0, -100);
+    }
+    encodedBody = encodeURIComponent(plain + suffix);
+  }
+  return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodedBody}`;
 }
 
 export async function sendWhatsApp(to: string, message: string): Promise<boolean> {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { findVenueContact } from "../venue-lookup";
+import { findVenueContact, countryHintFromText } from "../venue-lookup";
 
 /** A minimal fetch mock: `pages` maps a URL substring to a response body; anything else 404s. */
 function mockFetch(pages: Record<string, string>) {
@@ -80,5 +80,41 @@ describe("findVenueContact", () => {
 
     const contact = await findVenueContact("Nammos Dubai");
     expect(contact?.email).toBe("events@nammos.ae");
+  });
+
+  it("picks the UAE-specific email over another location's, when both are on the same shared page", async () => {
+    // Found live: a single international brand's /contact page lists every
+    // location's events inbox — Dubai's booking must go to the Dubai one,
+    // not whichever line the regex happened to see first.
+    const site = `<html><body>Nammos — locations worldwide.
+      Mykonos: events@nammos.gr
+      Dubai: events@nammos.ae
+      Cannes: events@nammoscannes.fr
+    </body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "nammos.com": site }));
+
+    const contact = await findVenueContact("Nammos Dubai", "ae");
+    expect(contact?.email).toBe("events@nammos.ae");
+  });
+
+  it("falls back to rank alone when no country hint is given", async () => {
+    const site = `<html><body>General: info@somevenue.com Events: events@somevenue.com</body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "somevenue.com": site }));
+
+    const contact = await findVenueContact("Some Venue");
+    expect(contact?.email).toBe("events@somevenue.com");
+  });
+});
+
+describe("countryHintFromText", () => {
+  it("recognises UAE emirates and the country name", () => {
+    expect(countryHintFromText("DJ needed in Dubai, United Arab Emirates")).toBe("ae");
+    expect(countryHintFromText("Abu Dhabi nightclub opening")).toBe("ae");
+  });
+  it("recognises Oman and Muscat", () => {
+    expect(countryHintFromText("Resident DJ, Muscat, Oman")).toBe("om");
+  });
+  it("returns undefined when no country is named", () => {
+    expect(countryHintFromText("DJ wanted for a private party")).toBeUndefined();
   });
 });

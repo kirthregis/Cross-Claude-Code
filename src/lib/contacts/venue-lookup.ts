@@ -155,11 +155,36 @@ function isPlaceholderEmail(e: string): boolean {
   return PLACEHOLDER_LOCAL_PARTS.has(local);
 }
 
-function pickBestEmail(emails: string[]): string | undefined {
+// A single official site (e.g. nammos.com) is often shared across a whole
+// international group, listing every location's events inbox on the same
+// /contact page (Mykonos, Cannes, London, Dubai...). Without a country hint,
+// picking "the best-ranked email" is a coin flip between locations — verified
+// live: it landed on events@nammos.gr (Greece) for a Dubai gig, when
+// events@nammos.ae was on the very same page. The hint breaks that tie
+// towards the venue's own country without needing a second signal.
+const COUNTRY_HINTS: [RegExp, string][] = [
+  [/\b(dubai|abu\s?dhabi|sharjah|ajman|fujairah|ras al khaimah|umm al quwain|u\.?a\.?e\.?|united arab emirates)\b/i, "ae"],
+  [/\b(muscat|oman)\b/i, "om"],
+  [/\b(doha|qatar)\b/i, "qa"],
+  [/\b(riyadh|jeddah|saudi)\b/i, "sa"],
+  [/\b(manama|bahrain)\b/i, "bh"],
+  [/\b(kuwait)\b/i, "kw"],
+];
+
+export function countryHintFromText(text: string): string | undefined {
+  for (const [re, code] of COUNTRY_HINTS) if (re.test(text)) return code;
+  return undefined;
+}
+
+function pickBestEmail(emails: string[], countryHint?: string): string | undefined {
   const rank = (e: string) => {
-    if (/^(events?|bookings?|entertainment|talent)@/i.test(e)) return 3;
-    if (/^(reservations?|info|hello|contact)@/i.test(e)) return 2;
-    return 1;
+    let score = 0;
+    if (/^(events?|bookings?|entertainment|talent)@/i.test(e)) score = 30;
+    else if (/^(reservations?|info|hello|contact)@/i.test(e)) score = 20;
+    else score = 10;
+    const domain = e.split("@")[1]?.toLowerCase() ?? "";
+    if (countryHint && domain.endsWith(`.${countryHint}`)) score += 5;
+    return score;
   };
   const unique = [...new Set(emails)].filter((e) => !/\.(png|jpg|jpeg|svg|webp|gif)$/i.test(e) && !isPlaceholderEmail(e));
   return unique.sort((a, b) => rank(b) - rank(a))[0];
@@ -171,8 +196,11 @@ function pickBestEmail(emails: string[]): string | undefined {
  * reads its real email/phone. Returns null rather than a fabricated fallback
  * when nothing verifiable turns up, or when the domain guess can't be
  * confirmed specifically enough to trust.
+ *
+ * `countryHint` (e.g. "ae") breaks ties when the site lists multiple
+ * locations' contacts on the same page — see pickBestEmail().
  */
-export async function findVenueContact(venueName: string): Promise<Contact | null> {
+export async function findVenueContact(venueName: string, countryHint?: string): Promise<Contact | null> {
   const site = await findOfficialSite(venueName);
   if (!site) return null;
 
@@ -200,7 +228,7 @@ export async function findVenueContact(venueName: string): Promise<Contact | nul
     if (emails.length || phones.length) break; // found real contact info — no need to keep fetching pages
   }
 
-  const email = pickBestEmail(emails);
+  const email = pickBestEmail(emails, countryHint);
   const phone = phones[0]?.replace(/[\s-]/g, "");
   if (!email && !phone) return null;
 

@@ -11,7 +11,7 @@ import { alert, sendMorningDigest, isDigestTime } from "./notify";
 import { upsertGig, alreadyAlerted, recordSweep } from "./db";
 import type { Gig, RawLead } from "./types";
 import { registerProfileLoader } from "./profile-store";
-import { findVenueContact } from "./contacts/venue-lookup";
+import { findVenueContact, countryHintFromText } from "./contacts/venue-lookup";
 
 // Inbound leads are scored and priced — make sure saved rate overrides apply.
 registerProfileLoader();
@@ -47,7 +47,8 @@ export async function processLeads(leads: RawLead[]): Promise<SweepResult> {
       const hasDirectContact = base.contacts?.some((c) => c.email || c.phone);
       if (!base.venueName || hasDirectContact) return;
       try {
-        const found = await findVenueContact(base.venueName);
+        const hint = countryHintFromText(`${base.title} ${base.body} ${base.area ?? ""}`);
+        const found = await findVenueContact(base.venueName, hint);
         if (found) base.contacts = [found, ...(base.contacts ?? [])];
       } catch (e) {
         errors.push(`contact lookup failed for "${base.venueName}": ${e}`);

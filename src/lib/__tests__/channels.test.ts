@@ -26,6 +26,19 @@ describe("deep links", () => {
   it("caps very long prefilled messages", () => {
     expect(whatsappDeepLink("+971501112222", "x".repeat(5000)).length).toBeLessThan(2200);
   });
+  it("caps a long mailto body so it stays under Windows' mailto: length limit", () => {
+    // A real pitch email body (~1465 chars) produced a 2355-char mailto URL,
+    // past the ~2083-char ShellExecute limit Windows' default mail handler
+    // (Outlook desktop) has enforced since the IE era — verified live: the
+    // Email button silently did nothing past that length.
+    const u = mailtoLink("events@venue.ae", "DJ Booking Enquiry — Some Venue", "x".repeat(3000));
+    expect(u.length).toBeLessThan(1900);
+    expect(u).toContain("mailto:events@venue.ae");
+  });
+  it("leaves a short mailto body untouched", () => {
+    const u = mailtoLink("a@b.com", "Sub", "A short body");
+    expect(u).toBe("mailto:a@b.com?subject=Sub&body=A%20short%20body");
+  });
 });
 
 describe("action links prioritise the decision-maker", () => {
