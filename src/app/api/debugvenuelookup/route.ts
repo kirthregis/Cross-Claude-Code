@@ -6,37 +6,22 @@ const browserHeaders = {
   "Accept-Language": "en-US,en;q=0.9",
 };
 
-const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.]+/g;
-
-async function checkGoogle(q: string) {
-  try {
-    const res = await fetch(`https://www.google.com/search?q=${q}&num=10`, { signal: AbortSignal.timeout(8000), headers: browserHeaders });
-    const html = await res.text();
-    const hasCaptcha = /unusual traffic|sorry\/index|recaptcha/i.test(html);
-    const links = [...html.matchAll(/<a href="(https?:\/\/[^"&]+)"/g)].map((m) => m[1])
-      .filter((l) => !/google\.com/i.test(l));
-    return { status: res.status, htmlLength: html.length, hasCaptcha, linkCount: links.length, sampleLinks: links.slice(0, 8) };
-  } catch (e) {
-    return { error: String(e) };
-  }
-}
-
-async function checkNammosDirect() {
-  try {
-    const res = await fetch(`https://www.nammos.com/dubai/contact`, { signal: AbortSignal.timeout(8000), headers: browserHeaders });
-    const html = await res.text();
-    const emails = html.match(EMAIL_RE) ?? [];
-    return { status: res.status, htmlLength: html.length, emailsFound: [...new Set(emails)] };
-  } catch (e) {
-    return { error: String(e) };
-  }
-}
-
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const venue = url.searchParams.get("venue") || "Nammos Dubai";
   const q = encodeURIComponent(`${venue} official website`);
+  const res = await fetch(`https://www.google.com/search?q=${q}&num=10`, { signal: AbortSignal.timeout(8000), headers: browserHeaders });
+  const html = await res.text();
 
-  const [google, nammosDirect] = await Promise.all([checkGoogle(q), checkNammosDirect()]);
-  return NextResponse.json({ google, nammosDirect });
+  // Try several href patterns Google has used across variants.
+  const patterns = {
+    "url?q=": [...html.matchAll(/\/url\?q=(https?:\/\/[^"&]+)/g)].map((m) => decodeURIComponent(m[1])),
+    "plain-a-href": [...html.matchAll(/href="(https?:\/\/(?!www\.google)[^"]+)"/g)].map((m) => m[1]),
+    "data-href": [...html.matchAll(/data-href="(https?:\/\/[^"]+)"/g)].map((m) => m[1]),
+    "cite-tag": [...html.matchAll(/<cite[^>]*>([^<]+)<\/cite>/g)].map((m) => m[1]),
+  };
+  const counts = Object.fromEntries(Object.entries(patterns).map(([k, v]) => [k, v.length]));
+  const samples = Object.fromEntries(Object.entries(patterns).map(([k, v]) => [k, v.slice(0, 5)]));
+
+  return NextResponse.json({ status: res.status, htmlLength: html.length, counts, samples });
 }
