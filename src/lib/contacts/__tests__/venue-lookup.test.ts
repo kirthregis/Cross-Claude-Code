@@ -61,4 +61,24 @@ describe("findVenueContact", () => {
 
     expect(await findVenueContact("Nammos Dubai")).toBeNull();
   });
+
+  it("ignores a contact-form placeholder — not a real published address", async () => {
+    // Found live: a Gutenberg/WordPress contact form's <input placeholder="…">
+    // reads exactly like a real email once markup is stripped naively.
+    const site = `<html><body>Gunaydin Restaurant, Dubai.
+      <form><input type="email" placeholder="email@gmail.com" name="input-email" /></form>
+    </body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "gunaydinrestaurant.com": site }));
+
+    expect(await findVenueContact("Gunaydin Restaurant")).toBeNull();
+  });
+
+  it("never reads a real email out of a <script> block's source code", async () => {
+    const site = `<html><head><script>var analytics = { supportEmail: "test@test.com" };</script></head>
+      <body>Nammos Dubai — real events line: events@nammos.ae</body></html>`;
+    vi.stubGlobal("fetch", mockFetch({ "nammos.com": site }));
+
+    const contact = await findVenueContact("Nammos Dubai");
+    expect(contact?.email).toBe("events@nammos.ae");
+  });
 });

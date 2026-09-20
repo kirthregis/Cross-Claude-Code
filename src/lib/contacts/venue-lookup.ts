@@ -44,6 +44,18 @@ function decodeEntities(s: string): string {
     .replace(/&gt;/g, ">");
 }
 
+/**
+ * Strips tags (and, critically, everything inside them) before extracting
+ * contact info. Without this, a form field like
+ * <input placeholder="email@gmail.com"> reads as a real published email —
+ * that's a template's placeholder text, not anything the venue actually
+ * publishes. Only visible text content is a real contact.
+ */
+function visibleText(html: string): string {
+  const withoutScripts = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  return decodeEntities(withoutScripts.replace(/<[^>]+>/g, " "));
+}
+
 // Pure grammatical filler — never part of a brand name, but still fine to
 // drop from candidate words entirely (no venue is meaningfully "and.com").
 const STOPWORDS = new Set(["and", "the", "for", "with", "at"]);
@@ -105,7 +117,7 @@ function domainCandidates(words: string[]): Candidate[] {
  * word a real unrelated company could equally own.
  */
 function isSpecificEnoughMatch(html: string, candidateWords: string[]): boolean {
-  const lower = html.toLowerCase();
+  const lower = visibleText(html).toLowerCase();
   const confirmed = candidateWords.every((w) => lower.includes(w));
   if (!confirmed) return false;
   if (candidateWords.length >= 2) return true;
@@ -132,13 +144,24 @@ async function findOfficialSite(venueName: string): Promise<string | null> {
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.]+/g;
 const UAE_PHONE_RE = /(?:\+971|00971)[-\s]?[24-9]\d(?:[-\s]?\d){6,7}/g;
 
+// A form field's placeholder text ("email@gmail.com", "you@example.com")
+// reads exactly like a real address once tags are stripped from around it —
+// the local part is the tell, since these are always a generic word, never
+// an actual mailbox name.
+const PLACEHOLDER_LOCAL_PARTS = new Set(["email", "your", "you", "name", "test", "sample", "user", "someone", "yourname", "example"]);
+
+function isPlaceholderEmail(e: string): boolean {
+  const local = e.split("@")[0]?.toLowerCase();
+  return PLACEHOLDER_LOCAL_PARTS.has(local);
+}
+
 function pickBestEmail(emails: string[]): string | undefined {
   const rank = (e: string) => {
     if (/^(events?|bookings?|entertainment|talent)@/i.test(e)) return 3;
     if (/^(reservations?|info|hello|contact)@/i.test(e)) return 2;
     return 1;
   };
-  const unique = [...new Set(emails)].filter((e) => !/\.(png|jpg|jpeg|svg|webp|gif)$/i.test(e));
+  const unique = [...new Set(emails)].filter((e) => !/\.(png|jpg|jpeg|svg|webp|gif)$/i.test(e) && !isPlaceholderEmail(e));
   return unique.sort((a, b) => rank(b) - rank(a))[0];
 }
 
@@ -168,9 +191,9 @@ export async function findVenueContact(venueName: string): Promise<Contact | nul
   for (const page of pagesToTry) {
     const fetched = await fetchText(page, 6000);
     if (!fetched) continue;
-    const decoded = decodeEntities(fetched.html);
-    const pageEmails = decoded.match(EMAIL_RE) ?? [];
-    const pagePhones = decoded.match(UAE_PHONE_RE) ?? [];
+    const text = visibleText(fetched.html);
+    const pageEmails = text.match(EMAIL_RE) ?? [];
+    const pagePhones = text.match(UAE_PHONE_RE) ?? [];
     if (pageEmails.length || pagePhones.length) sourceUrl = page;
     emails.push(...pageEmails);
     phones.push(...pagePhones);
