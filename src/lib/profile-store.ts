@@ -1,4 +1,4 @@
-import { DJ_EMY, type ArtistProfile } from "./artist";
+import { DJ_EMY, BLANK_PROFILE, type ArtistProfile } from "./artist";
 import { db } from "./db";
 import { setProfileLoader, invalidateProfileCache } from "./active-profile";
 
@@ -24,16 +24,29 @@ function deepMerge<T>(base: T, patch: unknown): T {
   return result as T;
 }
 
+/**
+ * Blank until this browser explicitly saves a profile — so a new person who
+ * gets this app never sees (or accidentally sends out) DJ Emy's real name,
+ * contact or bio. Kirth's own device gets DJ_EMY's data back by explicitly
+ * saving it once, via the "Load DJ Emy's info" button on /profile — after
+ * that it's a real saved profile like anyone else's, not a fallback default.
+ */
 export function getProfile(): ArtistProfile {
   const saved = db.get(PROFILE_KEY);
-  if (!saved || typeof saved !== "object") return DJ_EMY;
-  return deepMerge<ArtistProfile>(DJ_EMY, saved);
+  if (!saved || typeof saved !== "object") return BLANK_PROFILE;
+  return deepMerge<ArtistProfile>(BLANK_PROFILE, saved);
 }
 
 export function saveProfile(patch: Partial<ArtistProfile>): void {
   const current = getProfile();
   const updated = deepMerge<ArtistProfile>(current, patch);
   db.set(PROFILE_KEY, updated);
+  invalidateProfileCache();
+}
+
+/** Explicitly loads DJ Emy's real sample data as this browser's saved profile. */
+export function loadEmySampleProfile(): void {
+  db.set(PROFILE_KEY, DJ_EMY);
   invalidateProfileCache();
 }
 

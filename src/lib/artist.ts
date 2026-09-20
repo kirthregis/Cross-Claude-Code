@@ -264,3 +264,79 @@ export const DJ_EMY: ArtistProfile = {
     governingLaw: "Laws of the Emirate of Dubai and applicable federal laws of the UAE.",
   },
 };
+
+/**
+ * What a brand-new user of this app sees before they've entered anything at
+ * /profile — empty name, contact, bio and rider, so nobody's pitch, contract
+ * or press kit goes out under DJ Emy's real details by accident. Business
+ * boilerplate (deposit terms, cancellation policy, governing law) stays
+ * filled in with sensible generic defaults, since that's contract mechanics,
+ * not anyone's personal identity, and a blank contract would be useless.
+ *
+ * This is the fallback in profile-store.ts's getProfile() once nothing is
+ * saved yet — Kirth's own device keeps DJ_EMY's real data by saving it
+ * explicitly once (the "Load DJ Emy's info" button on /profile).
+ */
+export const BLANK_PROFILE: ArtistProfile = {
+  name: "",
+  legalName: "",
+  tagline: "",
+  basedIn: "",
+  homeMarkets: [],
+  genres: [],
+  secondaryGenres: [],
+  wontPlay: [],
+  sellingPoints: [],
+  selectedAppearances: [],
+  languages: [],
+
+  epkUrl: "",
+  instagram: "",
+  youtube: "",
+  soundcloud: "",
+  email: "",
+  phone: "",
+
+  management: {
+    company: "",
+    legalName: "",
+    tradeLicenceNo: "",
+    contactName: "",
+    contactRole: "",
+    email: "",
+    phone: "",
+    instagram: "",
+    website: "",
+    address: "",
+  },
+
+  baseRatesAed: {
+    brand_activation: 0, festival: 0, private_event: 0, superclub: 0, beach_club: 0,
+    unknown: 0, hotel_lounge: 0, bar_restaurant: 0, hotel: 0, private: 0, other: 0,
+  },
+  hardFloorAed: 0,
+
+  techRider: { mixer: [], players: [], monitors: "", booth: [], connectivity: [], notes: [] },
+  hospitalityRider: [],
+
+  contractDefaults: {
+    depositPercent: 50,
+    depositDueDays: 14,
+    balanceDueDays: 0,
+    cancellationTiers: [
+      { withinDays: 7, artistKeepsPercent: 100 },
+      { withinDays: 14, artistKeepsPercent: 75 },
+      { withinDays: 30, artistKeepsPercent: 50 },
+    ],
+    defaultExclusivityKm: 5,
+    soundLimitPolicy:
+      "The Venue is responsible for compliance with all local noise ordinances. The Artist's fee is not reduced for venue-imposed volume restrictions.",
+    recordingPolicy:
+      "Audio/video recording of the performance for commercial release requires the Artist's prior written consent. Short-form social clips (under 90 seconds) are permitted with credit and tag.",
+    ipPolicy:
+      "The Artist retains all rights in her performance, name, likeness, logo and any mixes supplied. The Venue is granted a limited, non-exclusive, revocable licence to use the Artist's name and approved press images solely to promote this engagement, for the period ending 30 days after the event.",
+    forceMajeure:
+      "Neither party is liable for failure to perform due to events beyond reasonable control (including government restriction, extreme weather, or national mourning). The deposit is transferable to a mutually agreed rescheduled date within 6 months.",
+    governingLaw: "Laws of the Emirate of Dubai and applicable federal laws of the UAE.",
+  },
+};

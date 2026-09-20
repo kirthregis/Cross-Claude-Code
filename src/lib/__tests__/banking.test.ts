@@ -4,6 +4,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { normalise } from "../extract";
 import { nanoid } from "nanoid";
+import { DJ_EMY } from "../artist";
 import type { Gig } from "../types";
 
 const gig = (): Gig => ({
@@ -12,9 +13,22 @@ const gig = (): Gig => ({
   id: nanoid(10), score: 80, stage: "new",
 });
 
+/**
+ * A brand-new browser starts blank (see profile-store.ts's getProfile()) so
+ * a stranger who gets this app never sends out DJ Emy's real details by
+ * accident. These tests are specifically about HER real settlement/legal
+ * details appearing correctly, so they seed her full profile explicitly
+ * rather than relying on it being the default.
+ */
+async function seedEmyProfile() {
+  const { saveProfile } = await import("../profile-store");
+  saveProfile(DJ_EMY);
+}
+
 describe("EVG entity + settlement details", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     process.env.DB_PATH = join(mkdtempSync(join(tmpdir(), "gr-")), "t.db");
+    await seedEmyProfile();
   });
 
   it("prints the real EVG settlement details on the invoice", async () => {
@@ -80,6 +94,11 @@ describe("EVG entity + settlement details", () => {
 });
 
 describe("artist legal identity", () => {
+  beforeEach(async () => {
+    process.env.DB_PATH = join(mkdtempSync(join(tmpdir(), "gr-")), "t.db");
+    await seedEmyProfile();
+  });
+
   it("names Imen Mannai as the performer in the contract", async () => {
     const { generateDealPack } = await import("../contract");
     const c = generateDealPack(gig()).contract;

@@ -5,72 +5,74 @@
  * User just clicks send. Nothing to copy, paste, or attach.
  */
 
-import { DJ_EMY } from "@/lib/artist";
+import { activeProfile } from "@/lib/active-profile";
 
 // ── Pitch Text (short for WhatsApp/IG, full for email) ──────
 
 function shortPitch(contactName: string, gigTitle: string): string {
+  const p = activeProfile();
   return [
     `Hi ${contactName}`,
     ``,
     `I saw your listing for "${gigTitle}" and I'm interested.`,
     ``,
-    `I'm ${DJ_EMY.name}, ${DJ_EMY.tagline}.`,
+    `I'm ${p.name}, ${p.tagline}.`,
     ``,
-    `• ${DJ_EMY.selectedAppearances[0]}`,
-    `• ${DJ_EMY.selectedAppearances[1]}`,
-    `• Genres: ${DJ_EMY.genres.slice(0, 3).join(", ")}`,
-    `• Bilingual: ${DJ_EMY.languages.join("/")}`,
+    `• ${p.selectedAppearances[0]}`,
+    `• ${p.selectedAppearances[1]}`,
+    `• Genres: ${p.genres.slice(0, 3).join(", ")}`,
+    `• Bilingual: ${p.languages.join("/")}`,
     ``,
-    `EPK: ${DJ_EMY.epkUrl}`,
-    `IG: https://instagram.com/${(DJ_EMY.instagram || "").replace("@", "")}`,
-    `YT: ${DJ_EMY.youtube}`,
+    `EPK: ${p.epkUrl}`,
+    `IG: https://instagram.com/${(p.instagram || "").replace("@", "")}`,
+    `YT: ${p.youtube}`,
     ``,
-    `${DJ_EMY.name}`,
-    `${DJ_EMY.phone} · ${DJ_EMY.management.phone} (Kirth, backup)`,
+    `${p.name}`,
+    `${p.phone} · ${p.management.phone} (Kirth, backup)`,
   ].join("\n");
 }
 
 function fullPitch(contactName: string, gigTitle: string): string {
+  const p = activeProfile();
   return [
     `Hi ${contactName},`,
     ``,
     `I saw your listing for "${gigTitle}" and I would like to express my interest.`,
     ``,
-    `I am ${DJ_EMY.name} (${DJ_EMY.legalName}), ${DJ_EMY.tagline}.`,
+    `I am ${p.name} (${p.legalName}), ${p.tagline}.`,
     ``,
     `KEY CREDENTIALS:`,
-    ...DJ_EMY.sellingPoints.map(p => `- ${p}`),
+    ...p.sellingPoints.map(s => `- ${s}`),
     ``,
     `SELECTED APPEARANCES:`,
-    ...DJ_EMY.selectedAppearances.map(a => `- ${a}`),
+    ...p.selectedAppearances.map(a => `- ${a}`),
     ``,
-    `GENRES: ${DJ_EMY.genres.join(", ")}`,
-    `LANGUAGES: ${DJ_EMY.languages.join(" / ")}`,
+    `GENRES: ${p.genres.join(", ")}`,
+    `LANGUAGES: ${p.languages.join(" / ")}`,
     ``,
     `LINKS:`,
-    `EPK: ${DJ_EMY.epkUrl || ""}`,
-    `Instagram: https://instagram.com/${(DJ_EMY.instagram || "").replace("@", "")}`,
-    `YouTube: ${DJ_EMY.youtube || ""}`,
+    `EPK: ${p.epkUrl || ""}`,
+    `Instagram: https://instagram.com/${(p.instagram || "").replace("@", "")}`,
+    `YouTube: ${p.youtube || ""}`,
     ``,
     `TECH RIDER:`,
-    `${DJ_EMY.techRider.players.join(", ")}`,
-    `${DJ_EMY.techRider.mixer.join(", ")}`,
-    `${DJ_EMY.techRider.monitors}`,
+    `${p.techRider.players.join(", ")}`,
+    `${p.techRider.mixer.join(", ")}`,
+    `${p.techRider.monitors}`,
     ``,
     `CONTACT:`,
-    `${DJ_EMY.name}`,
-    `Email: ${DJ_EMY.management.email}`,
-    `Phone/WhatsApp: ${DJ_EMY.phone} · ${DJ_EMY.management.phone} (Kirth, backup)`,
-    `Instagram: ${DJ_EMY.instagram}`,
-    `Management: ${DJ_EMY.management.company} - ${DJ_EMY.management.website || ""}`,
+    `${p.name}`,
+    `Email: ${p.management.email}`,
+    `Phone/WhatsApp: ${p.phone} · ${p.management.phone} (Kirth, backup)`,
+    `Instagram: ${p.instagram}`,
+    `Management: ${p.management.company} - ${p.management.website || ""}`,
     ``,
     `I look forward to discussing this opportunity.`,
     ``,
     `Best regards,`,
-    `${DJ_EMY.name}`,
-    `${DJ_EMY.instagram}`,
-    `${DJ_EMY.phone} · ${DJ_EMY.management.phone} (Kirth, backup)`,
+    `${p.name}`,
+    `${p.instagram}`,
+    `${p.phone} · ${p.management.phone} (Kirth, backup)`,
   ].join("\n");
 }
 
@@ -79,26 +81,27 @@ export { fullPitch as generatePitchText };
 // ── Email: opens Gmail compose with message written, ready to send ──
 
 export function openEmail(toEmail: string, contactName: string, gigTitle: string): void {
-  const subject = `DJ Booking Inquiry: ${gigTitle} - ${DJ_EMY.name}`;
+  const p = activeProfile();
+  const subject = `DJ Booking Inquiry: ${gigTitle} - ${p.name}`;
   const body = [
     `Hi ${contactName},`,
     ``,
     `I saw your listing for "${gigTitle}" and I would like to express my interest.`,
     ``,
-    `I am ${DJ_EMY.name} (${DJ_EMY.legalName}), ${DJ_EMY.tagline}.`,
+    `I am ${p.name} (${p.legalName}), ${p.tagline}.`,
     ``,
-    `- ${DJ_EMY.selectedAppearances[0]}`,
-    `- ${DJ_EMY.selectedAppearances[1]}`,
-    `- Genres: ${DJ_EMY.genres.slice(0, 3).join(", ")}`,
-    `- Bilingual: ${DJ_EMY.languages.join("/")}`,
+    `- ${p.selectedAppearances[0]}`,
+    `- ${p.selectedAppearances[1]}`,
+    `- Genres: ${p.genres.slice(0, 3).join(", ")}`,
+    `- Bilingual: ${p.languages.join("/")}`,
     ``,
-    `EPK: ${DJ_EMY.epkUrl}`,
-    `IG: https://instagram.com/${(DJ_EMY.instagram || "").replace("@", "")}`,
-    `YT: ${DJ_EMY.youtube}`,
+    `EPK: ${p.epkUrl}`,
+    `IG: https://instagram.com/${(p.instagram || "").replace("@", "")}`,
+    `YT: ${p.youtube}`,
     ``,
     `Best regards,`,
-    `${DJ_EMY.name}`,
-    `${DJ_EMY.phone} · ${DJ_EMY.management.phone} (Kirth, backup)`,
+    `${p.name}`,
+    `${p.phone} · ${p.management.phone} (Kirth, backup)`,
   ].join("\n");
 
   // Open Gmail compose directly - works everywhere

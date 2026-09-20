@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getProfile, saveProfile } from "@/lib/profile-store";
+import { getProfile, saveProfile, loadEmySampleProfile } from "@/lib/profile-store";
 import type { ArtistProfile } from "@/lib/artist";
 import type { VenueTier } from "@/lib/types";
 import { Card, SectionLabel, Button } from "@/components/studio/ui";
@@ -54,6 +54,13 @@ export default function ProfilePage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleLoadEmySample = () => {
+    loadEmySampleProfile();
+    setProfileState(getProfile());
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   const set = <K extends keyof ArtistProfile>(key: K, value: ArtistProfile[K]) =>
     setProfileState((p) => ({ ...p, [key]: value }));
 
@@ -83,8 +90,16 @@ export default function ProfilePage() {
         </div>
         <h1 className="mt-4 text-3xl font-black">{profile.name || "Your Profile"}</h1>
         <p className="mt-1 text-sm text-zinc-400">
-          This is your own copy of the app. Everything here is saved only in this browser — fill in your real name, contact, bio and rider, and every pitch, contract, invoice and EPK document will use your details instead of the sample ones.
+          Everything here is saved only in this browser. Fill in your real name, contact, bio and rider below, and every pitch, contract, invoice and EPK document will use your details.
         </p>
+
+        {!profile.name && (
+          <div className="mt-4 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 p-4">
+            <p className="text-sm font-semibold text-fuchsia-200">This copy is empty — nothing is filled in yet.</p>
+            <p className="mt-1 text-xs text-zinc-400">Type your own details below and press Save at the bottom. If this is Kirth setting up DJ Emy&apos;s device, use the button instead:</p>
+            <Button variant="ghost" className="mt-2" onClick={handleLoadEmySample}>Load DJ Emy&apos;s info</Button>
+          </div>
+        )}
 
         <div className="mt-6 space-y-4">
           <Card className="p-5">
