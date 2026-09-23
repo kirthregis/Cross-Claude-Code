@@ -56,7 +56,7 @@ export function generatePressKitDoc(): string {
 ${p.tagline}
 
 ## Bio
-${p.name} is a ${p.tagline.toLowerCase()}, based in ${p.basedIn}. ${p.sellingPoints[0] ?? ""} ${p.sellingPoints[1] ?? ""}
+${p.name} is a ${p.tagline}, based in ${p.basedIn}. ${[p.sellingPoints[0], p.sellingPoints[1]].filter(Boolean).join(". ")}${p.sellingPoints[1] ? "." : ""}
 
 ## Genres
 ${genres}
