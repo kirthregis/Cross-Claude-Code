@@ -72,7 +72,7 @@ export function DigitalCard(c: CardData) {
         <div className="rounded-3xl p-[1.5px]" style={{ backgroundColor: evg.accent }}>
           <div className="rounded-3xl p-6" style={{ backgroundColor: evg.panel }}>
             <div className="relative w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "4 / 5", backgroundColor: evg.ground, border: `1px solid ${evg.line}` }}>
-              <Image src={c.photoUrl} alt={c.name} fill sizes="400px" className="object-cover" style={{ objectPosition: "50% 15%" }} priority />
+              <Image src={c.photoUrl} alt={c.name} fill unoptimized sizes="400px" className="object-cover" style={{ objectPosition: "50% 15%" }} priority />
             </div>
 
             <div className="mt-5 text-center">
