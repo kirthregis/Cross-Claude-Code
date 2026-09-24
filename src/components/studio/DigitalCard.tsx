@@ -2,6 +2,11 @@
 
 import { whatsappDeepLink, instagramDeepLink } from "@/lib/channels";
 
+/** A phone field can hold more than one number for display (see primaryPhone() in channels.ts) — a vCard can hold every number it finds, each as its own TEL line, rather than picking just one. */
+function allPhoneNumbers(raw: string): string[] {
+  return raw.match(/\+\d[\d\s-]{6,}\d/g)?.map((s) => s.trim()) ?? [raw];
+}
+
 export interface CardData {
   name: string;
   subtitle?: string;
@@ -28,7 +33,7 @@ function vcardText(c: CardData): string {
     `FN:${c.name}`,
     `ORG:${c.company}`,
     `TITLE:${c.role}`,
-    `TEL;TYPE=CELL:${c.phone}`,
+    ...allPhoneNumbers(c.phone).map((num) => `TEL;TYPE=CELL:${num}`),
     c.email ? `EMAIL:${c.email}` : "",
     c.website ? `URL:${c.website}` : "",
     "END:VCARD",

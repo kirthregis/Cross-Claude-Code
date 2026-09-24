@@ -18,8 +18,20 @@ export function cleanPhone(raw: string): string {
   return raw.replace(/[^0-9]/g, "");
 }
 
+/**
+ * Some phone fields hold more than one number for display — e.g. artist.ts's
+ * profile.phone is "+971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)". Naively
+ * stripping non-digits from that whole string concatenates both numbers into
+ * one 23-digit non-number (verified: broke the WhatsApp button on Emy's
+ * digital business card). Take just the first "+<digits>" run instead.
+ */
+export function primaryPhone(raw: string): string {
+  const match = raw.match(/\+\d[\d\s-]{6,}\d/);
+  return match ? match[0] : raw;
+}
+
 export function whatsappDeepLink(phone: string, text: string): string {
-  const digits = cleanPhone(phone);
+  const digits = cleanPhone(primaryPhone(phone));
   // Cap text length so total URL is well within browser / messaging limits (< 2000 chars)
   const maxTextLen = 1500;
   const trimmed = text.length > maxTextLen ? text.slice(0, maxTextLen) : text;

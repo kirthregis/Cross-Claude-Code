@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { whatsappDeepLink, instagramDeepLink, mailtoLink, actionLinks, channelStatus, whatsappConfigured, emailConfigured } from "../channels";
+import { whatsappDeepLink, instagramDeepLink, mailtoLink, primaryPhone, actionLinks, channelStatus, whatsappConfigured, emailConfigured } from "../channels";
 import { normalise } from "../extract";
 import { nanoid } from "nanoid";
 import type { Gig } from "../types";
@@ -14,6 +14,19 @@ describe("deep links", () => {
     const u = whatsappDeepLink("+971 50 111 2222", "Hi there!");
     expect(u).toContain("https://wa.me/971501112222");
     expect(u).toContain("text=Hi%20there!");
+  });
+  it("uses only the first number from a two-country display string, not both concatenated", () => {
+    // profile.phone is "+971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)" — verified
+    // live: naively stripping non-digits from the whole string glued both
+    // numbers into one 23-digit non-number, breaking the WhatsApp button on
+    // Emy's digital business card entirely.
+    const u = whatsappDeepLink("+971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)", "Hi!");
+    expect(u).toContain("https://wa.me/971503443281?");
+    expect(u).not.toContain("97474767686");
+  });
+  it("primaryPhone extracts just the first number from a labelled multi-number string", () => {
+    expect(primaryPhone("+971 50 344 3281 (UAE) · +974 7476 7686 (Qatar)")).toBe("+971 50 344 3281");
+    expect(primaryPhone("+971 50 111 2222")).toBe("+971 50 111 2222"); // single number, unchanged
   });
   it("strips the @ from instagram handles", () => {
     expect(instagramDeepLink("@dj_emy_")).toBe("https://instagram.com/dj_emy_");
