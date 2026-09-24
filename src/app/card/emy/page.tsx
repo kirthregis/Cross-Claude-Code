@@ -17,7 +17,7 @@ export default function EmyCardPage() {
   const card: CardData = {
     name: profile.name || "DJ Emy",
     subtitle: profile.legalName,
-    roles: ["Professional DJ", `Creative Director, ${profile.management.company}`],
+    roles: ["Professional DJ", `Co-Founder & Creative Director, ${profile.management.company}`],
     company: profile.management.company,
     photoUrl: "/cards/emy.png",
     credentials: profile.selectedAppearances.slice(0, 2),
