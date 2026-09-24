@@ -17,14 +17,14 @@ export default function EmyCardPage() {
   const card: CardData = {
     name: profile.name || "DJ Emy",
     subtitle: profile.legalName,
-    role: profile.tagline,
-    company: `Represented by ${profile.management.company}`,
+    roles: ["Professional DJ", `Creative Director, ${profile.management.company}`],
+    company: profile.management.company,
+    photoUrl: "/cards/emy.png",
     credentials: profile.selectedAppearances.slice(0, 2),
     phone: profile.phone,
     whatsappGreeting: "Hi DJ Emy, great to connect — we met at Dubai Friendly Networking!",
     instagram: profile.instagram,
     youtube: profile.youtube,
-    avatarLetter: (profile.name || "E").charAt(0).toUpperCase(),
   };
 
   return <DigitalCard {...card} />;

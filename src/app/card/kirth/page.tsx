@@ -16,15 +16,15 @@ export default function KirthCardPage() {
   const m = profile.management;
 
   const card: CardData = {
-    name: m.contactName || "Kirth Regis",
-    role: m.contactRole ? `Co-Owner, ${m.company}` : m.company,
-    company: `${m.company} — Artist Management & Entertainment`,
+    name: "Kirth Regis",
+    roles: ["Co-Founder, Business Development"],
+    company: m.company,
+    photoUrl: "/cards/kirth.jpg",
     phone: m.phone,
     whatsappGreeting: "Hi Kirth, great to connect — we met at Dubai Friendly Networking!",
     email: m.email,
     instagram: m.instagram,
     website: m.website,
-    avatarLetter: (m.contactName || "K").charAt(0).toUpperCase(),
   };
 
   return <DigitalCard {...card} />;
